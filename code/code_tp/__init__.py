@@ -17,6 +17,9 @@ def create_agent_and_env(
         env_name="GridCliff-v0",
         env_wrappers=[]
     ):
+    """
+    A priori non utilisée
+    """
     import gym
 
     if "save_dir" not in agent_args.keys():
@@ -38,6 +41,11 @@ def create_agent_and_env(
 def create_agent_from_env(env, agent_class, value_class, policy_class,
                                agent_args={}, value_args={}, policy_args={}
                           ):
+    """
+    Fonction utilitaire permettant de lancer une expérience en instanciant l'agent,
+    la fonction de valeur et la politique correctement, tout en enregistrant les
+    paramètres dans le dossier de l'expérience.
+    """
     save_suffix = date_dirname() + "-" + str(env).replace("<",".").replace(">","")
     if "save_dir" not in agent_args.keys():
         agent_args["save_dir"] = "results"+os.path.sep

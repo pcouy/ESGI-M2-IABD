@@ -190,6 +190,7 @@ class QLearningAgent(Agent):
         * `env`: Environnement gym dans lequel l'agent évolue
         * `value_function`: Instance d'une fonction de valeur (voir `code_tp/value_functions`)
         * `policy`: Instance d'une politique (voir `code_tp/policies`)
+        * `gamma`: Taux de discount de l'agent. Doit être compris entre 0 et 1
         """
         super().__init__(env, *args, **kwargs)
         self.value_function = value_function
