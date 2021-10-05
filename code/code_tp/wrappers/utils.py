@@ -2,6 +2,9 @@ import gym
 import numpy as np
 
 class LogScaleObs(gym.ObservationWrapper):
+    """
+    Transforme les observations afin de dilater les valeurs proches de zero
+    """
     def __init__(self, env, *args, **kwargs):
         super().__init__(env, *args, **kwargs)
         assert isinstance(self.env.observation_space, gym.spaces.Box)
@@ -25,6 +28,10 @@ class LogScaleObs(gym.ObservationWrapper):
 
 
 class TabularObservation(gym.ObservationWrapper):
+    """
+    Transforme les observations de type `gym.spaces.Box` en `gym.spaces.Discrete` en découpant les
+    intervals de valeurs en tranches égales.
+    """
     def __init__(self, env, n_levels, feature_wrapper=None, *args, **kwargs):
         if feature_wrapper is not None:
             env = feature_wrapper(env)
@@ -53,5 +60,8 @@ class TabularObservation(gym.ObservationWrapper):
         return r
 
 class BoredomWrapper(gym.RewardWrapper):
+    """
+    Ajoute une faible punition à tous les pas de temps.
+    """
     def reward(self, reward):
         return reward - 0.01

@@ -4,7 +4,11 @@ from .base import DiscreteQFunction
 import os
 
 class TabularQValue(DiscreteQFunction):
+    """Fonction de valeur tabulaire"""
     def __init__(self, env, default_value=0, *args, **kwargs):
+        """
+        * `default_value`: Valeur d'initialisation *a priori* des états-actions
+        """
         self.known_states = dict()
         self.n_known_states = [0]
         self.visit_count = dict()

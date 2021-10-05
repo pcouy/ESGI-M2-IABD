@@ -1,20 +1,40 @@
 import numpy as np
 
 class RandomPolicy:
+    """
+    Politique aléatoire, sert de classe de base à toutes les politiques.
+    Un agent suivant cette politique est équivalent à un `RandomAgent` dans son comportement
+    """
     def __init__(self, value_function):
         self.value_function = value_function
         self.stats = {}
+        self.agent = None
 
     def __call__(self, state):
+        """
+        Prend un état en argument, retourne une action
+        """
         return self.value_function.action_space.sample()
 
     def test(self, state):
+        """
+        Prend un état en argument, retourne une action.
+        Utilisée durant les épisodes d'évaluation, le comportement par défaut est d'appliquer
+        la politique définie dans `__call__`
+        """
         return self(state)
 
     def update(self):
+        """
+        Méthode appelée à la fin de chaque pas de temps pour éventuellement mettre
+        à jour la politique
+        """
         pass
 
 class GreedyQPolicy(RandomPolicy):
+    """
+    Implémente la politique *greedy* sur une fonction de valeur
+    """
     def __init__(self, value_function):
         super().__init__(value_function)
         self.stats.update({

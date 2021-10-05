@@ -5,6 +5,11 @@ from .base import QLearningAgent
 from ..utils import isnotebook
 
 class GridworldTabularValueAgent(QLearningAgent):
+    """
+    Ajoute un callback au `QLearningAgent` pour afficher la fonction de valeur superposée
+    à l'environnement. N'introduit aucune connaissance spécifique à l'environnement dans
+    le processus d'entrainement.
+    """
     def show_values(self, save_dir):
         img = self.env.render('rgb_array')
         fig, ax = plt.subplots(figsize=(10,10))

@@ -4,6 +4,7 @@ import numpy as np
 from .tabular import TabularValueAgent
 
 class AddDirectionToSnakeState(gym.ObservationWrapper):
+    """Wrapper gym qui ajoute à l'observation du snake la direction de déplacement actuelle"""
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.observation_space = gym.spaces.Tuple((gym.spaces.Discrete(4), self.env.observation_space))
@@ -13,10 +14,21 @@ class AddDirectionToSnakeState(gym.ObservationWrapper):
 
 
 class SnakeFeatureObservation(gym.ObservationWrapper):
+    """
+    Wrapper gym qui permet de transformer l'observation brute du snake en un 
+    ensemble de *features expertes*
+    """
     from gym_snake import constants
     OC = constants.ObjectColor
 
     def __init__(self, env, grid_size, food_direction="unit_vector", *args, **kwargs):
+        """
+        * `env`: Environnement à envelopper
+        * `grid_size`: Taille de la grille de l'environnement
+        * `food_direction`: prend les valeurs `"unit_vector"` ou `"angle"`, détermine si la direction
+                    dans laquelle se trouve la nouriture doit être indiquée par un vecteur unitaire
+                    ou un angle
+        """
         env = AddDirectionToSnakeState(env)
         super().__init__(env, *args, **kwargs)
         self.food_direction = food_direction
@@ -28,6 +40,9 @@ class SnakeFeatureObservation(gym.ObservationWrapper):
 
 
     def observation(self, s):
+        """
+        Prend en entrée l'observation `s` et retourne l'observation dans le nouveau format
+        """
         state, direction = s
         state = np.rot90(state, k=-int(direction))
         head_pos = np.stack(np.where(np.all(state == self.OC.own_head, axis=-1)), axis=-1)
@@ -78,6 +93,13 @@ class SnakeFeatureObservation(gym.ObservationWrapper):
             return np.concatenate((lidars, [apple_dist, apple_angle]))
 
 def make_feature_snake_env(grid_size, log_scale=True, food_direction="unit_vector"):
+    """
+    Fonction utilitaire retournant un environnement snake équipé du wrapper `SnakeFeatureObservation`
+
+    * `grid_size`: Taille de la grille (4 ; 8 ou 16)
+    * `log_scale`: Si `True`, applique le wrapper `code_tp.wrappers.utils.LogScaleObs`
+    * `food_direction`: Voir `SnakeFeatureObservation`
+    """
     assert grid_size in [4,8,16]
     env = gym.make("Snake-{}x{}-v0".format(grid_size,grid_size))
     env = SnakeFeatureObservation(env, grid_size, food_direction)
@@ -86,12 +108,23 @@ def make_feature_snake_env(grid_size, log_scale=True, food_direction="unit_vecto
     return env
 
 def make_tabular_snake_env(grid_size, n_levels, log_scale=True):
+    """
+    Créé un environnement snake aux états discrets (en discretisant les *features* de
+    `SnakeFeatureObservation`
+
+    * `grid_size`: Taille de la grille (4 ; 8 ou 16)
+    * `n_levels`: Tableau indiquant le nombre de valeurs possibles pour chaque *feature* discretisée
+    * `log_scale`: Appliquer le wrapper `LogScaleObs` avant de discrétiser
+    """
     env = make_feature_snake_env(grid_size, log_scale)
     env = TabularObservation(env, n_levels)
     return env
 
 
 def manual_control(env):
+    """
+    Permet de controler manuellement le serpent.
+    """
     import sys
     import gym
     import time
