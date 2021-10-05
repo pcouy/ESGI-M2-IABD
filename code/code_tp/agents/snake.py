@@ -1,7 +1,6 @@
 from ..wrappers.utils import TabularObservation, BoredomWrapper, LogScaleObs
 import gym
 import numpy as np
-from .tabular import TabularValueAgent
 
 class AddDirectionToSnakeState(gym.ObservationWrapper):
     """Wrapper gym qui ajoute à l'observation du snake la direction de déplacement actuelle"""
