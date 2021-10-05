@@ -1,0 +1,47 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from .base import DiscreteQFunction
+import os
+
+class TabularQValue(DiscreteQFunction):
+    def __init__(self, env, default_value=0, *args, **kwargs):
+        self.known_states = dict()
+        self.n_known_states = [0]
+        self.visit_count = dict()
+        self.default_value = default_value
+        super().__init__(env, *args, **kwargs)
+        self.stats.update({
+            "n_known_states": {
+                "x_label": "Steps",
+                "data": [0]
+            }
+        })
+
+    def __call__(self, state, action):
+        return self.from_state(str(state))[action]
+
+    def create_state(self, state):
+        self.known_states[str(state)] = {k:self.default_value for k in self.enum_actions()}
+        self.visit_count[str(state)] = {k:0 for k in self.enum_actions()}
+
+    def from_state(self, state):
+        if str(state) not in self.known_states:
+            self.create_state(state)
+        return self.known_states[str(state)]
+
+    def update(self, state, action, target_value):
+        Q = self(state, action)
+        self.known_states[str(state)][action] = (1-self.lr)*Q + self.lr*target_value
+        self.stats['n_known_states']['data'].append(len(self.known_states))
+        self.visit_count[str(state)][action]+= 1
+        super().update(str(state), action, target_value)
+
+    def show_known_states(self, save_dir):
+        fig, ax = plt.subplots()
+        ax.plot(self.n_known_states)
+        fig.tight_layout()
+        fig.savefig(os.path.join(
+            save_dir,
+            "n_known_states.png"
+        ))
+        plt.close(fig)
