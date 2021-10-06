@@ -15,4 +15,6 @@ pip install -e ESGI-M2-IABD/code
 
 L'argument `-e` passé à `pip` vous permet d'apporter des modifications au contenu du dossier `code` et de les tester sans avoir à réinstaller le module.
 
+La documentation présente dans ce dépôt est [également consultable en ligne](https://pcouy.github.io/ESGI-M2-IABD/)
+
 Si vous ouvrez les notebooks dans Google Colab, le clonage du dépôt et l'installation du module se font automatiquement dans la première cellule (qui ne fait rien si le notebook est ouvert en dehors de colab).
