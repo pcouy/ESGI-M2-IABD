@@ -3,8 +3,6 @@ from ..mazelab import BaseMaze
 from ..mazelab import Object
 from ..mazelab import DeepMindColor as color
 
-from ..mazelab.generators import u_maze
-
 from ..mazelab import BaseEnv
 from ..mazelab import VonNeumannMotion
 
