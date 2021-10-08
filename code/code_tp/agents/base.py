@@ -68,12 +68,11 @@ class Agent:
             env = self.env
         else:
             os.makedirs(os.path.join(self.save_dir, "videos"), exist_ok=True)
-            env = gym.wrappers.monitoring.video_recorder.VideoRecorder(self.env, os.path.join(
+            env = gym.wrappers.RecordVideo(self.env, os.path.join(
                 self.save_dir,
                 "videos",
-                "{:5d}.mp4".format(self.training_episodes)
-            ))
-            env = self.env
+                "{:5d}".format(self.training_episodes)
+            ), episode_trigger=lambda _: True)
 
         state = env.reset()
         done = False
