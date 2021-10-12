@@ -3,3 +3,4 @@ numpy
 matplotlib
 pillow
 pyqt5
+torch
