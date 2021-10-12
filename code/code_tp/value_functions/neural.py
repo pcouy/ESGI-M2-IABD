@@ -60,7 +60,10 @@ class ConvolutionalNN(nn.Module):
 class ConvolutionalQFunction(DiscreteQFunction):
     def __init__(self, env, nn_args, *args, **kwargs):
         super().__init__(env, *args, **kwargs)
-        self.nn = ConvolutionalNN(env.observation_space.shape, env.action_space.n, **nn_args)
+        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        self.nn = ConvolutionalNN(
+            env.observation_space.shape, env.action_space.n, **nn_args
+        ).to(self.device)
         self.optim = torch.optim.Adam(self.nn.parameters(), lr=self.lr)
         self.stats.update({
             'nn_loss': {
