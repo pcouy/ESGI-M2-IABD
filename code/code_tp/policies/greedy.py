@@ -51,7 +51,7 @@ class GreedyQPolicy(RandomPolicy):
         if type(value) is torch.Tensor:
             value = value.clone().detach().item()
         if type(values) is torch.Tensor:
-            values = values.clone().detach().numpy()
+            values = values.clone().detach().cpu().numpy()
 
         actions = [k for k,v in enumerate(values) if v == value]
 
