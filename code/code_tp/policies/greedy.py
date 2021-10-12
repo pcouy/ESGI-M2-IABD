@@ -1,4 +1,5 @@
 import numpy as np
+import torch
 
 class RandomPolicy:
     """
@@ -46,11 +47,14 @@ class GreedyQPolicy(RandomPolicy):
 
     def __call__(self, state):
         values = self.value_function.from_state(state)
-        if type(values) is not dict:
-            values = {k:v for k,v in enumerate(values)}
-        value, _ = max((v,a) for a,v in values.items())
+        action, value = self.value_function.best_action_value_from_state(state)
+        if type(value) is torch.Tensor:
+            value = value.clone().detach().item()
+        if type(values) is torch.Tensor:
+            values = values.clone().detach().numpy()
 
-        actions = [k for k,v in values.items() if v==value]
+        actions = [k for k,v in enumerate(values) if v == value]
+
 
         self.stats['predicted_value']['data'].append(value)
         return np.random.choice(actions)

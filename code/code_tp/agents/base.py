@@ -3,6 +3,7 @@ import numpy as np
 import os
 import json
 import matplotlib.pyplot as plt
+import torch
 
 
 class Agent:
@@ -152,6 +153,10 @@ class Agent:
         affiche directement les courbes, sinon les sauvegarde.
         """
         def plot_stat(name, x_label="", data=[]):
+            if type(data) is torch.Tensor:
+                data = data.detach().numpy()
+            if len(data) and type(data[0]) is torch.Tensor:
+                data = [item.detach() for item in data]
             fig, ax = plt.subplots()
             ax.plot(data)
             plt.xlabel(x_label)
@@ -184,14 +189,14 @@ class QLearningAgent(Agent):
     """
     Implémente l'algorithme du *Q-Learning*
     """
-    def __init__(self, env, value_function, policy, gamma=0.99, *args, **kwargs):
+    def __init__(self, env, value_function, policy, gamma=0.99, **kwargs):
         """
         * `env`: Environnement gym dans lequel l'agent évolue
         * `value_function`: Instance d'une fonction de valeur (voir `code_tp/value_functions`)
         * `policy`: Instance d'une politique (voir `code_tp/policies`)
         * `gamma`: Taux de discount de l'agent. Doit être compris entre 0 et 1
         """
-        super().__init__(env, *args, **kwargs)
+        super().__init__(env, **kwargs)
         self.value_function = value_function
         self.policy = policy
         self.gamma = gamma
@@ -199,16 +204,23 @@ class QLearningAgent(Agent):
         self.policy.agent = self
 
     def train_with_transition(self, state, action, next_state, reward, done, infos):
-        if not done:
-            values = self.value_function.from_state(next_state)
-            if type(values) is not dict:
-                values = {k:v for k,v in enumerate(values)}
-            next_value, _ = max((v,a) for a,v in values.items())
-        else:
-            next_value = 0
-        target_value = reward + self.gamma*next_value
+        target_value = self.target_value_from_state(next_state, reward, done)
         self.value_function.update(state, action, target_value)
         self.policy.update()
+
+    def target_value_from_state(self, next_state, reward, done):
+        _, next_value = self.value_function.best_action_value_from_state(next_state)
+        if type(next_value) is torch.Tensor:
+            next_value = next_value.detach().numpy()
+        target = reward + self.gamma * next_value * (1-done)
+        return target
+
+    def target_value_from_state_batch(self, next_states, rewards, dones):
+        _, next_values = self.value_function.best_action_value_from_state_batch(next_states)
+        if type(next_values) is torch.Tensor:
+            next_values = next_values.detach().numpy()
+        targets = rewards + self.gamma * next_values * (1-dones)
+        return targets
 
     def select_action(self, state):
         if not self.test:

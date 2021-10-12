@@ -40,7 +40,13 @@
                                 <a class="function" href="#ValueFunction.__init__">ValueFunction</a>
                         </li>
                         <li>
+                                <a class="function" href="#ValueFunction.call_batch">call_batch</a>
+                        </li>
+                        <li>
                                 <a class="function" href="#ValueFunction.update">update</a>
+                        </li>
+                        <li>
+                                <a class="function" href="#ValueFunction.update_batch">update_batch</a>
                         </li>
                 </ul>
 
@@ -56,6 +62,18 @@
                         </li>
                         <li>
                                 <a class="function" href="#DiscreteQFunction.from_state">from_state</a>
+                        </li>
+                        <li>
+                                <a class="function" href="#DiscreteQFunction.from_state_batch">from_state_batch</a>
+                        </li>
+                        <li>
+                                <a class="function" href="#DiscreteQFunction.best_action_value_from_state">best_action_value_from_state</a>
+                        </li>
+                        <li>
+                                <a class="function" href="#DiscreteQFunction.best_action_value_from_state_batch">best_action_value_from_state_batch</a>
+                        </li>
+                        <li>
+                                <a class="function" href="#DiscreteQFunction.call_batch">call_batch</a>
                         </li>
                 </ul>
 
@@ -118,6 +136,13 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span>
 
+    <span class="k">def</span> <span class="nf">call_batch</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">states</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Permet d&#39;évaluer un batch d&#39;états. Simple boucle qui sera surchargée pour tirer partie</span>
+<span class="sd">        de l&#39;évaluation par batch des fonctions neurales</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="bp">self</span><span class="p">(</span><span class="n">state</span><span class="p">)</span> <span class="k">for</span> <span class="n">state</span> <span class="ow">in</span> <span class="n">states</span><span class="p">])</span>
+
     <span class="k">def</span> <span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">,</span> <span class="n">action</span><span class="p">,</span> <span class="n">target_value</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Met à jour la fonction de valeur à partir d&#39;une transition expérimentée.</span>
@@ -130,6 +155,17 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">lr</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">lr</span><span class="o">*</span><span class="p">(</span><span class="mi">1</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">lr_decay</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">lr_min</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">stats</span><span class="p">[</span><span class="s2">&quot;lr&quot;</span><span class="p">][</span><span class="s2">&quot;data&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">lr</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">update_batch</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">states</span><span class="p">,</span> <span class="n">actions</span><span class="p">,</span> <span class="n">target_values</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Méthode mettant à jour l&#39;agent sur un *batch* de transitions. Simple boucle pour appeler</span>
+<span class="sd">        `self.update` par défaut. Est utile principalement pour les agents à *replay buffer*.</span>
+
+<span class="sd">        Méthode qui sera surchargée avec les fonctions de valeur neurales, qui prennent en charge</span>
+<span class="sd">        l&#39;évaluation par batch.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">state</span><span class="p">,</span> <span class="n">action</span><span class="p">,</span> <span class="n">target_value</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">states</span><span class="p">,</span> <span class="n">actions</span><span class="p">,</span> <span class="n">target_values</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">state</span><span class="p">,</span> <span class="n">action</span><span class="p">,</span> <span class="n">target_value</span><span class="p">)</span>
 
 <span class="k">class</span> <span class="nc">DiscreteQFunction</span><span class="p">(</span><span class="n">ValueFunction</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
@@ -148,11 +184,31 @@
 
     <span class="k">def</span> <span class="nf">from_state</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Prend un état et renvoit un dictionnaire `action : valeur` pour cet état&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="p">{</span><span class="n">action</span><span class="p">:</span> <span class="bp">self</span><span class="p">(</span><span class="n">state</span><span class="p">,</span> <span class="n">action</span><span class="p">)</span> <span class="k">for</span> <span class="n">action</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">enum_actions</span><span class="p">()}</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="bp">self</span><span class="p">(</span><span class="n">state</span><span class="p">,</span> <span class="n">action</span><span class="p">)</span> <span class="k">for</span> <span class="n">action</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">enum_actions</span><span class="p">()])</span>
+
+    <span class="k">def</span> <span class="nf">from_state_batch</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">states</span><span class="p">):</span>
+        <span class="n">action_values</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">state</span> <span class="ow">in</span> <span class="n">states</span><span class="p">:</span>
+            <span class="n">action_values</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">from_state</span><span class="p">(</span><span class="n">state</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">action_values</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">best_action_value_from_state</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">):</span>
+        <span class="n">values</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">from_state</span><span class="p">(</span><span class="n">state</span><span class="p">)</span>
+        <span class="n">maxv</span><span class="p">,</span> <span class="n">maxa</span> <span class="o">=</span> <span class="nb">max</span><span class="p">((</span><span class="n">v</span><span class="p">,</span><span class="n">a</span><span class="p">)</span> <span class="k">for</span> <span class="n">a</span><span class="p">,</span><span class="n">v</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">values</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">maxa</span><span class="p">,</span> <span class="n">maxv</span>
+
+    <span class="k">def</span> <span class="nf">best_action_value_from_state_batch</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">states</span><span class="p">):</span>
+        <span class="n">values_batch</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">from_state_batch</span><span class="p">(</span><span class="n">states</span><span class="p">)</span>
+        <span class="n">maxv</span> <span class="o">=</span> <span class="n">values_batch</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">maxa</span> <span class="o">=</span> <span class="n">values_batch</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">maxa</span><span class="p">,</span> <span class="n">maxv</span>
 
     <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">,</span> <span class="n">action</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Prend un état et une action et renvoit leur valeur&quot;&quot;&quot;</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span>
+
+    <span class="k">def</span> <span class="nf">call_batch</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">states</span><span class="p">,</span> <span class="n">actions</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="bp">self</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">)</span> <span class="k">for</span> <span class="n">args</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">states</span><span class="p">,</span><span class="n">actions</span><span class="p">)])</span>
 </pre></div>
 
         </details>
@@ -223,6 +279,13 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span>
 
+    <span class="k">def</span> <span class="nf">call_batch</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">states</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Permet d&#39;évaluer un batch d&#39;états. Simple boucle qui sera surchargée pour tirer partie</span>
+<span class="sd">        de l&#39;évaluation par batch des fonctions neurales</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="bp">self</span><span class="p">(</span><span class="n">state</span><span class="p">)</span> <span class="k">for</span> <span class="n">state</span> <span class="ow">in</span> <span class="n">states</span><span class="p">])</span>
+
     <span class="k">def</span> <span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">,</span> <span class="n">action</span><span class="p">,</span> <span class="n">target_value</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Met à jour la fonction de valeur à partir d&#39;une transition expérimentée.</span>
@@ -235,6 +298,17 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">lr</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">lr</span><span class="o">*</span><span class="p">(</span><span class="mi">1</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">lr_decay</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">lr_min</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">stats</span><span class="p">[</span><span class="s2">&quot;lr&quot;</span><span class="p">][</span><span class="s2">&quot;data&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">lr</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">update_batch</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">states</span><span class="p">,</span> <span class="n">actions</span><span class="p">,</span> <span class="n">target_values</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Méthode mettant à jour l&#39;agent sur un *batch* de transitions. Simple boucle pour appeler</span>
+<span class="sd">        `self.update` par défaut. Est utile principalement pour les agents à *replay buffer*.</span>
+
+<span class="sd">        Méthode qui sera surchargée avec les fonctions de valeur neurales, qui prennent en charge</span>
+<span class="sd">        l&#39;évaluation par batch.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">state</span><span class="p">,</span> <span class="n">action</span><span class="p">,</span> <span class="n">target_value</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">states</span><span class="p">,</span> <span class="n">actions</span><span class="p">,</span> <span class="n">target_values</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">state</span><span class="p">,</span> <span class="n">action</span><span class="p">,</span> <span class="n">target_value</span><span class="p">)</span>
 </pre></div>
 
         </details>
@@ -289,6 +363,32 @@
 
 
                             </div>
+                            <div id="ValueFunction.call_batch" class="classattr">
+                                        <div class="attr function"><a class="headerlink" href="#ValueFunction.call_batch">#&nbsp;&nbsp</a>
+
+        
+            <span class="def">def</span>
+            <span class="name">call_batch</span><span class="signature">(self, states)</span>:
+    </div>
+
+                <details>
+            <summary>View Source</summary>
+            <div class="codehilite"><pre><span></span>    <span class="k">def</span> <span class="nf">call_batch</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">states</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Permet d&#39;évaluer un batch d&#39;états. Simple boucle qui sera surchargée pour tirer partie</span>
+<span class="sd">        de l&#39;évaluation par batch des fonctions neurales</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="bp">self</span><span class="p">(</span><span class="n">state</span><span class="p">)</span> <span class="k">for</span> <span class="n">state</span> <span class="ow">in</span> <span class="n">states</span><span class="p">])</span>
+</pre></div>
+
+        </details>
+
+            <div class="docstring"><p>Permet d'évaluer un batch d'états. Simple boucle qui sera surchargée pour tirer partie
+de l'évaluation par batch des fonctions neurales</p>
+</div>
+
+
+                            </div>
                             <div id="ValueFunction.update" class="classattr">
                                         <div class="attr function"><a class="headerlink" href="#ValueFunction.update">#&nbsp;&nbsp</a>
 
@@ -328,6 +428,39 @@ Pour cette classe de base, s'occupe uniquement de la décroissance du taux d'app
 
 
                             </div>
+                            <div id="ValueFunction.update_batch" class="classattr">
+                                        <div class="attr function"><a class="headerlink" href="#ValueFunction.update_batch">#&nbsp;&nbsp</a>
+
+        
+            <span class="def">def</span>
+            <span class="name">update_batch</span><span class="signature">(self, states, actions, target_values)</span>:
+    </div>
+
+                <details>
+            <summary>View Source</summary>
+            <div class="codehilite"><pre><span></span>    <span class="k">def</span> <span class="nf">update_batch</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">states</span><span class="p">,</span> <span class="n">actions</span><span class="p">,</span> <span class="n">target_values</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Méthode mettant à jour l&#39;agent sur un *batch* de transitions. Simple boucle pour appeler</span>
+<span class="sd">        `self.update` par défaut. Est utile principalement pour les agents à *replay buffer*.</span>
+
+<span class="sd">        Méthode qui sera surchargée avec les fonctions de valeur neurales, qui prennent en charge</span>
+<span class="sd">        l&#39;évaluation par batch.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">state</span><span class="p">,</span> <span class="n">action</span><span class="p">,</span> <span class="n">target_value</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">states</span><span class="p">,</span> <span class="n">actions</span><span class="p">,</span> <span class="n">target_values</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">state</span><span class="p">,</span> <span class="n">action</span><span class="p">,</span> <span class="n">target_value</span><span class="p">)</span>
+</pre></div>
+
+        </details>
+
+            <div class="docstring"><p>Méthode mettant à jour l'agent sur un <em>batch</em> de transitions. Simple boucle pour appeler
+<code>self.update</code> par défaut. Est utile principalement pour les agents à <em>replay buffer</em>.</p>
+
+<p>Méthode qui sera surchargée avec les fonctions de valeur neurales, qui prennent en charge
+l'évaluation par batch.</p>
+</div>
+
+
+                            </div>
                 </section>
                 <section id="DiscreteQFunction">
                                 <div class="attr class">
@@ -357,11 +490,31 @@ Pour cette classe de base, s'occupe uniquement de la décroissance du taux d'app
 
     <span class="k">def</span> <span class="nf">from_state</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Prend un état et renvoit un dictionnaire `action : valeur` pour cet état&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="p">{</span><span class="n">action</span><span class="p">:</span> <span class="bp">self</span><span class="p">(</span><span class="n">state</span><span class="p">,</span> <span class="n">action</span><span class="p">)</span> <span class="k">for</span> <span class="n">action</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">enum_actions</span><span class="p">()}</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="bp">self</span><span class="p">(</span><span class="n">state</span><span class="p">,</span> <span class="n">action</span><span class="p">)</span> <span class="k">for</span> <span class="n">action</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">enum_actions</span><span class="p">()])</span>
+
+    <span class="k">def</span> <span class="nf">from_state_batch</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">states</span><span class="p">):</span>
+        <span class="n">action_values</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">state</span> <span class="ow">in</span> <span class="n">states</span><span class="p">:</span>
+            <span class="n">action_values</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">from_state</span><span class="p">(</span><span class="n">state</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">action_values</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">best_action_value_from_state</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">):</span>
+        <span class="n">values</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">from_state</span><span class="p">(</span><span class="n">state</span><span class="p">)</span>
+        <span class="n">maxv</span><span class="p">,</span> <span class="n">maxa</span> <span class="o">=</span> <span class="nb">max</span><span class="p">((</span><span class="n">v</span><span class="p">,</span><span class="n">a</span><span class="p">)</span> <span class="k">for</span> <span class="n">a</span><span class="p">,</span><span class="n">v</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">values</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">maxa</span><span class="p">,</span> <span class="n">maxv</span>
+
+    <span class="k">def</span> <span class="nf">best_action_value_from_state_batch</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">states</span><span class="p">):</span>
+        <span class="n">values_batch</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">from_state_batch</span><span class="p">(</span><span class="n">states</span><span class="p">)</span>
+        <span class="n">maxv</span> <span class="o">=</span> <span class="n">values_batch</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">maxa</span> <span class="o">=</span> <span class="n">values_batch</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">maxa</span><span class="p">,</span> <span class="n">maxv</span>
 
     <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">,</span> <span class="n">action</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Prend un état et une action et renvoit leur valeur&quot;&quot;&quot;</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span>
+
+    <span class="k">def</span> <span class="nf">call_batch</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">states</span><span class="p">,</span> <span class="n">actions</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="bp">self</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">)</span> <span class="k">for</span> <span class="n">args</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">states</span><span class="p">,</span><span class="n">actions</span><span class="p">)])</span>
 </pre></div>
 
         </details>
@@ -433,7 +586,7 @@ Pour cette classe de base, s'occupe uniquement de la décroissance du taux d'app
             <summary>View Source</summary>
             <div class="codehilite"><pre><span></span>    <span class="k">def</span> <span class="nf">from_state</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Prend un état et renvoit un dictionnaire `action : valeur` pour cet état&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="p">{</span><span class="n">action</span><span class="p">:</span> <span class="bp">self</span><span class="p">(</span><span class="n">state</span><span class="p">,</span> <span class="n">action</span><span class="p">)</span> <span class="k">for</span> <span class="n">action</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">enum_actions</span><span class="p">()}</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="bp">self</span><span class="p">(</span><span class="n">state</span><span class="p">,</span> <span class="n">action</span><span class="p">)</span> <span class="k">for</span> <span class="n">action</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">enum_actions</span><span class="p">()])</span>
 </pre></div>
 
         </details>
@@ -443,11 +596,99 @@ Pour cette classe de base, s'occupe uniquement de la décroissance du taux d'app
 
 
                             </div>
+                            <div id="DiscreteQFunction.from_state_batch" class="classattr">
+                                        <div class="attr function"><a class="headerlink" href="#DiscreteQFunction.from_state_batch">#&nbsp;&nbsp</a>
+
+        
+            <span class="def">def</span>
+            <span class="name">from_state_batch</span><span class="signature">(self, states)</span>:
+    </div>
+
+                <details>
+            <summary>View Source</summary>
+            <div class="codehilite"><pre><span></span>    <span class="k">def</span> <span class="nf">from_state_batch</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">states</span><span class="p">):</span>
+        <span class="n">action_values</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">state</span> <span class="ow">in</span> <span class="n">states</span><span class="p">:</span>
+            <span class="n">action_values</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">from_state</span><span class="p">(</span><span class="n">state</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">action_values</span><span class="p">)</span>
+</pre></div>
+
+        </details>
+
+    
+
+                            </div>
+                            <div id="DiscreteQFunction.best_action_value_from_state" class="classattr">
+                                        <div class="attr function"><a class="headerlink" href="#DiscreteQFunction.best_action_value_from_state">#&nbsp;&nbsp</a>
+
+        
+            <span class="def">def</span>
+            <span class="name">best_action_value_from_state</span><span class="signature">(self, state)</span>:
+    </div>
+
+                <details>
+            <summary>View Source</summary>
+            <div class="codehilite"><pre><span></span>    <span class="k">def</span> <span class="nf">best_action_value_from_state</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">):</span>
+        <span class="n">values</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">from_state</span><span class="p">(</span><span class="n">state</span><span class="p">)</span>
+        <span class="n">maxv</span><span class="p">,</span> <span class="n">maxa</span> <span class="o">=</span> <span class="nb">max</span><span class="p">((</span><span class="n">v</span><span class="p">,</span><span class="n">a</span><span class="p">)</span> <span class="k">for</span> <span class="n">a</span><span class="p">,</span><span class="n">v</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">values</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">maxa</span><span class="p">,</span> <span class="n">maxv</span>
+</pre></div>
+
+        </details>
+
+    
+
+                            </div>
+                            <div id="DiscreteQFunction.best_action_value_from_state_batch" class="classattr">
+                                        <div class="attr function"><a class="headerlink" href="#DiscreteQFunction.best_action_value_from_state_batch">#&nbsp;&nbsp</a>
+
+        
+            <span class="def">def</span>
+            <span class="name">best_action_value_from_state_batch</span><span class="signature">(self, states)</span>:
+    </div>
+
+                <details>
+            <summary>View Source</summary>
+            <div class="codehilite"><pre><span></span>    <span class="k">def</span> <span class="nf">best_action_value_from_state_batch</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">states</span><span class="p">):</span>
+        <span class="n">values_batch</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">from_state_batch</span><span class="p">(</span><span class="n">states</span><span class="p">)</span>
+        <span class="n">maxv</span> <span class="o">=</span> <span class="n">values_batch</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">maxa</span> <span class="o">=</span> <span class="n">values_batch</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">maxa</span><span class="p">,</span> <span class="n">maxv</span>
+</pre></div>
+
+        </details>
+
+    
+
+                            </div>
+                            <div id="DiscreteQFunction.call_batch" class="classattr">
+                                        <div class="attr function"><a class="headerlink" href="#DiscreteQFunction.call_batch">#&nbsp;&nbsp</a>
+
+        
+            <span class="def">def</span>
+            <span class="name">call_batch</span><span class="signature">(self, states, actions)</span>:
+    </div>
+
+                <details>
+            <summary>View Source</summary>
+            <div class="codehilite"><pre><span></span>    <span class="k">def</span> <span class="nf">call_batch</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">states</span><span class="p">,</span> <span class="n">actions</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="bp">self</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">)</span> <span class="k">for</span> <span class="n">args</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">states</span><span class="p">,</span><span class="n">actions</span><span class="p">)])</span>
+</pre></div>
+
+        </details>
+
+            <div class="docstring"><p>Permet d'évaluer un batch d'états. Simple boucle qui sera surchargée pour tirer partie
+de l'évaluation par batch des fonctions neurales</p>
+</div>
+
+
+                            </div>
                             <div class="inherited">
                                 <h5>Inherited Members</h5>
                                 <dl>
                                     <div><dt><a href="#ValueFunction">ValueFunction</a></dt>
                                 <dd id="DiscreteQFunction.update" class="function"><a href="#ValueFunction.update">update</a></dd>
+                <dd id="DiscreteQFunction.update_batch" class="function"><a href="#ValueFunction.update_batch">update_batch</a></dd>
 
             </div>
                                 </dl>

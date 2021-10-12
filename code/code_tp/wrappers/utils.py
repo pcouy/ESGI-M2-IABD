@@ -1,5 +1,7 @@
 import gym
 import numpy as np
+from einops import rearrange
+import torch
 
 class LogScaleObs(gym.ObservationWrapper):
     """
@@ -65,3 +67,22 @@ class BoredomWrapper(gym.RewardWrapper):
     """
     def reward(self, reward):
         return reward - 0.01
+
+class TimeToChannels(gym.ObservationWrapper):
+    """
+    Réarrange les observations pour intégrer le canal temporel dans les canaux de couleur
+    """
+    def __init__(self, env, *args, **kwargs):
+        super().__init__(env, *args, **kwargs)
+        x = np.ones(env.observation_space.shape)
+        f = lambda t: rearrange(t, "t w h c -> w h (c t)")
+        y = f(x)
+        self.observation_space = gym.spaces.Box(
+            low = f(env.observation_space.low),
+            high = f(env.observation_space.high),
+            shape = y.shape
+        )
+
+    def observation(self, observation):
+        return rearrange(np.array(observation), "t w h c -> w h (c t)")
+

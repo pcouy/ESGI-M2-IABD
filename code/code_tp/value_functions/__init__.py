@@ -1,1 +1,1 @@
-from . import base, tabular, linear
+from . import base, tabular, linear, neural

@@ -31,7 +31,11 @@ class TabularQValue(DiscreteQFunction):
     def from_state(self, state):
         if str(state) not in self.known_states:
             self.create_state(state)
-        return self.known_states[str(state)]
+        val_dict = self.known_states[str(state)]
+        r_values = np.zeros((len(val_dict),))
+        for i in range(len(val_dict)):
+            r_values[i] = val_dict[i]
+        return r_values
 
     def update(self, state, action, target_value):
         Q = self(state, action)

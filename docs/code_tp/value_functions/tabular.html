@@ -103,7 +103,11 @@
     <span class="k">def</span> <span class="nf">from_state</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">):</span>
         <span class="k">if</span> <span class="nb">str</span><span class="p">(</span><span class="n">state</span><span class="p">)</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">known_states</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">create_state</span><span class="p">(</span><span class="n">state</span><span class="p">)</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">known_states</span><span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">state</span><span class="p">)]</span>
+        <span class="n">val_dict</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">known_states</span><span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">state</span><span class="p">)]</span>
+        <span class="n">r_values</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">val_dict</span><span class="p">),))</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">val_dict</span><span class="p">)):</span>
+            <span class="n">r_values</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">val_dict</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">r_values</span>
 
     <span class="k">def</span> <span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">,</span> <span class="n">action</span><span class="p">,</span> <span class="n">target_value</span><span class="p">):</span>
         <span class="n">Q</span> <span class="o">=</span> <span class="bp">self</span><span class="p">(</span><span class="n">state</span><span class="p">,</span> <span class="n">action</span><span class="p">)</span>
@@ -165,7 +169,11 @@
     <span class="k">def</span> <span class="nf">from_state</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">):</span>
         <span class="k">if</span> <span class="nb">str</span><span class="p">(</span><span class="n">state</span><span class="p">)</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">known_states</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">create_state</span><span class="p">(</span><span class="n">state</span><span class="p">)</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">known_states</span><span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">state</span><span class="p">)]</span>
+        <span class="n">val_dict</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">known_states</span><span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">state</span><span class="p">)]</span>
+        <span class="n">r_values</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">val_dict</span><span class="p">),))</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">val_dict</span><span class="p">)):</span>
+            <span class="n">r_values</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">val_dict</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">r_values</span>
 
     <span class="k">def</span> <span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">,</span> <span class="n">action</span><span class="p">,</span> <span class="n">target_value</span><span class="p">):</span>
         <span class="n">Q</span> <span class="o">=</span> <span class="bp">self</span><span class="p">(</span><span class="n">state</span><span class="p">,</span> <span class="n">action</span><span class="p">)</span>
@@ -259,7 +267,11 @@
             <div class="codehilite"><pre><span></span>    <span class="k">def</span> <span class="nf">from_state</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">):</span>
         <span class="k">if</span> <span class="nb">str</span><span class="p">(</span><span class="n">state</span><span class="p">)</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">known_states</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">create_state</span><span class="p">(</span><span class="n">state</span><span class="p">)</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">known_states</span><span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">state</span><span class="p">)]</span>
+        <span class="n">val_dict</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">known_states</span><span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">state</span><span class="p">)]</span>
+        <span class="n">r_values</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">val_dict</span><span class="p">),))</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">val_dict</span><span class="p">)):</span>
+            <span class="n">r_values</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">val_dict</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">r_values</span>
 </pre></div>
 
         </details>
@@ -333,6 +345,14 @@ Pour cette classe de base, s'occupe uniquement de la décroissance du taux d'app
                                 <dl>
                                     <div><dt><a href="base.html#DiscreteQFunction">code_tp.value_functions.base.DiscreteQFunction</a></dt>
                                 <dd id="TabularQValue.enum_actions" class="function"><a href="base.html#DiscreteQFunction.enum_actions">enum_actions</a></dd>
+                <dd id="TabularQValue.from_state_batch" class="function"><a href="base.html#DiscreteQFunction.from_state_batch">from_state_batch</a></dd>
+                <dd id="TabularQValue.best_action_value_from_state" class="function"><a href="base.html#DiscreteQFunction.best_action_value_from_state">best_action_value_from_state</a></dd>
+                <dd id="TabularQValue.best_action_value_from_state_batch" class="function"><a href="base.html#DiscreteQFunction.best_action_value_from_state_batch">best_action_value_from_state_batch</a></dd>
+                <dd id="TabularQValue.call_batch" class="function"><a href="base.html#DiscreteQFunction.call_batch">call_batch</a></dd>
+
+            </div>
+            <div><dt><a href="base.html#ValueFunction">code_tp.value_functions.base.ValueFunction</a></dt>
+                                <dd id="TabularQValue.update_batch" class="function"><a href="base.html#ValueFunction.update_batch">update_batch</a></dd>
 
             </div>
                                 </dl>

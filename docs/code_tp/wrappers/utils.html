@@ -66,6 +66,18 @@
                 </ul>
 
             </li>
+            <li>
+                    <a class="class" href="#TimeToChannels">TimeToChannels</a>
+                            <ul class="memberlist">
+                        <li>
+                                <a class="function" href="#TimeToChannels.__init__">TimeToChannels</a>
+                        </li>
+                        <li>
+                                <a class="function" href="#TimeToChannels.observation">observation</a>
+                        </li>
+                </ul>
+
+            </li>
     </ul>
 
 
@@ -87,6 +99,8 @@
             <summary>View Source</summary>
             <div class="codehilite"><pre><span></span><span class="kn">import</span> <span class="nn">gym</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">einops</span> <span class="kn">import</span> <span class="n">rearrange</span>
+<span class="kn">import</span> <span class="nn">torch</span>
 
 <span class="k">class</span> <span class="nc">LogScaleObs</span><span class="p">(</span><span class="n">gym</span><span class="o">.</span><span class="n">ObservationWrapper</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
@@ -152,6 +166,24 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">def</span> <span class="nf">reward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">reward</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">reward</span> <span class="o">-</span> <span class="mf">0.01</span>
+
+<span class="k">class</span> <span class="nc">TimeToChannels</span><span class="p">(</span><span class="n">gym</span><span class="o">.</span><span class="n">ObservationWrapper</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Réarrange les observations pour intégrer le canal temporel dans les canaux de couleur</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">env</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">env</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">env</span><span class="o">.</span><span class="n">observation_space</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+        <span class="n">f</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">t</span><span class="p">:</span> <span class="n">rearrange</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="s2">&quot;t w h c -&gt; w h (c t)&quot;</span><span class="p">)</span>
+        <span class="n">y</span> <span class="o">=</span> <span class="n">f</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">observation_space</span> <span class="o">=</span> <span class="n">gym</span><span class="o">.</span><span class="n">spaces</span><span class="o">.</span><span class="n">Box</span><span class="p">(</span>
+            <span class="n">low</span> <span class="o">=</span> <span class="n">f</span><span class="p">(</span><span class="n">env</span><span class="o">.</span><span class="n">observation_space</span><span class="o">.</span><span class="n">low</span><span class="p">),</span>
+            <span class="n">high</span> <span class="o">=</span> <span class="n">f</span><span class="p">(</span><span class="n">env</span><span class="o">.</span><span class="n">observation_space</span><span class="o">.</span><span class="n">high</span><span class="p">),</span>
+            <span class="n">shape</span> <span class="o">=</span> <span class="n">y</span><span class="o">.</span><span class="n">shape</span>
+        <span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">observation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">observation</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">rearrange</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">observation</span><span class="p">),</span> <span class="s2">&quot;t w h c -&gt; w h (c t)&quot;</span><span class="p">)</span>
 </pre></div>
 
         </details>
@@ -492,6 +524,112 @@ intervals de valeurs en tranches égales.</p>
             <div><dt>gym.core.RewardWrapper</dt>
                                 <dd id="BoredomWrapper.reset" class="function">reset</dd>
                 <dd id="BoredomWrapper.step" class="function">step</dd>
+
+            </div>
+                                </dl>
+                            </div>
+                </section>
+                <section id="TimeToChannels">
+                                <div class="attr class">
+        <a class="headerlink" href="#TimeToChannels">#&nbsp;&nbsp</a>
+
+        
+        <span class="def">class</span>
+        <span class="name">TimeToChannels</span><wbr>(<span class="base">gym.core.ObservationWrapper</span>):
+    </div>
+
+                <details>
+            <summary>View Source</summary>
+            <div class="codehilite"><pre><span></span><span class="k">class</span> <span class="nc">TimeToChannels</span><span class="p">(</span><span class="n">gym</span><span class="o">.</span><span class="n">ObservationWrapper</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Réarrange les observations pour intégrer le canal temporel dans les canaux de couleur</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">env</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">env</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">env</span><span class="o">.</span><span class="n">observation_space</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+        <span class="n">f</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">t</span><span class="p">:</span> <span class="n">rearrange</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="s2">&quot;t w h c -&gt; w h (c t)&quot;</span><span class="p">)</span>
+        <span class="n">y</span> <span class="o">=</span> <span class="n">f</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">observation_space</span> <span class="o">=</span> <span class="n">gym</span><span class="o">.</span><span class="n">spaces</span><span class="o">.</span><span class="n">Box</span><span class="p">(</span>
+            <span class="n">low</span> <span class="o">=</span> <span class="n">f</span><span class="p">(</span><span class="n">env</span><span class="o">.</span><span class="n">observation_space</span><span class="o">.</span><span class="n">low</span><span class="p">),</span>
+            <span class="n">high</span> <span class="o">=</span> <span class="n">f</span><span class="p">(</span><span class="n">env</span><span class="o">.</span><span class="n">observation_space</span><span class="o">.</span><span class="n">high</span><span class="p">),</span>
+            <span class="n">shape</span> <span class="o">=</span> <span class="n">y</span><span class="o">.</span><span class="n">shape</span>
+        <span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">observation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">observation</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">rearrange</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">observation</span><span class="p">),</span> <span class="s2">&quot;t w h c -&gt; w h (c t)&quot;</span><span class="p">)</span>
+</pre></div>
+
+        </details>
+
+            <div class="docstring"><p>Réarrange les observations pour intégrer le canal temporel dans les canaux de couleur</p>
+</div>
+
+
+                            <div id="TimeToChannels.__init__" class="classattr">
+                                        <div class="attr function"><a class="headerlink" href="#TimeToChannels.__init__">#&nbsp;&nbsp</a>
+
+        
+            <span class="name">TimeToChannels</span><span class="signature">(env, *args, **kwargs)</span>
+    </div>
+
+                <details>
+            <summary>View Source</summary>
+            <div class="codehilite"><pre><span></span>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">env</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">env</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">env</span><span class="o">.</span><span class="n">observation_space</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+        <span class="n">f</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">t</span><span class="p">:</span> <span class="n">rearrange</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="s2">&quot;t w h c -&gt; w h (c t)&quot;</span><span class="p">)</span>
+        <span class="n">y</span> <span class="o">=</span> <span class="n">f</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">observation_space</span> <span class="o">=</span> <span class="n">gym</span><span class="o">.</span><span class="n">spaces</span><span class="o">.</span><span class="n">Box</span><span class="p">(</span>
+            <span class="n">low</span> <span class="o">=</span> <span class="n">f</span><span class="p">(</span><span class="n">env</span><span class="o">.</span><span class="n">observation_space</span><span class="o">.</span><span class="n">low</span><span class="p">),</span>
+            <span class="n">high</span> <span class="o">=</span> <span class="n">f</span><span class="p">(</span><span class="n">env</span><span class="o">.</span><span class="n">observation_space</span><span class="o">.</span><span class="n">high</span><span class="p">),</span>
+            <span class="n">shape</span> <span class="o">=</span> <span class="n">y</span><span class="o">.</span><span class="n">shape</span>
+        <span class="p">)</span>
+</pre></div>
+
+        </details>
+
+    
+
+                            </div>
+                            <div id="TimeToChannels.observation" class="classattr">
+                                        <div class="attr function"><a class="headerlink" href="#TimeToChannels.observation">#&nbsp;&nbsp</a>
+
+        
+            <span class="def">def</span>
+            <span class="name">observation</span><span class="signature">(self, observation)</span>:
+    </div>
+
+                <details>
+            <summary>View Source</summary>
+            <div class="codehilite"><pre><span></span>    <span class="k">def</span> <span class="nf">observation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">observation</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">rearrange</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">observation</span><span class="p">),</span> <span class="s2">&quot;t w h c -&gt; w h (c t)&quot;</span><span class="p">)</span>
+</pre></div>
+
+        </details>
+
+    
+
+                            </div>
+                            <div class="inherited">
+                                <h5>Inherited Members</h5>
+                                <dl>
+                                    <div><dt>gym.core.Wrapper</dt>
+                                <dd id="TimeToChannels.observation_space" class="variable">observation_space</dd>
+                <dd id="TimeToChannels.spec" class="variable">spec</dd>
+                <dd id="TimeToChannels.class_name" class="function">class_name</dd>
+                <dd id="TimeToChannels.action_space" class="variable">action_space</dd>
+                <dd id="TimeToChannels.reward_range" class="variable">reward_range</dd>
+                <dd id="TimeToChannels.metadata" class="variable">metadata</dd>
+                <dd id="TimeToChannels.render" class="function">render</dd>
+                <dd id="TimeToChannels.close" class="function">close</dd>
+                <dd id="TimeToChannels.seed" class="function">seed</dd>
+                <dd id="TimeToChannels.compute_reward" class="function">compute_reward</dd>
+                <dd id="TimeToChannels.unwrapped" class="variable">unwrapped</dd>
+
+            </div>
+            <div><dt>gym.core.ObservationWrapper</dt>
+                                <dd id="TimeToChannels.reset" class="function">reset</dd>
+                <dd id="TimeToChannels.step" class="function">step</dd>
 
             </div>
                                 </dl>
