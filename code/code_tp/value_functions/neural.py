@@ -14,6 +14,7 @@ class ConvolutionalNN(nn.Module):
                  stride=2,
                  padding=0,
                  dilation=1,
+                 hidden_linear=[],
                  activation=nn.Tanh,
             ):
         super().__init__()
@@ -40,12 +41,20 @@ class ConvolutionalNN(nn.Module):
         x = torch.rand(img_shape)
         y=conv_stack(rearrange([x], 'b w h c -> b c w h'))
 
-        last_layer = nn.Linear(y.shape[-1], n_actions)
+        last_layers = []
+        in_size = y.shape[-1]
+        for l in hidden_linear:
+            last_layers.append(nn.Linear(in_size, l))
+            last_layers.append(activation())
+            in_size = l
+
+        last_layer = nn.Linear(in_size, n_actions)
         last_layer.weight.data.uniform_(-1e-3,1e-3)
         last_layer.bias.data.uniform_(-1e-3,1e-3)
 
         self.layers = nn.Sequential(
             conv_stack,
+            *last_layers,
             last_layer
         )
 
