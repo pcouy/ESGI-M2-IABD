@@ -71,19 +71,23 @@ class ConvolutionalQFunction(DiscreteQFunction):
                 'data': []
             }
         })
+        print(self.device)
 
     def from_state(self, state):
         return self.from_state_batch(rearrange(state,"a b c -> 1 a b c"))[0]
 
     def from_state_batch(self, states):
-        return self.nn(torch.tensor(states, dtype=torch.float32))
+        return self.nn(torch.tensor(states, dtype=torch.float32, device=self.device))
 
     def __call__(state, action):
         return self.call_batch(rearrange(action, "a b c -> 1 a b c"))[0]
 
     def call_batch(self, states, actions):
-        values = self.nn(torch.tensor(states, dtype=torch.float32))\
-                    .gather(-1, torch.tensor(actions, dtype=torch.int64).reshape((len(actions),1)))
+        values = self.nn(torch.tensor(states, dtype=torch.float32, device=self.device))\
+                    .gather(-1,
+                        torch.tensor(actions, dtype=torch.int64, device=self.device)\
+                            .reshape((len(actions),1))
+                    )
         return values
 
     def update(self, state, action, target_value):
@@ -93,7 +97,7 @@ class ConvolutionalQFunction(DiscreteQFunction):
         pred_values = self.call_batch(states, actions)
         pred_error = nn.functional.smooth_l1_loss(
             pred_values[:,0],
-            torch.tensor(target_values,dtype=torch.float32).detach()
+            torch.tensor(target_values,dtype=torch.float32, device=self.device).detach()
         )
         self.optim.zero_grad()
         pred_error.backward()
