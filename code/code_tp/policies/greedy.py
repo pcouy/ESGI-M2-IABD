@@ -110,15 +110,18 @@ class CosineEGreedyPolicy(EGreedyPolicy):
 
     $\epsilon = (\epsilon_{max}-\epsilon_{min})/2 \cos(\frac{2\Pi}{\epsilon_{decay}} t) + \epsilon_{min}$
     """
-    def __init__(self, T, *args, **kwargs):
+    def __init__(self, T, epsilon_max_final=None, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.epsilon_max = self.epsilon
+        if epsilon_max_final is None:
+            epsilon_max_final = 0
+        self.epsilon_max_final = max(self.epsilon_min, epsilon_max_final)
         self.t = 0
         self.T = T
 
     def update_epsilon(self):
         self.epsilon = (self.epsilon_max-self.epsilon_min)/2 * np.cos(self.t*2*np.pi/self.T) +\
                 (self.epsilon_max/2 + self.epsilon_min)
-        self.epsilon_max = max(self.epsilon_max*(1-self.epsilon_decay), self.epsilon_min)
+        self.epsilon_max = max(self.epsilon_max*(1-self.epsilon_decay), self.epsilon_max_final)
         self.t+= 1
 
