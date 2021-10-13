@@ -22,5 +22,7 @@ class SoftmaxSamplingPolicy(EGreedyPolicy):
         probas = aux/np.sum(aux)
 
         action = np.random.choice([x for x in range(len(probas))], p=probas)
+        self.greedy_policy.stats['predicted_value']['data'].append(values[action])
+        self.stats.update(self.greedy_policy.stats)
 
         return action
