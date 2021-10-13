@@ -89,7 +89,36 @@ class EGreedyPolicy(RandomPolicy):
     def test(self, state):
         return self(state, epsilon=self.epsilon_test)
 
-    def update(self):
+    def update_epsilon(self):
         self.epsilon = max(self.epsilon*(1-self.epsilon_decay), self.epsilon_min)
+
+    def update(self):
+        self.update_epsilon()
         self.stats["epsilon"]["data"].append(self.epsilon)
         super().update()
+
+class CosineEGreedyPolicy(EGreedyPolicy):
+    """
+    Fait varier epsilon comme un cosinus du pas de temps
+
+    Réutilise les paramètres de `EGreedyPolicy` pour définir le cosinus :
+
+    * `T`: Période du cosinus (en pas de temps)
+    * `epsilon`: Valeur max d'epsilon
+    * `epsilon_min`: Valeur max d'epsilon
+    * `epsilon_decay`: Décroissance de epsilon_max
+
+    $\epsilon = (\epsilon_{max}-\epsilon_{min})/2 \cos(\frac{2\Pi}{\epsilon_{decay}} t) + \epsilon_{min}$
+    """
+    def __init__(self, T, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.epsilon_max = self.epsilon
+        self.t = 0
+        self.T = T
+
+    def update_epsilon(self):
+        self.epsilon = (self.epsilon_max-self.epsilon_min)/2 * np.cos(self.t*2*np.pi/self.T) +\
+                (self.epsilon_max/2 + self.epsilon_min)
+        self.epsilon_max = max(self.epsilon_max*(1-self.epsilon_decay), self.epsilon_min)
+        self.t+= 1
+
