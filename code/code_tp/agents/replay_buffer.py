@@ -14,7 +14,7 @@ class ReplayBuffer:
         self.n_inserted = 0
 
     def ready(self):
-        return self.n_inserted > self.batch_size*4
+        return self.n_inserted > self.batch_size*10
 
     def store(self, state, action, next_state, reward, done, infos):
         i = self.n_inserted % self.max_size
