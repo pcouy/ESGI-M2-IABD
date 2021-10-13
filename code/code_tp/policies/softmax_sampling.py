@@ -1,5 +1,6 @@
 import numpy as np
 from .greedy import EGreedyPolicy
+import torch
 
 class SoftmaxSamplingPolicy(EGreedyPolicy):
     """
@@ -15,6 +16,8 @@ class SoftmaxSamplingPolicy(EGreedyPolicy):
             epsilon = self.epsilon
 
         values = self.value_function.from_state(state)
+        if type(values) is torch.Tensor:
+            values = values.clone().detach().cpu().numpy()
         aux = np.exp(5 * ((1-self.epsilon)**2.5) * values)
         probas = aux/np.sum(aux)
 
