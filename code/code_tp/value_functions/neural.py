@@ -20,7 +20,6 @@ class ConvolutionalNN(nn.Module):
         super().__init__()
         self.img_shape = img_shape
         self.n_actions = n_actions
-        self.init_args = locals()
         layers = []
         if n_filters is None:
             n_filters = [16,16]
@@ -81,6 +80,7 @@ class ConvolutionalQFunction(DiscreteQFunction):
                 'data': []
             }
         })
+        self.init_args = locals()
         print(self.device)
 
     def from_state(self, state):
