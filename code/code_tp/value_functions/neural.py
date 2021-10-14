@@ -20,6 +20,7 @@ class ConvolutionalNN(nn.Module):
         super().__init__()
         self.img_shape = img_shape
         self.n_actions = n_actions
+        self.init_args = locals()
         layers = []
         if n_filters is None:
             n_filters = [16,16]
@@ -123,3 +124,8 @@ class ConvolutionalQFunction(DiscreteQFunction):
         m = values.max(axis=1)
         return m.indices, m.values
 
+    def export_f(self):
+        return self.nn.state_dict()
+
+    def import_f(self, d):
+        self.nn.load_state_dict(d)

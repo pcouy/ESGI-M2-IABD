@@ -48,6 +48,12 @@
                         <li>
                                 <a class="function" href="#TabularQValue.show_known_states">show_known_states</a>
                         </li>
+                        <li>
+                                <a class="function" href="#TabularQValue.export_f">export_f</a>
+                        </li>
+                        <li>
+                                <a class="function" href="#TabularQValue.import_f">import_f</a>
+                        </li>
                 </ul>
 
             </li>
@@ -74,6 +80,7 @@
 <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
 <span class="kn">from</span> <span class="nn">.base</span> <span class="kn">import</span> <span class="n">DiscreteQFunction</span>
 <span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">copy</span>
 
 <span class="k">class</span> <span class="nc">TabularQValue</span><span class="p">(</span><span class="n">DiscreteQFunction</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Fonction de valeur tabulaire&quot;&quot;&quot;</span>
@@ -92,6 +99,7 @@
                 <span class="s2">&quot;data&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span>
             <span class="p">}</span>
         <span class="p">})</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">init_args</span> <span class="o">=</span> <span class="nb">locals</span><span class="p">()</span>
 
     <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">,</span> <span class="n">action</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">from_state</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">state</span><span class="p">))[</span><span class="n">action</span><span class="p">]</span>
@@ -125,6 +133,12 @@
             <span class="s2">&quot;n_known_states.png&quot;</span>
         <span class="p">))</span>
         <span class="n">plt</span><span class="o">.</span><span class="n">close</span><span class="p">(</span><span class="n">fig</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">export_f</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">known_states</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">import_f</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">d</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">known_states</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">d</span><span class="p">)</span>
 </pre></div>
 
         </details>
@@ -158,6 +172,7 @@
                 <span class="s2">&quot;data&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span>
             <span class="p">}</span>
         <span class="p">})</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">init_args</span> <span class="o">=</span> <span class="nb">locals</span><span class="p">()</span>
 
     <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">,</span> <span class="n">action</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">from_state</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">state</span><span class="p">))[</span><span class="n">action</span><span class="p">]</span>
@@ -191,6 +206,12 @@
             <span class="s2">&quot;n_known_states.png&quot;</span>
         <span class="p">))</span>
         <span class="n">plt</span><span class="o">.</span><span class="n">close</span><span class="p">(</span><span class="n">fig</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">export_f</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">known_states</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">import_f</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">d</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">known_states</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">d</span><span class="p">)</span>
 </pre></div>
 
         </details>
@@ -223,6 +244,7 @@
                 <span class="s2">&quot;data&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span>
             <span class="p">}</span>
         <span class="p">})</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">init_args</span> <span class="o">=</span> <span class="nb">locals</span><span class="p">()</span>
 </pre></div>
 
         </details>
@@ -340,6 +362,44 @@ Pour cette classe de base, s'occupe uniquement de la décroissance du taux d'app
     
 
                             </div>
+                            <div id="TabularQValue.export_f" class="classattr">
+                                        <div class="attr function"><a class="headerlink" href="#TabularQValue.export_f">#&nbsp;&nbsp</a>
+
+        
+            <span class="def">def</span>
+            <span class="name">export_f</span><span class="signature">(self)</span>:
+    </div>
+
+                <details>
+            <summary>View Source</summary>
+            <div class="codehilite"><pre><span></span>    <span class="k">def</span> <span class="nf">export_f</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">known_states</span><span class="p">)</span>
+</pre></div>
+
+        </details>
+
+    
+
+                            </div>
+                            <div id="TabularQValue.import_f" class="classattr">
+                                        <div class="attr function"><a class="headerlink" href="#TabularQValue.import_f">#&nbsp;&nbsp</a>
+
+        
+            <span class="def">def</span>
+            <span class="name">import_f</span><span class="signature">(self, d)</span>:
+    </div>
+
+                <details>
+            <summary>View Source</summary>
+            <div class="codehilite"><pre><span></span>    <span class="k">def</span> <span class="nf">import_f</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">d</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">known_states</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">d</span><span class="p">)</span>
+</pre></div>
+
+        </details>
+
+    
+
+                            </div>
                             <div class="inherited">
                                 <h5>Inherited Members</h5>
                                 <dl>
@@ -353,6 +413,7 @@ Pour cette classe de base, s'occupe uniquement de la décroissance du taux d'app
             </div>
             <div><dt><a href="base.html#ValueFunction">code_tp.value_functions.base.ValueFunction</a></dt>
                                 <dd id="TabularQValue.update_batch" class="function"><a href="base.html#ValueFunction.update_batch">update_batch</a></dd>
+                <dd id="TabularQValue.clone" class="function"><a href="base.html#ValueFunction.clone">clone</a></dd>
 
             </div>
                                 </dl>

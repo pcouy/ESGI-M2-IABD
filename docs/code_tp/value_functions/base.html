@@ -48,6 +48,15 @@
                         <li>
                                 <a class="function" href="#ValueFunction.update_batch">update_batch</a>
                         </li>
+                        <li>
+                                <a class="function" href="#ValueFunction.export_f">export_f</a>
+                        </li>
+                        <li>
+                                <a class="function" href="#ValueFunction.import_f">import_f</a>
+                        </li>
+                        <li>
+                                <a class="function" href="#ValueFunction.clone">clone</a>
+                        </li>
                 </ul>
 
             </li>
@@ -129,6 +138,7 @@
                 <span class="s2">&quot;data&quot;</span><span class="p">:</span> <span class="p">[]</span>
             <span class="p">}</span>
         <span class="p">}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">init_args</span> <span class="o">=</span> <span class="nb">locals</span><span class="p">()</span>
 
     <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -167,6 +177,22 @@
         <span class="k">for</span> <span class="n">state</span><span class="p">,</span> <span class="n">action</span><span class="p">,</span> <span class="n">target_value</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">states</span><span class="p">,</span> <span class="n">actions</span><span class="p">,</span> <span class="n">target_values</span><span class="p">):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">state</span><span class="p">,</span> <span class="n">action</span><span class="p">,</span> <span class="n">target_value</span><span class="p">)</span>
 
+    <span class="k">def</span> <span class="nf">export_f</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">pass</span>
+
+    <span class="k">def</span> <span class="nf">import_f</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">d</span><span class="p">):</span>
+        <span class="k">pass</span>
+
+    <span class="k">def</span> <span class="nf">clone</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">init_args</span><span class="p">[</span><span class="s2">&quot;self&quot;</span><span class="p">]</span>
+        <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">init_args</span><span class="p">[</span><span class="s2">&quot;__class__&quot;</span><span class="p">]</span>
+        <span class="n">args</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">init_args</span><span class="p">[</span><span class="s2">&quot;args&quot;</span><span class="p">]</span>
+        <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">init_args</span><span class="p">[</span><span class="s2">&quot;args&quot;</span><span class="p">]</span>
+        <span class="n">kwargs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">init_args</span><span class="p">[</span><span class="s2">&quot;kwargs&quot;</span><span class="p">]</span>
+        <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">init_args</span><span class="p">[</span><span class="s2">&quot;kwargs&quot;</span><span class="p">]</span>
+        <span class="nb">print</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">init_args</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span> <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">init_args</span><span class="p">)</span>
+
 <span class="k">class</span> <span class="nc">DiscreteQFunction</span><span class="p">(</span><span class="n">ValueFunction</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Classe de base pour les fonctions de valeur de type $q(s,a)$ dans les espaces d&#39;actions discrets</span>
@@ -175,6 +201,7 @@
         <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">env</span><span class="o">.</span><span class="n">action_space</span><span class="p">,</span> <span class="n">gym</span><span class="o">.</span><span class="n">spaces</span><span class="o">.</span><span class="n">Discrete</span><span class="p">)</span> <span class="ow">or</span> \
             <span class="nb">isinstance</span><span class="p">(</span><span class="n">env</span><span class="o">.</span><span class="n">action_space</span><span class="p">,</span> <span class="n">gym</span><span class="o">.</span><span class="n">spaces</span><span class="o">.</span><span class="n">MultiDiscrete</span><span class="p">)</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">env</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">init_args</span> <span class="o">=</span> <span class="nb">locals</span><span class="p">()</span>
 
     <span class="k">def</span> <span class="nf">enum_actions</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">action_space</span><span class="p">,</span> <span class="n">gym</span><span class="o">.</span><span class="n">spaces</span><span class="o">.</span><span class="n">Discrete</span><span class="p">):</span>
@@ -272,6 +299,7 @@
                 <span class="s2">&quot;data&quot;</span><span class="p">:</span> <span class="p">[]</span>
             <span class="p">}</span>
         <span class="p">}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">init_args</span> <span class="o">=</span> <span class="nb">locals</span><span class="p">()</span>
 
     <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -309,6 +337,22 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">for</span> <span class="n">state</span><span class="p">,</span> <span class="n">action</span><span class="p">,</span> <span class="n">target_value</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">states</span><span class="p">,</span> <span class="n">actions</span><span class="p">,</span> <span class="n">target_values</span><span class="p">):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">state</span><span class="p">,</span> <span class="n">action</span><span class="p">,</span> <span class="n">target_value</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">export_f</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">pass</span>
+
+    <span class="k">def</span> <span class="nf">import_f</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">d</span><span class="p">):</span>
+        <span class="k">pass</span>
+
+    <span class="k">def</span> <span class="nf">clone</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">init_args</span><span class="p">[</span><span class="s2">&quot;self&quot;</span><span class="p">]</span>
+        <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">init_args</span><span class="p">[</span><span class="s2">&quot;__class__&quot;</span><span class="p">]</span>
+        <span class="n">args</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">init_args</span><span class="p">[</span><span class="s2">&quot;args&quot;</span><span class="p">]</span>
+        <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">init_args</span><span class="p">[</span><span class="s2">&quot;args&quot;</span><span class="p">]</span>
+        <span class="n">kwargs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">init_args</span><span class="p">[</span><span class="s2">&quot;kwargs&quot;</span><span class="p">]</span>
+        <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">init_args</span><span class="p">[</span><span class="s2">&quot;kwargs&quot;</span><span class="p">]</span>
+        <span class="nb">print</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">init_args</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span> <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">init_args</span><span class="p">)</span>
 </pre></div>
 
         </details>
@@ -347,6 +391,7 @@
                 <span class="s2">&quot;data&quot;</span><span class="p">:</span> <span class="p">[]</span>
             <span class="p">}</span>
         <span class="p">}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">init_args</span> <span class="o">=</span> <span class="nb">locals</span><span class="p">()</span>
 </pre></div>
 
         </details>
@@ -461,6 +506,70 @@ l'évaluation par batch.</p>
 
 
                             </div>
+                            <div id="ValueFunction.export_f" class="classattr">
+                                        <div class="attr function"><a class="headerlink" href="#ValueFunction.export_f">#&nbsp;&nbsp</a>
+
+        
+            <span class="def">def</span>
+            <span class="name">export_f</span><span class="signature">(self)</span>:
+    </div>
+
+                <details>
+            <summary>View Source</summary>
+            <div class="codehilite"><pre><span></span>    <span class="k">def</span> <span class="nf">export_f</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">pass</span>
+</pre></div>
+
+        </details>
+
+    
+
+                            </div>
+                            <div id="ValueFunction.import_f" class="classattr">
+                                        <div class="attr function"><a class="headerlink" href="#ValueFunction.import_f">#&nbsp;&nbsp</a>
+
+        
+            <span class="def">def</span>
+            <span class="name">import_f</span><span class="signature">(self, d)</span>:
+    </div>
+
+                <details>
+            <summary>View Source</summary>
+            <div class="codehilite"><pre><span></span>    <span class="k">def</span> <span class="nf">import_f</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">d</span><span class="p">):</span>
+        <span class="k">pass</span>
+</pre></div>
+
+        </details>
+
+    
+
+                            </div>
+                            <div id="ValueFunction.clone" class="classattr">
+                                        <div class="attr function"><a class="headerlink" href="#ValueFunction.clone">#&nbsp;&nbsp</a>
+
+        
+            <span class="def">def</span>
+            <span class="name">clone</span><span class="signature">(self)</span>:
+    </div>
+
+                <details>
+            <summary>View Source</summary>
+            <div class="codehilite"><pre><span></span>    <span class="k">def</span> <span class="nf">clone</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">init_args</span><span class="p">[</span><span class="s2">&quot;self&quot;</span><span class="p">]</span>
+        <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">init_args</span><span class="p">[</span><span class="s2">&quot;__class__&quot;</span><span class="p">]</span>
+        <span class="n">args</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">init_args</span><span class="p">[</span><span class="s2">&quot;args&quot;</span><span class="p">]</span>
+        <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">init_args</span><span class="p">[</span><span class="s2">&quot;args&quot;</span><span class="p">]</span>
+        <span class="n">kwargs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">init_args</span><span class="p">[</span><span class="s2">&quot;kwargs&quot;</span><span class="p">]</span>
+        <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">init_args</span><span class="p">[</span><span class="s2">&quot;kwargs&quot;</span><span class="p">]</span>
+        <span class="nb">print</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">init_args</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span> <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">init_args</span><span class="p">)</span>
+</pre></div>
+
+        </details>
+
+    
+
+                            </div>
                 </section>
                 <section id="DiscreteQFunction">
                                 <div class="attr class">
@@ -481,6 +590,7 @@ l'évaluation par batch.</p>
         <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">env</span><span class="o">.</span><span class="n">action_space</span><span class="p">,</span> <span class="n">gym</span><span class="o">.</span><span class="n">spaces</span><span class="o">.</span><span class="n">Discrete</span><span class="p">)</span> <span class="ow">or</span> \
             <span class="nb">isinstance</span><span class="p">(</span><span class="n">env</span><span class="o">.</span><span class="n">action_space</span><span class="p">,</span> <span class="n">gym</span><span class="o">.</span><span class="n">spaces</span><span class="o">.</span><span class="n">MultiDiscrete</span><span class="p">)</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">env</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">init_args</span> <span class="o">=</span> <span class="nb">locals</span><span class="p">()</span>
 
     <span class="k">def</span> <span class="nf">enum_actions</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">action_space</span><span class="p">,</span> <span class="n">gym</span><span class="o">.</span><span class="n">spaces</span><span class="o">.</span><span class="n">Discrete</span><span class="p">):</span>
@@ -536,6 +646,7 @@ l'évaluation par batch.</p>
         <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">env</span><span class="o">.</span><span class="n">action_space</span><span class="p">,</span> <span class="n">gym</span><span class="o">.</span><span class="n">spaces</span><span class="o">.</span><span class="n">Discrete</span><span class="p">)</span> <span class="ow">or</span> \
             <span class="nb">isinstance</span><span class="p">(</span><span class="n">env</span><span class="o">.</span><span class="n">action_space</span><span class="p">,</span> <span class="n">gym</span><span class="o">.</span><span class="n">spaces</span><span class="o">.</span><span class="n">MultiDiscrete</span><span class="p">)</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">env</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">init_args</span> <span class="o">=</span> <span class="nb">locals</span><span class="p">()</span>
 </pre></div>
 
         </details>
@@ -689,6 +800,9 @@ de l'évaluation par batch des fonctions neurales</p>
                                     <div><dt><a href="#ValueFunction">ValueFunction</a></dt>
                                 <dd id="DiscreteQFunction.update" class="function"><a href="#ValueFunction.update">update</a></dd>
                 <dd id="DiscreteQFunction.update_batch" class="function"><a href="#ValueFunction.update_batch">update_batch</a></dd>
+                <dd id="DiscreteQFunction.export_f" class="function"><a href="#ValueFunction.export_f">export_f</a></dd>
+                <dd id="DiscreteQFunction.import_f" class="function"><a href="#ValueFunction.import_f">import_f</a></dd>
+                <dd id="DiscreteQFunction.clone" class="function"><a href="#ValueFunction.clone">clone</a></dd>
 
             </div>
                                 </dl>

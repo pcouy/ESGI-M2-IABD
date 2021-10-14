@@ -167,7 +167,7 @@
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Ajoute une faible punition à tous les pas de temps.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="n">env</span><span class="p">,</span> <span class="n">reward_per_step</span><span class="o">=-</span><span class="mf">0.01</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">env</span><span class="p">,</span> <span class="n">reward_per_step</span><span class="o">=-</span><span class="mf">0.01</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">reward_per_step</span> <span class="o">=</span> <span class="n">reward_per_step</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">env</span><span class="p">)</span>
 
@@ -481,7 +481,7 @@ intervals de valeurs en tranches égales.</p>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Ajoute une faible punition à tous les pas de temps.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="n">env</span><span class="p">,</span> <span class="n">reward_per_step</span><span class="o">=-</span><span class="mf">0.01</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">env</span><span class="p">,</span> <span class="n">reward_per_step</span><span class="o">=-</span><span class="mf">0.01</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">reward_per_step</span> <span class="o">=</span> <span class="n">reward_per_step</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">env</span><span class="p">)</span>
 
@@ -499,12 +499,12 @@ intervals de valeurs en tranches égales.</p>
                                         <div class="attr function"><a class="headerlink" href="#BoredomWrapper.__init__">#&nbsp;&nbsp</a>
 
         
-            <span class="name">BoredomWrapper</span><span class="signature">(reward_per_step=-0.01)</span>
+            <span class="name">BoredomWrapper</span><span class="signature">(env, reward_per_step=-0.01)</span>
     </div>
 
                 <details>
             <summary>View Source</summary>
-            <div class="codehilite"><pre><span></span>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="n">env</span><span class="p">,</span> <span class="n">reward_per_step</span><span class="o">=-</span><span class="mf">0.01</span><span class="p">):</span>
+            <div class="codehilite"><pre><span></span>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">env</span><span class="p">,</span> <span class="n">reward_per_step</span><span class="o">=-</span><span class="mf">0.01</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">reward_per_step</span> <span class="o">=</span> <span class="n">reward_per_step</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">env</span><span class="p">)</span>
 </pre></div>

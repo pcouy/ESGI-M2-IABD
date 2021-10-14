@@ -2,11 +2,13 @@ import numpy as np
 import matplotlib.pyplot as plt
 from .base import DiscreteQFunction
 import os
+import copy
 
 class LinearQValue(DiscreteQFunction):
     def __init__(self, env, default_value=0, *args, **kwargs):
         super().__init__(env, *args, **kwargs)
         self.weights = default_value*np.ones((self.action_space.n, (self.observation_space.shape[0]+1)))
+        self.init_args = locals()
 
     def add_bias(self, state):
 #        if type(state) is str:
@@ -29,3 +31,9 @@ class LinearQValue(DiscreteQFunction):
         Q = self(state, action)
         self.weights[action] = self.weights[action] + self.lr*(target_value-Q)*state
         super().update(state, action, target_value)
+
+    def export_f(self):
+        return copy.deepcopy(self.weights)
+
+    def import_f(self, d):
+        self.weights = copy.deepcopy(d)

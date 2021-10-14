@@ -30,6 +30,7 @@ class ValueFunction:
                 "data": []
             }
         }
+        self.init_args = locals()
 
     def __call__(self, state):
         """
@@ -68,6 +69,22 @@ class ValueFunction:
         for state, action, target_value in zip(states, actions, target_values):
             self.update(state, action, target_value)
 
+    def export_f(self):
+        pass
+
+    def import_f(self, d):
+        pass
+
+    def clone(self):
+        del self.init_args["self"]
+        del self.init_args["__class__"]
+        args = self.init_args["args"]
+        del self.init_args["args"]
+        kwargs = self.init_args["kwargs"]
+        del self.init_args["kwargs"]
+        print(self.init_args)
+        return type(self)(*args, **kwargs, **self.init_args)
+
 class DiscreteQFunction(ValueFunction):
     """
     Classe de base pour les fonctions de valeur de type $q(s,a)$ dans les espaces d'actions discrets
@@ -76,6 +93,7 @@ class DiscreteQFunction(ValueFunction):
         assert isinstance(env.action_space, gym.spaces.Discrete) or \
             isinstance(env.action_space, gym.spaces.MultiDiscrete)
         super().__init__(env, *args, **kwargs)
+        self.init_args = locals()
 
     def enum_actions(self):
         if isinstance(self.action_space, gym.spaces.Discrete):

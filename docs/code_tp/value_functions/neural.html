@@ -69,6 +69,12 @@
                         <li>
                                 <a class="function" href="#ConvolutionalQFunction.best_action_value_from_state_batch">best_action_value_from_state_batch</a>
                         </li>
+                        <li>
+                                <a class="function" href="#ConvolutionalQFunction.export_f">export_f</a>
+                        </li>
+                        <li>
+                                <a class="function" href="#ConvolutionalQFunction.import_f">import_f</a>
+                        </li>
                 </ul>
 
             </li>
@@ -113,6 +119,7 @@
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">img_shape</span> <span class="o">=</span> <span class="n">img_shape</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">n_actions</span> <span class="o">=</span> <span class="n">n_actions</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">init_args</span> <span class="o">=</span> <span class="nb">locals</span><span class="p">()</span>
         <span class="n">layers</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">if</span> <span class="n">n_filters</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">n_filters</span> <span class="o">=</span> <span class="p">[</span><span class="mi">16</span><span class="p">,</span><span class="mi">16</span><span class="p">]</span>
@@ -215,6 +222,12 @@
         <span class="n">values</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">from_state_batch</span><span class="p">(</span><span class="n">states</span><span class="p">)</span>
         <span class="n">m</span> <span class="o">=</span> <span class="n">values</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">m</span><span class="o">.</span><span class="n">indices</span><span class="p">,</span> <span class="n">m</span><span class="o">.</span><span class="n">values</span>
+
+    <span class="k">def</span> <span class="nf">export_f</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">state_dict</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">import_f</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">d</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">load_state_dict</span><span class="p">(</span><span class="n">d</span><span class="p">)</span>
 </pre></div>
 
         </details>
@@ -246,6 +259,7 @@
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">img_shape</span> <span class="o">=</span> <span class="n">img_shape</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">n_actions</span> <span class="o">=</span> <span class="n">n_actions</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">init_args</span> <span class="o">=</span> <span class="nb">locals</span><span class="p">()</span>
         <span class="n">layers</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">if</span> <span class="n">n_filters</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">n_filters</span> <span class="o">=</span> <span class="p">[</span><span class="mi">16</span><span class="p">,</span><span class="mi">16</span><span class="p">]</span>
@@ -356,6 +370,7 @@ parameters converted too when you call :meth:<code><a href="#ConvolutionalNN.to"
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">img_shape</span> <span class="o">=</span> <span class="n">img_shape</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">n_actions</span> <span class="o">=</span> <span class="n">n_actions</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">init_args</span> <span class="o">=</span> <span class="nb">locals</span><span class="p">()</span>
         <span class="n">layers</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">if</span> <span class="n">n_filters</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">n_filters</span> <span class="o">=</span> <span class="p">[</span><span class="mi">16</span><span class="p">,</span><span class="mi">16</span><span class="p">]</span>
@@ -549,6 +564,12 @@ parameters converted too when you call :meth:<code><a href="#ConvolutionalNN.to"
         <span class="n">values</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">from_state_batch</span><span class="p">(</span><span class="n">states</span><span class="p">)</span>
         <span class="n">m</span> <span class="o">=</span> <span class="n">values</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">m</span><span class="o">.</span><span class="n">indices</span><span class="p">,</span> <span class="n">m</span><span class="o">.</span><span class="n">values</span>
+
+    <span class="k">def</span> <span class="nf">export_f</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">state_dict</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">import_f</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">d</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">load_state_dict</span><span class="p">(</span><span class="n">d</span><span class="p">)</span>
 </pre></div>
 
         </details>
@@ -767,11 +788,53 @@ l'évaluation par batch.</p>
     
 
                             </div>
+                            <div id="ConvolutionalQFunction.export_f" class="classattr">
+                                        <div class="attr function"><a class="headerlink" href="#ConvolutionalQFunction.export_f">#&nbsp;&nbsp</a>
+
+        
+            <span class="def">def</span>
+            <span class="name">export_f</span><span class="signature">(self)</span>:
+    </div>
+
+                <details>
+            <summary>View Source</summary>
+            <div class="codehilite"><pre><span></span>    <span class="k">def</span> <span class="nf">export_f</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">state_dict</span><span class="p">()</span>
+</pre></div>
+
+        </details>
+
+    
+
+                            </div>
+                            <div id="ConvolutionalQFunction.import_f" class="classattr">
+                                        <div class="attr function"><a class="headerlink" href="#ConvolutionalQFunction.import_f">#&nbsp;&nbsp</a>
+
+        
+            <span class="def">def</span>
+            <span class="name">import_f</span><span class="signature">(self, d)</span>:
+    </div>
+
+                <details>
+            <summary>View Source</summary>
+            <div class="codehilite"><pre><span></span>    <span class="k">def</span> <span class="nf">import_f</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">d</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">load_state_dict</span><span class="p">(</span><span class="n">d</span><span class="p">)</span>
+</pre></div>
+
+        </details>
+
+    
+
+                            </div>
                             <div class="inherited">
                                 <h5>Inherited Members</h5>
                                 <dl>
                                     <div><dt><a href="base.html#DiscreteQFunction">code_tp.value_functions.base.DiscreteQFunction</a></dt>
                                 <dd id="ConvolutionalQFunction.enum_actions" class="function"><a href="base.html#DiscreteQFunction.enum_actions">enum_actions</a></dd>
+
+            </div>
+            <div><dt><a href="base.html#ValueFunction">code_tp.value_functions.base.ValueFunction</a></dt>
+                                <dd id="ConvolutionalQFunction.clone" class="function"><a href="base.html#ValueFunction.clone">clone</a></dd>
 
             </div>
                                 </dl>

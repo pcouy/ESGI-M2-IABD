@@ -2,6 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from .base import DiscreteQFunction
 import os
+import copy
 
 class TabularQValue(DiscreteQFunction):
     """Fonction de valeur tabulaire"""
@@ -20,6 +21,7 @@ class TabularQValue(DiscreteQFunction):
                 "data": [0]
             }
         })
+        self.init_args = locals()
 
     def __call__(self, state, action):
         return self.from_state(str(state))[action]
@@ -53,3 +55,9 @@ class TabularQValue(DiscreteQFunction):
             "n_known_states.png"
         ))
         plt.close(fig)
+
+    def export_f(self):
+        return copy.deepcopy(self.known_states)
+
+    def import_f(self, d):
+        self.known_states.update(d)
