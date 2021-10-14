@@ -55,8 +55,7 @@ class GreedyQPolicy(RandomPolicy):
 
         actions = [k for k,v in enumerate(values) if v == value]
 
-
-        self.stats['predicted_value']['data'].append(value)
+        self.agent.log_data("predicted_value", value)
         return np.random.choice(actions)
 
 class EGreedyPolicy(RandomPolicy):
@@ -94,7 +93,7 @@ class EGreedyPolicy(RandomPolicy):
 
     def update(self):
         self.update_epsilon()
-        self.stats["epsilon"]["data"].append(self.epsilon)
+        self.agent.log_data("epsilon", self.epsilon)
         super().update()
 
 class CosineEGreedyPolicy(EGreedyPolicy):

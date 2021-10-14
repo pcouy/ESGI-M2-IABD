@@ -55,7 +55,7 @@ class ValueFunction:
         * `target_value`: valeur cible, déterminée par l'agent selon son algorithme d'apprentissage
         """
         self.lr = max(self.lr*(1-self.lr_decay), self.lr_min)
-        self.stats["lr"]["data"].append(self.lr)
+        self.agent.log_data("lr", self.lr)
 
     def update_batch(self, states, actions, target_values):
         """

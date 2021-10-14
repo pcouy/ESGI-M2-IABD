@@ -33,6 +33,9 @@
             <li>
                     <a class="class" href="#SoftmaxSamplingPolicy">SoftmaxSamplingPolicy</a>
                             <ul class="memberlist">
+                        <li>
+                                <a class="function" href="#SoftmaxSamplingPolicy.__init__">SoftmaxSamplingPolicy</a>
+                        </li>
                 </ul>
 
             </li>
@@ -68,6 +71,15 @@
 <span class="sd">    epsilon=1 &lt;=&gt; Choix complètement équiprobable parmi les actions</span>
 <span class="sd">    epsilon=0 &lt;=&gt; Politique greedy</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">update</span><span class="p">({</span>
+            <span class="s1">&#39;picked_proba&#39;</span><span class="p">:{</span>
+                <span class="s1">&#39;x_label&#39;</span><span class="p">:</span> <span class="s1">&#39;step&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;data&#39;</span><span class="p">:</span> <span class="p">[]</span>
+            <span class="p">}</span>
+        <span class="p">})</span>
+
     <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">,</span> <span class="n">epsilon</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">epsilon</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">epsilon</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">epsilon</span>
@@ -75,11 +87,25 @@
         <span class="n">values</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">value_function</span><span class="o">.</span><span class="n">from_state</span><span class="p">(</span><span class="n">state</span><span class="p">)</span>
         <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">values</span><span class="p">)</span> <span class="ow">is</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
             <span class="n">values</span> <span class="o">=</span> <span class="n">values</span><span class="o">.</span><span class="n">clone</span><span class="p">()</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span>
-        <span class="n">aux</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="mi">5</span> <span class="o">*</span> <span class="p">((</span><span class="mi">1</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">epsilon</span><span class="p">)</span><span class="o">**</span><span class="mf">2.5</span><span class="p">)</span> <span class="o">*</span> <span class="n">values</span><span class="p">)</span>
-        <span class="n">probas</span> <span class="o">=</span> <span class="n">aux</span><span class="o">/</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">aux</span><span class="p">)</span>
 
-        <span class="n">action</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">choice</span><span class="p">([</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">probas</span><span class="p">))],</span> <span class="n">p</span><span class="o">=</span><span class="n">probas</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">greedy_policy</span><span class="o">.</span><span class="n">stats</span><span class="p">[</span><span class="s1">&#39;predicted_value&#39;</span><span class="p">][</span><span class="s1">&#39;data&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">values</span><span class="p">[</span><span class="n">action</span><span class="p">])</span>
+        <span class="k">if</span> <span class="n">epsilon</span> <span class="o">&gt;</span> <span class="mf">0.0015</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">aux</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">((</span><span class="mi">1</span><span class="o">/</span><span class="n">epsilon</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">values</span><span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">values</span><span class="p">)))</span>
+                <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">aux</span><span class="p">)</span> <span class="o">==</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">:</span>
+                    <span class="n">aux</span><span class="p">[</span><span class="n">aux</span> <span class="o">!=</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+                    <span class="n">aux</span><span class="p">[</span><span class="n">aux</span> <span class="o">==</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+                <span class="n">probas</span> <span class="o">=</span> <span class="n">aux</span><span class="o">/</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">aux</span><span class="p">)</span>
+                <span class="n">action</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">choice</span><span class="p">([</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">probas</span><span class="p">))],</span> <span class="n">p</span><span class="o">=</span><span class="n">probas</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">agent</span><span class="o">.</span><span class="n">log_data</span><span class="p">(</span><span class="s2">&quot;picked_proba&quot;</span><span class="p">,</span> <span class="n">probas</span><span class="p">[</span><span class="n">action</span><span class="p">])</span>
+            <span class="k">except</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="n">epsilon</span><span class="p">,</span> <span class="n">values</span><span class="p">,</span> <span class="n">aux</span><span class="p">,</span> <span class="n">probas</span><span class="p">)</span>
+                <span class="n">action</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">values</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">agent</span><span class="o">.</span><span class="n">log_data</span><span class="p">(</span><span class="s2">&quot;picked_proba&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">action</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">values</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">agent</span><span class="o">.</span><span class="n">log_data</span><span class="p">(</span><span class="s2">&quot;picked_proba&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">agent</span><span class="o">.</span><span class="n">log_data</span><span class="p">(</span><span class="s2">&quot;predicted_value&quot;</span><span class="p">,</span> <span class="n">values</span><span class="p">[</span><span class="n">action</span><span class="p">])</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">greedy_policy</span><span class="o">.</span><span class="n">stats</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">action</span>
@@ -108,6 +134,15 @@
 <span class="sd">    epsilon=1 &lt;=&gt; Choix complètement équiprobable parmi les actions</span>
 <span class="sd">    epsilon=0 &lt;=&gt; Politique greedy</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">update</span><span class="p">({</span>
+            <span class="s1">&#39;picked_proba&#39;</span><span class="p">:{</span>
+                <span class="s1">&#39;x_label&#39;</span><span class="p">:</span> <span class="s1">&#39;step&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;data&#39;</span><span class="p">:</span> <span class="p">[]</span>
+            <span class="p">}</span>
+        <span class="p">})</span>
+
     <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">,</span> <span class="n">epsilon</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">epsilon</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">epsilon</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">epsilon</span>
@@ -115,11 +150,25 @@
         <span class="n">values</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">value_function</span><span class="o">.</span><span class="n">from_state</span><span class="p">(</span><span class="n">state</span><span class="p">)</span>
         <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">values</span><span class="p">)</span> <span class="ow">is</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
             <span class="n">values</span> <span class="o">=</span> <span class="n">values</span><span class="o">.</span><span class="n">clone</span><span class="p">()</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span>
-        <span class="n">aux</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="mi">5</span> <span class="o">*</span> <span class="p">((</span><span class="mi">1</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">epsilon</span><span class="p">)</span><span class="o">**</span><span class="mf">2.5</span><span class="p">)</span> <span class="o">*</span> <span class="n">values</span><span class="p">)</span>
-        <span class="n">probas</span> <span class="o">=</span> <span class="n">aux</span><span class="o">/</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">aux</span><span class="p">)</span>
 
-        <span class="n">action</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">choice</span><span class="p">([</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">probas</span><span class="p">))],</span> <span class="n">p</span><span class="o">=</span><span class="n">probas</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">greedy_policy</span><span class="o">.</span><span class="n">stats</span><span class="p">[</span><span class="s1">&#39;predicted_value&#39;</span><span class="p">][</span><span class="s1">&#39;data&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">values</span><span class="p">[</span><span class="n">action</span><span class="p">])</span>
+        <span class="k">if</span> <span class="n">epsilon</span> <span class="o">&gt;</span> <span class="mf">0.0015</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">aux</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">((</span><span class="mi">1</span><span class="o">/</span><span class="n">epsilon</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">values</span><span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">values</span><span class="p">)))</span>
+                <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">aux</span><span class="p">)</span> <span class="o">==</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">:</span>
+                    <span class="n">aux</span><span class="p">[</span><span class="n">aux</span> <span class="o">!=</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+                    <span class="n">aux</span><span class="p">[</span><span class="n">aux</span> <span class="o">==</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+                <span class="n">probas</span> <span class="o">=</span> <span class="n">aux</span><span class="o">/</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">aux</span><span class="p">)</span>
+                <span class="n">action</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">choice</span><span class="p">([</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">probas</span><span class="p">))],</span> <span class="n">p</span><span class="o">=</span><span class="n">probas</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">agent</span><span class="o">.</span><span class="n">log_data</span><span class="p">(</span><span class="s2">&quot;picked_proba&quot;</span><span class="p">,</span> <span class="n">probas</span><span class="p">[</span><span class="n">action</span><span class="p">])</span>
+            <span class="k">except</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="n">epsilon</span><span class="p">,</span> <span class="n">values</span><span class="p">,</span> <span class="n">aux</span><span class="p">,</span> <span class="n">probas</span><span class="p">)</span>
+                <span class="n">action</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">values</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">agent</span><span class="o">.</span><span class="n">log_data</span><span class="p">(</span><span class="s2">&quot;picked_proba&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">action</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">values</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">agent</span><span class="o">.</span><span class="n">log_data</span><span class="p">(</span><span class="s2">&quot;picked_proba&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">agent</span><span class="o">.</span><span class="n">log_data</span><span class="p">(</span><span class="s2">&quot;predicted_value&quot;</span><span class="p">,</span> <span class="n">values</span><span class="p">[</span><span class="n">action</span><span class="p">])</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">greedy_policy</span><span class="o">.</span><span class="n">stats</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">action</span>
@@ -136,12 +185,35 @@ epsilon=0 &lt;=&gt; Politique greedy</p>
 </div>
 
 
+                            <div id="SoftmaxSamplingPolicy.__init__" class="classattr">
+                                        <div class="attr function"><a class="headerlink" href="#SoftmaxSamplingPolicy.__init__">#&nbsp;&nbsp</a>
+
+        
+            <span class="name">SoftmaxSamplingPolicy</span><span class="signature">(*args, **kwargs)</span>
+    </div>
+
+                <details>
+            <summary>View Source</summary>
+            <div class="codehilite"><pre><span></span>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">update</span><span class="p">({</span>
+            <span class="s1">&#39;picked_proba&#39;</span><span class="p">:{</span>
+                <span class="s1">&#39;x_label&#39;</span><span class="p">:</span> <span class="s1">&#39;step&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;data&#39;</span><span class="p">:</span> <span class="p">[]</span>
+            <span class="p">}</span>
+        <span class="p">})</span>
+</pre></div>
+
+        </details>
+
+    
+
+                            </div>
                             <div class="inherited">
                                 <h5>Inherited Members</h5>
                                 <dl>
                                     <div><dt><a href="greedy.html#EGreedyPolicy">code_tp.policies.greedy.EGreedyPolicy</a></dt>
-                                <dd id="SoftmaxSamplingPolicy.__init__" class="function"><a href="greedy.html#EGreedyPolicy.__init__">EGreedyPolicy</a></dd>
-                <dd id="SoftmaxSamplingPolicy.test" class="function"><a href="greedy.html#EGreedyPolicy.test">test</a></dd>
+                                <dd id="SoftmaxSamplingPolicy.test" class="function"><a href="greedy.html#EGreedyPolicy.test">test</a></dd>
                 <dd id="SoftmaxSamplingPolicy.update_epsilon" class="function"><a href="greedy.html#EGreedyPolicy.update_epsilon">update_epsilon</a></dd>
                 <dd id="SoftmaxSamplingPolicy.update" class="function"><a href="greedy.html#EGreedyPolicy.update">update</a></dd>
 

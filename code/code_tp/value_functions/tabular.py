@@ -40,7 +40,7 @@ class TabularQValue(DiscreteQFunction):
     def update(self, state, action, target_value):
         Q = self(state, action)
         self.known_states[str(state)][action] = (1-self.lr)*Q + self.lr*target_value
-        self.stats['n_known_states']['data'].append(len(self.known_states))
+        self.agent.log_data("n_known_states", len(self.known_states))
         self.visit_count[str(state)][action]+= 1
         super().update(str(state), action, target_value)
 

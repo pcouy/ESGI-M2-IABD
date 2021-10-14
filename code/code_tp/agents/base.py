@@ -4,13 +4,14 @@ import os
 import json
 import matplotlib.pyplot as plt
 import torch
+from torch.utils.tensorboard import SummaryWriter
 
 
 class Agent:
     """
     Classe de base pour tous les agents.
     """
-    def __init__(self, env:gym.Env, save_dir="experiment", infos={}):
+    def __init__(self, env:gym.Env, save_dir="experiment", infos={}, tensorboard_layout={}):
         """
         * `env`: Environnement gym dans lequel l'agent va évoluer
         * `save_dir`: Dossier dans lequel les résultats de l'expérience seront sauvegardés
@@ -20,6 +21,7 @@ class Agent:
         self.training_steps = 0
         self.training_episodes = 0
         self.env = env
+        self.agent = self
         self.test = False
         self.save_dir = save_dir
         self.stats = {
@@ -35,6 +37,14 @@ class Agent:
         with open(os.path.join(self.save_dir, "infos.json"), "w") as f:
             print(infos)
             json.dump(infos, f, indent=2, default=lambda x: x.__name__ if type(x) is type else str(x))
+        self.tensorboard = SummaryWriter(os.path.join(self.save_dir, "tensorboard"))
+        self.tensorboard.add_custom_scalars(tensorboard_layout)
+
+    def log_data(self, key, value):
+        if key not in self.stats:
+            self.stats[key] = {'data':[]}
+        self.stats[key]["data"].append(value)
+        self.tensorboard.add_scalar(key, value, self.training_steps)
 
     def select_action(self, state: np.ndarray) -> np.ndarray:
         """
@@ -143,9 +153,9 @@ class Agent:
             score
         ))
         if not self.test:
-            self.stats["scores"]["data"].append(score)
+            self.log_data("scores", score)
         else:
-            self.stats["test_scores"]["data"].append(score)
+            self.log_data("test_scores", score)
 
     def plot_stats(self, save_dir=None):
         """

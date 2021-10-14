@@ -111,7 +111,7 @@ class ConvolutionalQFunction(DiscreteQFunction):
         self.optim.zero_grad()
         pred_error.backward()
         self.optim.step()
-        self.stats['nn_loss']['data'].append(pred_error.clone().detach().item())
+        self.agent.log_data("nn_loss", pred_error.clone())
         del pred_error
 
     def best_action_value_from_state(self, state):
