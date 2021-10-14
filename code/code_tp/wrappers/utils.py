@@ -70,7 +70,7 @@ class BoredomWrapper(gym.RewardWrapper):
         super().__init__(env)
 
     def reward(self, reward):
-        return reward - self.reward_per_step
+        return reward + self.reward_per_step
 
 class TimeToChannels(gym.ObservationWrapper):
     """
