@@ -105,7 +105,7 @@ class ConvolutionalQFunction(DiscreteQFunction):
 
     def update_batch(self, states, actions, target_values):
         pred_values = self.call_batch(states, actions)
-        pred_error = nn.functional.mse_loss(
+        pred_error = nn.functional.smooth_l1_loss(
             pred_values[:,0],
             torch.tensor(target_values,dtype=torch.float32, device=self.device).detach()
         )
