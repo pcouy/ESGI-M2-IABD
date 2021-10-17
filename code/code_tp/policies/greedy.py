@@ -120,7 +120,7 @@ class CosineEGreedyPolicy(EGreedyPolicy):
 
     def update_epsilon(self):
         self.epsilon = (self.epsilon_max-self.epsilon_min)/2 * np.cos(self.t*2*np.pi/self.T) +\
-                (self.epsilon_max/2 + self.epsilon_min)
+                (self.epsilon_max + self.epsilon_min)/2
         self.epsilon_max = max(self.epsilon_max*(1-self.epsilon_decay), self.epsilon_max_final)
         self.t+= 1
 
