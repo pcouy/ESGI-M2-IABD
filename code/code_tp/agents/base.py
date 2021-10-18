@@ -227,14 +227,14 @@ class QLearningAgent(Agent):
     def target_value_from_state(self, next_state, reward, done):
         _, next_value = self.eval_state(next_state)
         if type(next_value) is torch.Tensor:
-            next_value = next_value.detach().cpu().numpy()
+            next_value = next_value.detach()
         target = reward + self.gamma * next_value * (1-done)
         return target
 
     def target_value_from_state_batch(self, next_states, rewards, dones):
         _, next_values = self.eval_state_batch(next_states)
         if type(next_values) is torch.Tensor:
-            next_values = next_values.detach().cpu().numpy()
+            next_values = next_values.detach()
         targets = rewards + self.gamma * next_values * (1-dones)
         return targets
 
