@@ -78,6 +78,7 @@ class EGreedyPolicy(RandomPolicy):
             epsilon = self.epsilon
 
         if np.random.uniform(0,1) > epsilon:
+            self.greedy_policy.agent = self.agent
             action = self.greedy_policy(state)
             self.stats.update(self.greedy_policy.stats)
         else:

@@ -39,10 +39,10 @@ class SoftmaxSamplingPolicy(EGreedyPolicy):
                 self.agent.log_data("picked_proba", probas[action])
             except:
                 print(epsilon, values, aux, probas)
-                action = np.argmax(values)
+                action = self.greedy_policy(state)
                 self.agent.log_data("picked_proba", 1)
         else:
-            action = np.argmax(values)
+            action = self.greedy_policy(state)
             self.agent.log_data("picked_proba", 1)
 
         self.agent.log_data("predicted_value", values[action])
