@@ -39,9 +39,11 @@ class SoftmaxSamplingPolicy(EGreedyPolicy):
                 self.agent.log_data("picked_proba", probas[action])
             except:
                 print(epsilon, values, aux, probas)
+                self.greedy_policy.agent = self.agent
                 action = self.greedy_policy(state)
                 self.agent.log_data("picked_proba", 1)
         else:
+            self.greedy_policy.agent = self.agent
             action = self.greedy_policy(state)
             self.agent.log_data("picked_proba", 1)
 
