@@ -34,18 +34,21 @@ class ReplayBuffer:
                 self.rewards[i], self.dones[i], None
 
 class ReplayBufferAgent(Agent):
-    def __init__(self, env, replay_buffer_class, replay_buffer_args={}, **kwargs):
+    def __init__(self, env, replay_buffer_class, replay_buffer_args={}, update_interval=1, **kwargs):
         print(kwargs)
         super().__init__(env, **kwargs)
         self.replay_buffer = replay_buffer_class(
             obs_shape = self.env.observation_space.shape,
             **replay_buffer_args
         )
+        self.update_interval = update_interval
 
     def train_with_transition(self, state, action, next_state, reward, done, infos):
+        #print("Training from ReplayBufferAgent")
         self.replay_buffer.store(state, action, next_state, reward, done, infos)
-        if self.replay_buffer.ready():
+        if self.replay_buffer.ready() and self.training_steps % self.update_interval==0:
             states, actions, next_states, rewards, dones, infos = self.replay_buffer.sample()
+            #print(actions.shape)
             target_values = self.target_value_from_state_batch(next_states, rewards, dones)
             self.value_function.update_batch(states, actions, target_values)
             self.policy.update()
