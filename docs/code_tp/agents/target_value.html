@@ -82,6 +82,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">target_value_function</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">value_function</span><span class="o">.</span><span class="n">clone</span><span class="p">()</span>
 
     <span class="k">def</span> <span class="nf">train_with_transition</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="c1">#print(&quot;Training from TargetValueAgent&quot;)</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">train_with_transition</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">training_steps</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">target_update</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">target_value_function</span><span class="o">.</span><span class="n">import_f</span><span class="p">(</span>
@@ -120,6 +121,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">target_value_function</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">value_function</span><span class="o">.</span><span class="n">clone</span><span class="p">()</span>
 
     <span class="k">def</span> <span class="nf">train_with_transition</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="c1">#print(&quot;Training from TargetValueAgent&quot;)</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">train_with_transition</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">training_steps</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">target_update</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">target_value_function</span><span class="o">.</span><span class="n">import_f</span><span class="p">(</span>
@@ -178,6 +180,7 @@ lors d'un update.</p>
                 <details>
             <summary>View Source</summary>
             <div class="codehilite"><pre><span></span>    <span class="k">def</span> <span class="nf">train_with_transition</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="c1">#print(&quot;Training from TargetValueAgent&quot;)</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">train_with_transition</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">training_steps</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">target_update</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">target_value_function</span><span class="o">.</span><span class="n">import_f</span><span class="p">(</span>

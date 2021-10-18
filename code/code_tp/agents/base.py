@@ -214,6 +214,7 @@ class QLearningAgent(Agent):
         self.policy.agent = self
 
     def train_with_transition(self, state, action, next_state, reward, done, infos):
+        #print("Training from QLeaningAgent")
         target_value = self.target_value_from_state(next_state, reward, done)
         self.value_function.update(state, action, target_value)
         self.policy.update()
@@ -227,14 +228,14 @@ class QLearningAgent(Agent):
     def target_value_from_state(self, next_state, reward, done):
         _, next_value = self.eval_state(next_state)
         if type(next_value) is torch.Tensor:
-            next_value = next_value.detach()
+            next_value = next_value.detach().cpu().numpy()
         target = reward + self.gamma * next_value * (1-done)
         return target
 
     def target_value_from_state_batch(self, next_states, rewards, dones):
         _, next_values = self.eval_state_batch(next_states)
         if type(next_values) is torch.Tensor:
-            next_values = next_values.detach()
+            next_values = next_values.detach().cpu().numpy()
         targets = rewards + self.gamma * next_values * (1-dones)
         return targets
 
