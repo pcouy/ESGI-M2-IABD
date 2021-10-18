@@ -23,8 +23,15 @@ class ConvolutionalNN(nn.Module):
         layers = []
         if n_filters is None:
             n_filters = [16,16]
+
+        if type(kernel_size) is int:
+            kernel_sizes = [kernel_size for _ in n_filters]
+        elif type(kernel_size) is list:
+            kernel_sizes = kernel_size
+
         n_filters = [img_shape[-1]] + n_filters
-        for n_in, n_out in zip(n_filters[:-1], n_filters[1:]):
+
+        for n_in, n_out, kernel_size in zip(n_filters[:-1], n_filters[1:], kernel_sizes):
             i_layer = 0
             layers.append(nn.Conv2d(
                 n_in,
