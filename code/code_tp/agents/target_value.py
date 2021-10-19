@@ -13,6 +13,7 @@ class TargetValueAgent(QLearningAgent):
         self.target_value_function = self.value_function.clone()
 
     def train_with_transition(self, *args, **kwargs):
+        #print("Training from TargetValueAgent")
         super().train_with_transition(*args, **kwargs)
         if self.training_steps % self.target_update == 0:
             self.target_value_function.import_f(

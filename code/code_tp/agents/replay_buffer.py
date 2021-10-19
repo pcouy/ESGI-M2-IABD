@@ -42,13 +42,18 @@ class ReplayBufferAgent(Agent):
             **replay_buffer_args
         )
         self.update_interval = update_interval
+        self.last_update = 0
 
     def train_with_transition(self, state, action, next_state, reward, done, infos):
         #print("Training from ReplayBufferAgent")
         self.replay_buffer.store(state, action, next_state, reward, done, infos)
-        if self.replay_buffer.ready() and self.training_steps % self.update_interval==0:
-            states, actions, next_states, rewards, dones, infos = self.replay_buffer.sample()
-            #print(actions.shape)
-            target_values = self.target_value_from_state_batch(next_states, rewards, dones)
-            self.value_function.update_batch(states, actions, target_values)
+        if self.replay_buffer.ready():
+            n_stored = min(self.replay_buffer.n_inserted, self.replay_buffer.max_size)
+            update_interval = self.replay_buffer.max_size/n_stored
+            if self.training_steps-self.last_update >= update_interval:
+                states, actions, next_states, rewards, dones, infos = self.replay_buffer.sample()
+                #print(actions.shape)
+                target_values = self.target_value_from_state_batch(next_states, rewards, dones)
+                self.value_function.update_batch(states, actions, target_values)
+                self.last_update = self.training_steps
             self.policy.update()
