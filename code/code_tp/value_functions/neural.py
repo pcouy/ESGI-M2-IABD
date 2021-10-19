@@ -16,6 +16,7 @@ class ConvolutionalNN(nn.Module):
                  dilation=1,
                  hidden_linear=[],
                  activation=nn.Tanh,
+                 pooling=None
             ):
         super().__init__()
         self.img_shape = img_shape
@@ -29,9 +30,21 @@ class ConvolutionalNN(nn.Module):
         elif type(kernel_size) is list:
             kernel_sizes = kernel_size
 
+        if type(pooling) is int:
+            poolings = [pooling for _ in n_filters]
+        elif type(pooling) is list:
+            poolings = pooling
+
+        if type(padding) is int:
+            paddings = [padding for _ in n_filters]
+        elif type(padding) is list:
+            paddings = padding
+
         n_filters = [img_shape[-1]] + n_filters
 
-        for n_in, n_out, kernel_size in zip(n_filters[:-1], n_filters[1:], kernel_sizes):
+        for n_in, n_out, kernel_size, padding, pooling in zip(
+                n_filters[:-1], n_filters[1:], kernel_sizes, paddings, poolings
+        ):
             i_layer = 0
             layers.append(nn.Conv2d(
                 n_in,
@@ -41,6 +54,13 @@ class ConvolutionalNN(nn.Module):
                 padding,
                 dilation
             ))
+            if pooling is not None:
+                if pooling == "max":
+                    layers.append(nn.MaxPool2d(3, 2, 1))
+                elif pooling == "avg":
+                    layers.append(nn.AvgPool2d(3, 2, 1))
+                else:
+                    print("Pooling type {} unkwown :  no pooling used")
             layers.append(activation())
         layers.append(nn.Flatten())
         conv_stack = nn.Sequential(*layers)

@@ -115,6 +115,7 @@
                  <span class="n">dilation</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
                  <span class="n">hidden_linear</span><span class="o">=</span><span class="p">[],</span>
                  <span class="n">activation</span><span class="o">=</span><span class="n">nn</span><span class="o">.</span><span class="n">Tanh</span><span class="p">,</span>
+                 <span class="n">pooling</span><span class="o">=</span><span class="kc">None</span>
             <span class="p">):</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">img_shape</span> <span class="o">=</span> <span class="n">img_shape</span>
@@ -128,9 +129,21 @@
         <span class="k">elif</span> <span class="nb">type</span><span class="p">(</span><span class="n">kernel_size</span><span class="p">)</span> <span class="ow">is</span> <span class="nb">list</span><span class="p">:</span>
             <span class="n">kernel_sizes</span> <span class="o">=</span> <span class="n">kernel_size</span>
 
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">pooling</span><span class="p">)</span> <span class="ow">is</span> <span class="nb">int</span><span class="p">:</span>
+            <span class="n">poolings</span> <span class="o">=</span> <span class="p">[</span><span class="n">pooling</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">n_filters</span><span class="p">]</span>
+        <span class="k">elif</span> <span class="nb">type</span><span class="p">(</span><span class="n">pooling</span><span class="p">)</span> <span class="ow">is</span> <span class="nb">list</span><span class="p">:</span>
+            <span class="n">poolings</span> <span class="o">=</span> <span class="n">pooling</span>
+
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">padding</span><span class="p">)</span> <span class="ow">is</span> <span class="nb">int</span><span class="p">:</span>
+            <span class="n">paddings</span> <span class="o">=</span> <span class="p">[</span><span class="n">padding</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">n_filters</span><span class="p">]</span>
+        <span class="k">elif</span> <span class="nb">type</span><span class="p">(</span><span class="n">padding</span><span class="p">)</span> <span class="ow">is</span> <span class="nb">list</span><span class="p">:</span>
+            <span class="n">paddings</span> <span class="o">=</span> <span class="n">padding</span>
+
         <span class="n">n_filters</span> <span class="o">=</span> <span class="p">[</span><span class="n">img_shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]]</span> <span class="o">+</span> <span class="n">n_filters</span>
 
-        <span class="k">for</span> <span class="n">n_in</span><span class="p">,</span> <span class="n">n_out</span><span class="p">,</span> <span class="n">kernel_size</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">n_filters</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">n_filters</span><span class="p">[</span><span class="mi">1</span><span class="p">:],</span> <span class="n">kernel_sizes</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">n_in</span><span class="p">,</span> <span class="n">n_out</span><span class="p">,</span> <span class="n">kernel_size</span><span class="p">,</span> <span class="n">padding</span><span class="p">,</span> <span class="n">pooling</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span>
+                <span class="n">n_filters</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">n_filters</span><span class="p">[</span><span class="mi">1</span><span class="p">:],</span> <span class="n">kernel_sizes</span><span class="p">,</span> <span class="n">paddings</span><span class="p">,</span> <span class="n">poolings</span>
+        <span class="p">):</span>
             <span class="n">i_layer</span> <span class="o">=</span> <span class="mi">0</span>
             <span class="n">layers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Conv2d</span><span class="p">(</span>
                 <span class="n">n_in</span><span class="p">,</span>
@@ -140,6 +153,13 @@
                 <span class="n">padding</span><span class="p">,</span>
                 <span class="n">dilation</span>
             <span class="p">))</span>
+            <span class="k">if</span> <span class="n">pooling</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">pooling</span> <span class="o">==</span> <span class="s2">&quot;max&quot;</span><span class="p">:</span>
+                    <span class="n">layers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">MaxPool2d</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+                <span class="k">elif</span> <span class="n">pooling</span> <span class="o">==</span> <span class="s2">&quot;avg&quot;</span><span class="p">:</span>
+                    <span class="n">layers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">AvgPool2d</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Pooling type </span><span class="si">{}</span><span class="s2"> unkwown :  no pooling used&quot;</span><span class="p">)</span>
             <span class="n">layers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">activation</span><span class="p">())</span>
         <span class="n">layers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Flatten</span><span class="p">())</span>
         <span class="n">conv_stack</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Sequential</span><span class="p">(</span><span class="o">*</span><span class="n">layers</span><span class="p">)</span>
@@ -262,6 +282,7 @@
                  <span class="n">dilation</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
                  <span class="n">hidden_linear</span><span class="o">=</span><span class="p">[],</span>
                  <span class="n">activation</span><span class="o">=</span><span class="n">nn</span><span class="o">.</span><span class="n">Tanh</span><span class="p">,</span>
+                 <span class="n">pooling</span><span class="o">=</span><span class="kc">None</span>
             <span class="p">):</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">img_shape</span> <span class="o">=</span> <span class="n">img_shape</span>
@@ -275,9 +296,21 @@
         <span class="k">elif</span> <span class="nb">type</span><span class="p">(</span><span class="n">kernel_size</span><span class="p">)</span> <span class="ow">is</span> <span class="nb">list</span><span class="p">:</span>
             <span class="n">kernel_sizes</span> <span class="o">=</span> <span class="n">kernel_size</span>
 
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">pooling</span><span class="p">)</span> <span class="ow">is</span> <span class="nb">int</span><span class="p">:</span>
+            <span class="n">poolings</span> <span class="o">=</span> <span class="p">[</span><span class="n">pooling</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">n_filters</span><span class="p">]</span>
+        <span class="k">elif</span> <span class="nb">type</span><span class="p">(</span><span class="n">pooling</span><span class="p">)</span> <span class="ow">is</span> <span class="nb">list</span><span class="p">:</span>
+            <span class="n">poolings</span> <span class="o">=</span> <span class="n">pooling</span>
+
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">padding</span><span class="p">)</span> <span class="ow">is</span> <span class="nb">int</span><span class="p">:</span>
+            <span class="n">paddings</span> <span class="o">=</span> <span class="p">[</span><span class="n">padding</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">n_filters</span><span class="p">]</span>
+        <span class="k">elif</span> <span class="nb">type</span><span class="p">(</span><span class="n">padding</span><span class="p">)</span> <span class="ow">is</span> <span class="nb">list</span><span class="p">:</span>
+            <span class="n">paddings</span> <span class="o">=</span> <span class="n">padding</span>
+
         <span class="n">n_filters</span> <span class="o">=</span> <span class="p">[</span><span class="n">img_shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]]</span> <span class="o">+</span> <span class="n">n_filters</span>
 
-        <span class="k">for</span> <span class="n">n_in</span><span class="p">,</span> <span class="n">n_out</span><span class="p">,</span> <span class="n">kernel_size</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">n_filters</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">n_filters</span><span class="p">[</span><span class="mi">1</span><span class="p">:],</span> <span class="n">kernel_sizes</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">n_in</span><span class="p">,</span> <span class="n">n_out</span><span class="p">,</span> <span class="n">kernel_size</span><span class="p">,</span> <span class="n">padding</span><span class="p">,</span> <span class="n">pooling</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span>
+                <span class="n">n_filters</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">n_filters</span><span class="p">[</span><span class="mi">1</span><span class="p">:],</span> <span class="n">kernel_sizes</span><span class="p">,</span> <span class="n">paddings</span><span class="p">,</span> <span class="n">poolings</span>
+        <span class="p">):</span>
             <span class="n">i_layer</span> <span class="o">=</span> <span class="mi">0</span>
             <span class="n">layers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Conv2d</span><span class="p">(</span>
                 <span class="n">n_in</span><span class="p">,</span>
@@ -287,6 +320,13 @@
                 <span class="n">padding</span><span class="p">,</span>
                 <span class="n">dilation</span>
             <span class="p">))</span>
+            <span class="k">if</span> <span class="n">pooling</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">pooling</span> <span class="o">==</span> <span class="s2">&quot;max&quot;</span><span class="p">:</span>
+                    <span class="n">layers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">MaxPool2d</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+                <span class="k">elif</span> <span class="n">pooling</span> <span class="o">==</span> <span class="s2">&quot;avg&quot;</span><span class="p">:</span>
+                    <span class="n">layers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">AvgPool2d</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Pooling type </span><span class="si">{}</span><span class="s2"> unkwown :  no pooling used&quot;</span><span class="p">)</span>
             <span class="n">layers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">activation</span><span class="p">())</span>
         <span class="n">layers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Flatten</span><span class="p">())</span>
         <span class="n">conv_stack</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Sequential</span><span class="p">(</span><span class="o">*</span><span class="n">layers</span><span class="p">)</span>
@@ -363,7 +403,8 @@ parameters converted too when you call :meth:<code><a href="#ConvolutionalNN.to"
     padding=0,
     dilation=1,
     hidden_linear=[],
-    activation=&lt;class &#39;torch.nn.modules.activation.Tanh&#39;&gt;
+    activation=&lt;class &#39;torch.nn.modules.activation.Tanh&#39;&gt;,
+    pooling=None
 )</span>
     </div>
 
@@ -379,6 +420,7 @@ parameters converted too when you call :meth:<code><a href="#ConvolutionalNN.to"
                  <span class="n">dilation</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
                  <span class="n">hidden_linear</span><span class="o">=</span><span class="p">[],</span>
                  <span class="n">activation</span><span class="o">=</span><span class="n">nn</span><span class="o">.</span><span class="n">Tanh</span><span class="p">,</span>
+                 <span class="n">pooling</span><span class="o">=</span><span class="kc">None</span>
             <span class="p">):</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">img_shape</span> <span class="o">=</span> <span class="n">img_shape</span>
@@ -392,9 +434,21 @@ parameters converted too when you call :meth:<code><a href="#ConvolutionalNN.to"
         <span class="k">elif</span> <span class="nb">type</span><span class="p">(</span><span class="n">kernel_size</span><span class="p">)</span> <span class="ow">is</span> <span class="nb">list</span><span class="p">:</span>
             <span class="n">kernel_sizes</span> <span class="o">=</span> <span class="n">kernel_size</span>
 
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">pooling</span><span class="p">)</span> <span class="ow">is</span> <span class="nb">int</span><span class="p">:</span>
+            <span class="n">poolings</span> <span class="o">=</span> <span class="p">[</span><span class="n">pooling</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">n_filters</span><span class="p">]</span>
+        <span class="k">elif</span> <span class="nb">type</span><span class="p">(</span><span class="n">pooling</span><span class="p">)</span> <span class="ow">is</span> <span class="nb">list</span><span class="p">:</span>
+            <span class="n">poolings</span> <span class="o">=</span> <span class="n">pooling</span>
+
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">padding</span><span class="p">)</span> <span class="ow">is</span> <span class="nb">int</span><span class="p">:</span>
+            <span class="n">paddings</span> <span class="o">=</span> <span class="p">[</span><span class="n">padding</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">n_filters</span><span class="p">]</span>
+        <span class="k">elif</span> <span class="nb">type</span><span class="p">(</span><span class="n">padding</span><span class="p">)</span> <span class="ow">is</span> <span class="nb">list</span><span class="p">:</span>
+            <span class="n">paddings</span> <span class="o">=</span> <span class="n">padding</span>
+
         <span class="n">n_filters</span> <span class="o">=</span> <span class="p">[</span><span class="n">img_shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]]</span> <span class="o">+</span> <span class="n">n_filters</span>
 
-        <span class="k">for</span> <span class="n">n_in</span><span class="p">,</span> <span class="n">n_out</span><span class="p">,</span> <span class="n">kernel_size</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">n_filters</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">n_filters</span><span class="p">[</span><span class="mi">1</span><span class="p">:],</span> <span class="n">kernel_sizes</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">n_in</span><span class="p">,</span> <span class="n">n_out</span><span class="p">,</span> <span class="n">kernel_size</span><span class="p">,</span> <span class="n">padding</span><span class="p">,</span> <span class="n">pooling</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span>
+                <span class="n">n_filters</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">n_filters</span><span class="p">[</span><span class="mi">1</span><span class="p">:],</span> <span class="n">kernel_sizes</span><span class="p">,</span> <span class="n">paddings</span><span class="p">,</span> <span class="n">poolings</span>
+        <span class="p">):</span>
             <span class="n">i_layer</span> <span class="o">=</span> <span class="mi">0</span>
             <span class="n">layers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Conv2d</span><span class="p">(</span>
                 <span class="n">n_in</span><span class="p">,</span>
@@ -404,6 +458,13 @@ parameters converted too when you call :meth:<code><a href="#ConvolutionalNN.to"
                 <span class="n">padding</span><span class="p">,</span>
                 <span class="n">dilation</span>
             <span class="p">))</span>
+            <span class="k">if</span> <span class="n">pooling</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">pooling</span> <span class="o">==</span> <span class="s2">&quot;max&quot;</span><span class="p">:</span>
+                    <span class="n">layers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">MaxPool2d</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+                <span class="k">elif</span> <span class="n">pooling</span> <span class="o">==</span> <span class="s2">&quot;avg&quot;</span><span class="p">:</span>
+                    <span class="n">layers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">AvgPool2d</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Pooling type </span><span class="si">{}</span><span class="s2"> unkwown :  no pooling used&quot;</span><span class="p">)</span>
             <span class="n">layers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">activation</span><span class="p">())</span>
         <span class="n">layers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Flatten</span><span class="p">())</span>
         <span class="n">conv_stack</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Sequential</span><span class="p">(</span><span class="o">*</span><span class="n">layers</span><span class="p">)</span>
