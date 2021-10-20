@@ -31,6 +31,7 @@ class LinearQValue(DiscreteQFunction):
         Q = self(state, action)
         self.weights[action] = self.weights[action] + self.lr*(target_value-Q)*state
         super().update(state, action, target_value)
+        return np.abs(target_value-Q)
 
     def export_f(self):
         return copy.deepcopy(self.weights)

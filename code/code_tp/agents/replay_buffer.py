@@ -25,6 +25,7 @@ class ReplayBuffer:
         self.dones[i] = done
 
         self.n_inserted+= 1
+        return i
 
     def sample(self):
         n_stored = min(self.n_inserted, self.max_size)

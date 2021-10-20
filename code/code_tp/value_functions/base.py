@@ -66,8 +66,8 @@ class ValueFunction:
         Méthode qui sera surchargée avec les fonctions de valeur neurales, qui prennent en charge
         l'évaluation par batch.
         """
-        for state, action, target_value in zip(states, actions, target_values):
-            self.update(state, action, target_value)
+        return np.array([self.update(state, action, target_value) for
+                state, action, target_value in zip(states, actions, target_values)])
 
     def export_f(self):
         pass

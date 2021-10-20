@@ -128,19 +128,21 @@ class ConvolutionalQFunction(DiscreteQFunction):
         return values
 
     def update(self, state, action, target_value):
-        self.update_batch([state], [action], [target_value])
+        return self.update_batch([state], [action], [target_value])[0]
 
     def update_batch(self, states, actions, target_values):
         pred_values = self.call_batch(states, actions)
-        pred_error = nn.functional.mse_loss(
+        pred_error_indiv = nn.functional.mse_loss(
             pred_values[:,0],
-            torch.tensor(target_values,dtype=torch.float32, device=self.device).detach()
+            torch.tensor(target_values,dtype=torch.float32, device=self.device).detach(),
+            reduction='none'
         )
+        pred_error = pred_error_indiv.mean()
         self.optim.zero_grad()
         pred_error.backward()
         self.optim.step()
         self.agent.log_data("nn_loss", pred_error.clone().cpu().item())
-        del pred_error
+        return pred_error_indiv.detach().cpu().numpy()
 
     def best_action_value_from_state(self, state):
         maxa, maxv = self.best_action_value_from_state_batch(torch.tensor([state]))

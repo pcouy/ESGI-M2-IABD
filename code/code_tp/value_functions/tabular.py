@@ -45,6 +45,7 @@ class TabularQValue(DiscreteQFunction):
         self.agent.log_data("n_known_states", len(self.known_states))
         self.visit_count[str(state)][action]+= 1
         super().update(str(state), action, target_value)
+        return np.abs(target_value-Q)
 
     def show_known_states(self, save_dir):
         fig, ax = plt.subplots()
