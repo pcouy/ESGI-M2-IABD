@@ -2,6 +2,6 @@ gym>=0.21.0
 numpy
 matplotlib
 pillow
-pyqt5
+pyqt5==5.12
 torch
 einops
