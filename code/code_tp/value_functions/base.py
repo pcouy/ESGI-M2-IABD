@@ -45,7 +45,7 @@ class ValueFunction:
         """
         return np.array([self(state) for state in states])
 
-    def update(self, state, action, target_value):
+    def update(self, state, action, target_value, is_weight=None):
         """
         Met à jour la fonction de valeur à partir d'une transition expérimentée.
         Maintient également les paramètres de l'entrainement.
@@ -58,7 +58,7 @@ class ValueFunction:
         self.lr = max(self.lr*(1-self.lr_decay), self.lr_min)
         self.agent.log_data("lr", self.lr)
 
-    def update_batch(self, states, actions, target_values):
+    def update_batch(self, states, actions, target_values, is_weights=None):
         """
         Méthode mettant à jour l'agent sur un *batch* de transitions. Simple boucle pour appeler
         `self.update` par défaut. Est utile principalement pour les agents à *replay buffer*.
@@ -66,8 +66,11 @@ class ValueFunction:
         Méthode qui sera surchargée avec les fonctions de valeur neurales, qui prennent en charge
         l'évaluation par batch.
         """
-        return np.array([self.update(state, action, target_value) for
-                state, action, target_value in zip(states, actions, target_values)])
+        if is_weights is None:
+            is_weights = np.ones((states.shape[0],))
+        return np.array([self.update(state, action, target_value, is_weight) for
+                         state, action, target_value, is_weight in
+                         zip(states, actions, target_values, is_weights)])
 
     def export_f(self):
         pass

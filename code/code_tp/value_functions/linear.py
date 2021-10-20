@@ -26,10 +26,12 @@ class LinearQValue(DiscreteQFunction):
         state = self.add_bias(state)
         return np.matmul(self.weights, state)
 
-    def update(self, state, action, target_value):
+    def update(self, state, action, target_value, is_weight=None):
+        if is_weight is None:
+            is_weight = 1
         state = self.add_bias(state)
         Q = self(state, action)
-        self.weights[action] = self.weights[action] + self.lr*(target_value-Q)*state
+        self.weights[action] = self.weights[action] + is_weight*self.lr*(target_value-Q)*state
         super().update(state, action, target_value)
         return np.abs(target_value-Q)
 

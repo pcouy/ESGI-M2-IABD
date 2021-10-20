@@ -39,9 +39,13 @@ class TabularQValue(DiscreteQFunction):
             r_values[i] = val_dict[i]
         return r_values
 
-    def update(self, state, action, target_value):
+    def update(self, state, action, target_value, is_weight=None):
         Q = self(state, action)
-        self.known_states[str(state)][action] = (1-self.lr)*Q + self.lr*target_value
+        if is_weight is None:
+            lr = self.lr
+        else:
+            lr = self.lr*(is_weight**(1/10))
+        self.known_states[str(state)][action] = (1-lr)*Q + lr*target_value
         self.agent.log_data("n_known_states", len(self.known_states))
         self.visit_count[str(state)][action]+= 1
         super().update(str(state), action, target_value)

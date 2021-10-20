@@ -127,14 +127,14 @@ class ConvolutionalQFunction(DiscreteQFunction):
                     )
         return values
 
-    def update(self, state, action, target_value):
+    def update(self, state, action, target_value, is_weight=None):
         return self.update_batch([state], [action], [target_value])[0]
 
     def update_batch(self, states, actions, target_values, is_weights=None):
         if is_weights is None:
-            is_weights = torch.ones((states.shape[0],), dtype=torch.float32)
+            is_weights = torch.ones((states.shape[0],), dtype=torch.float32, device=self.device)
         else:
-            is_weights = torch.tensor(is_weights, dtype=torch.float32)
+            is_weights = torch.tensor(is_weights, dtype=torch.float32, device=self.device)
         target_values = torch.tensor(target_values,dtype=torch.float32, device=self.device).detach()
         pred_values = self.call_batch(states, actions)
         pred_error_indiv = torch.abs(pred_values[:,0] - target_values)
