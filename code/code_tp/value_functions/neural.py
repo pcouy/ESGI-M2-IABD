@@ -130,14 +130,18 @@ class ConvolutionalQFunction(DiscreteQFunction):
     def update(self, state, action, target_value):
         return self.update_batch([state], [action], [target_value])[0]
 
-    def update_batch(self, states, actions, target_values):
+    def update_batch(self, states, actions, target_values, is_weights=None):
+        if is_weights is None:
+            is_weights = torch.ones((states.shape[0],), dtype=torch.float32)
+        else:
+            is_weights = torch.tensor(is_weights, dtype=torch.float32)
+        target_values = torch.tensor(target_values,dtype=torch.float32, device=self.device).detach()
         pred_values = self.call_batch(states, actions)
-        pred_error_indiv = nn.functional.mse_loss(
-            pred_values[:,0],
-            torch.tensor(target_values,dtype=torch.float32, device=self.device).detach(),
-            reduction='none'
-        )
-        pred_error = pred_error_indiv.mean()
+        pred_error_indiv = torch.abs(pred_values[:,0] - target_values)
+        pred_error = (
+            is_weights * nn.functional.mse_loss(pred_values[:,0], target_values, reduction='none')
+        ).mean()
+
         self.optim.zero_grad()
         pred_error.backward()
         self.optim.step()

@@ -2,6 +2,8 @@ import random
 import numpy as np
 from .replay_buffer import ReplayBufferAgent, ReplayBuffer
 
+# CREDITS TO https://github.com/rlcode/per
+
 # SumTree
 # a binary tree data structure where the parent’s value is the sum of its children
 class SumTree:
@@ -122,7 +124,7 @@ class PrioritizedReplayBuffer(ReplayBuffer):
 
 class PrioritizedReplayBufferAgent(ReplayBufferAgent):
     def train_with_transition(self, state, action, next_state, reward, done, infos):
-        #print("Training from ReplayBufferAgent")
+        #print("Training from PrioritizedReplayBufferAgent")
         self.replay_buffer.store(state, action, next_state, reward, done, infos)
         if self.replay_buffer.ready():
             n_stored = min(self.replay_buffer.n_inserted, self.replay_buffer.max_size)
@@ -133,7 +135,7 @@ class PrioritizedReplayBufferAgent(ReplayBufferAgent):
 
                 #print(actions.shape)
                 target_values = self.target_value_from_state_batch(next_states, rewards, dones)
-                errors = self.value_function.update_batch(states, actions, target_values)
+                errors = self.value_function.update_batch(states, actions, target_values, is_weights)
                 for idx, err in zip(idxs, errors):
                     self.replay_buffer.update(idx, err)
                 self.last_update = self.training_steps
