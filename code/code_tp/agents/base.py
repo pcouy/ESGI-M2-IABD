@@ -71,7 +71,7 @@ class Agent:
             env = gym.wrappers.RecordVideo(self.env, os.path.join(
                 self.save_dir,
                 "videos",
-                "{:05d}.mp4".format(self.training_episodes)
+                "{:05d}".format(self.training_episodes)
             ), episode_trigger=lambda _: True)
 
         state = env.reset()

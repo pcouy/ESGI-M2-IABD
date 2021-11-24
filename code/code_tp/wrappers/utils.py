@@ -63,5 +63,9 @@ class BoredomWrapper(gym.RewardWrapper):
     """
     Ajoute une faible punition à tous les pas de temps.
     """
+    def __init__(self, env, reward_per_step=-0.01 ,**kwargs):
+        super().__init__(env, **kwargs)
+        self.reward_per_step = reward_per_step
+
     def reward(self, reward):
-        return reward - 0.01
+        return reward + self.reward_per_step
