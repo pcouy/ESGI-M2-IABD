@@ -1,5 +1,6 @@
 import numpy as np
 import torch
+from einops import rearrange
 
 class RandomPolicy:
     """
@@ -16,6 +17,12 @@ class RandomPolicy:
         Prend un état en argument, retourne une action
         """
         return self.value_function.action_space.sample()
+    
+    def batch_call(self, state_batch):
+        """
+        Prend un batch d'état en argument, retourne un batch de valeurs
+        """
+        return self(state_batch)
 
     def test(self, state):
         """
@@ -44,10 +51,29 @@ class GreedyQPolicy(RandomPolicy):
                 'data': []
             }
         })
+        
+    def best_action_value_from_values(self, values):
+        if type(values) is torch.Tensor:
+            values = rearrange(values, 'a -> 1 a')
+            maxa, maxv = self.best_action_value_from_values_batch(values)
+            return maxa[0], maxv[0]
+        else:
+            maxv, maxa = max((v,a) for a,v in enumerate(values))
+            return maxa, maxv
+    
+    def best_action_value_from_values_batch(self, values_batch):
+        if type(values_batch) is torch.Tensor:
+            m = values_batch.max(axis=1)
+            return m.indices, m.values
+        else:
+            maxv = values_batch.max(axis=1)
+            maxa = values_batch.argmax(axis=1)
+            return maxa, maxv
+            
 
     def __call__(self, state):
         values = self.value_function.from_state(state)
-        action, value = self.value_function.best_action_value_from_state(state)
+        action, value = self.best_action_value_from_values(values)
         if type(value) is torch.Tensor:
             value = value.clone().detach().item()
         if type(values) is torch.Tensor:
@@ -57,6 +83,12 @@ class GreedyQPolicy(RandomPolicy):
 
         self.agent.log_data("predicted_value", value)
         return np.random.choice(actions)
+    
+    def batch_call(self, state_batch):
+        values_batch = self.value_function.from_state_batch(state_batch)
+        action_batch, value_batch = self.best_action_value_from_values_batch(values_batch)
+        # TODO
+        
 
 class EGreedyPolicy(RandomPolicy):
     def __init__(self, value_function, greedy_policy_class=GreedyQPolicy, epsilon=0.05, epsilon_decay=0, epsilon_min=0.05, epsilon_test=0):
