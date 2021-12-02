@@ -2,16 +2,17 @@ from .base import Agent
 import numpy as np
 
 class ReplayBuffer:
-    def __init__(self, obs_shape, max_size=100000, batch_size=32):
-        self.states = np.zeros((max_size, *obs_shape), dtype=np.float32)
-        self.actions = np.zeros((max_size,), dtype=np.int8)
-        self.next_states = np.zeros((max_size, *obs_shape), dtype=np.float32)
+    def __init__(self, obs_shape, max_size=100000, batch_size=32, normalize=True):
+        self.states = np.zeros((max_size, *obs_shape), dtype=np.uint8)
+        self.actions = np.zeros((max_size,), dtype=np.uint8)
+        self.next_states = np.zeros((max_size, *obs_shape), dtype=np.uint8)
         self.rewards = np.zeros((max_size,), dtype=np.float16)
         self.dones = np.zeros((max_size,), dtype=np.bool)
 
         self.max_size = max_size
         self.batch_size = batch_size
         self.n_inserted = 0
+        self.normalize = normalize
 
     def ready(self):
         return self.n_inserted > self.batch_size*10
