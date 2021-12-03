@@ -25,3 +25,15 @@ class TargetValueAgent(QLearningAgent):
 
     def eval_state_batch(self, states):
         return self.target_value_function.best_action_value_from_state_batch(states)
+
+class DoubleQLearning(TargetValueAgent):
+    def eval_state_batch(self, states):
+        selected_actions, _ = self.value_function.best_action_value_from_state_batch(states)
+        values = self.target_value_function.call_batch(states, selected_actions)
+        values = values.flatten()
+        return selected_actions, values
+    
+    def eval_state(self, state):
+        selected_action, _ = self.value_function.best_action_value_from_state(state)
+        value = self.target_value_function(state, selected_action)
+        return selected_actions, values
