@@ -87,7 +87,13 @@ class GreedyQPolicy(RandomPolicy):
     def batch_call(self, state_batch):
         values_batch = self.value_function.from_state_batch(state_batch)
         action_batch, value_batch = self.best_action_value_from_values_batch(values_batch)
-        # TODO
+        if type(value_batch) is torch.Tensor:
+            value_batch = value_batch.clone().detach().item()
+        if type(action_batch) is torch.Tensor:
+            action_batch = action_batch.clone().detach().cpu().numpy()
+        
+        self.agent.log_data("predicted_value", value_batch.mean())
+        return action_batch
         
 
 class EGreedyPolicy(RandomPolicy):
@@ -117,6 +123,18 @@ class EGreedyPolicy(RandomPolicy):
             action = super().__call__(state)
 
         return action
+    
+    def batch_call(self, state_batch, epsilon=None):
+        if epsilon is None:
+            epsilon = self.epsilon
+            
+        greedy_action_batch = self.greedy_policy.batch_call(state_batch)
+        random_action_batch = super().batch_call(state_batch)
+        random_mask = np.random.uniform(0, 1, (state_batch.shape[0],))
+        action_batch = np.where(random_mask > epsilon,
+                                greedy_action_batch,
+                                random_action_batch)
+        return action_batch
 
     def test(self, state):
         return self(state, epsilon=self.epsilon_test)
