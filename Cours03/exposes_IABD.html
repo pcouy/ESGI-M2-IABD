@@ -1,0 +1,748 @@
+<!DOCTYPE html>
+<html><head>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+		<title>Rapport Zotero</title>
+		<link rel="stylesheet" type="text/css" href="data:text/css;base64,Ym9keSB7CgliYWNrZ3JvdW5kOiB3aGl0ZTsKfQoKYSB7Cgl0ZXh0LWRlY29yYXRpb246IHVuZGVybGluZTsKfQoKYm9keSB7CglwYWRkaW5nOiAwOwp9Cgp1bC5yZXBvcnQgbGkuaXRlbSB7Cglib3JkZXItdG9wOiA0cHggc29saWQgIzU1NTsKCXBhZGRpbmctdG9wOiAxZW07CglwYWRkaW5nLWxlZnQ6IDFlbTsKCXBhZGRpbmctcmlnaHQ6IDFlbTsKCW1hcmdpbi1ib3R0b206IDJlbTsKfQoKaDEsIGgyLCBoMywgaDQsIGg1LCBoNiB7Cglmb250LXdlaWdodDogbm9ybWFsOwp9CgpoMiB7CgltYXJnaW46IDAgMCAuNWVtOwp9CgpoMi5wYXJlbnRJdGVtIHsKCWZvbnQtd2VpZ2h0OiBib2xkOwoJZm9udC1zaXplOiAxZW07CglwYWRkaW5nOiAwIDAgLjVlbTsKCWJvcmRlci1ib3R0b206IDFweCBzb2xpZCAjY2NjOwp9CgovKiBJZiBjb21iaW5pbmcgY2hpbGRyZW4sIGRpc3BsYXkgcGFyZW50IHNsaWdodGx5IGxhcmdlciAqLwp1bC5yZXBvcnQuY29tYmluZUNoaWxkSXRlbXMgaDIucGFyZW50SXRlbSB7Cglmb250LXNpemU6IDEuMWVtOwoJcGFkZGluZy1ib3R0b206IC43NWVtOwoJbWFyZ2luLWJvdHRvbTogLjRlbTsKfQoKaDIucGFyZW50SXRlbSAudGl0bGUgewoJZm9udC13ZWlnaHQ6IG5vcm1hbDsKfQoKaDMgewoJbWFyZ2luLWJvdHRvbTogLjZlbTsKCWZvbnQtd2VpZ2h0OiBib2xkICFpbXBvcnRhbnQ7Cglmb250LXNpemU6IDFlbTsKCWRpc3BsYXk6IGJsb2NrOwp9CgovKiBNZXRhZGF0YSB0YWJsZSAqLwp0aCB7Cgl2ZXJ0aWNhbC1hbGlnbjogdG9wOwoJdGV4dC1hbGlnbjogcmlnaHQ7Cgl3aWR0aDogMTUlOwoJd2hpdGUtc3BhY2U6IG5vd3JhcDsKfQoKdGQgewoJcGFkZGluZy1sZWZ0OiAuNWVtOwp9CgoKdWwucmVwb3J0LCB1bC5ub3RlcywgdWwudGFncyB7CglsaXN0LXN0eWxlOiBub25lOwoJbWFyZ2luLWxlZnQ6IDA7CglwYWRkaW5nLWxlZnQ6IDA7Cn0KCi8qIFRhZ3MgKi8KaDMudGFncyB7Cglmb250LXNpemU6IDEuMWVtOwp9Cgp1bC50YWdzIHsKCWxpbmUtaGVpZ2h0OiAxLjc1ZW07CglsaXN0LXN0eWxlOiBub25lOwp9Cgp1bC50YWdzIGxpIHsKCWRpc3BsYXk6IGlubGluZTsKfQoKdWwudGFncyBsaTpub3QoOmxhc3QtY2hpbGQpOmFmdGVyIHsKCWNvbnRlbnQ6ICcsICc7Cn0KCgovKiBDaGlsZCBub3RlcyAqLwpoMy5ub3RlcyB7Cglmb250LXNpemU6IDEuMWVtOwp9Cgp1bC5ub3RlcyB7CgltYXJnaW4tYm90dG9tOiAxLjJlbTsKfQoKdWwubm90ZXMgPiBsaTpmaXJzdC1jaGlsZCBwIHsKCW1hcmdpbi10b3A6IDA7Cn0KCnVsLm5vdGVzID4gbGkgewoJcGFkZGluZzogLjdlbSAwOwp9Cgp1bC5ub3RlcyA+IGxpOm5vdCg6bGFzdC1jaGlsZCkgewoJYm9yZGVyLWJvdHRvbTogMXB4ICNjY2Mgc29saWQ7Cn0KCgp1bC5ub3RlcyA+IGxpIHA6Zmlyc3QtY2hpbGQgewoJbWFyZ2luLXRvcDogMDsKfQoKdWwubm90ZXMgPiBsaSBwOmxhc3QtY2hpbGQgewoJbWFyZ2luLWJvdHRvbTogMDsKfQoKLyogQWRkIHF1b3RhdGlvbiBtYXJrcyBhcm91bmQgYmxvY2txdW90ZSAqLwp1bC5ub3RlcyA+IGxpIGJsb2NrcXVvdGUgcDpub3QoOmVtcHR5KTpiZWZvcmUsCmxpLm5vdGUgYmxvY2txdW90ZSBwOm5vdCg6ZW1wdHkpOmJlZm9yZSB7Cgljb250ZW50OiAn4oCcJzsKfQoKdWwubm90ZXMgPiBsaSBibG9ja3F1b3RlIHA6bm90KDplbXB0eSk6bGFzdC1jaGlsZDphZnRlciwKbGkubm90ZSBibG9ja3F1b3RlIHA6bm90KDplbXB0eSk6bGFzdC1jaGlsZDphZnRlciB7Cgljb250ZW50OiAn4oCdJzsKfQoKLyogUHJlc2VydmUgd2hpdGVzcGFjZSBvbiBwbGFpbnRleHQgbm90ZXMgKi8KdWwubm90ZXMgbGkgcC5wbGFpbnRleHQsIGxpLm5vdGUgcC5wbGFpbnRleHQsIGRpdi5ub3RlIHAucGxhaW50ZXh0IHsKCXdoaXRlLXNwYWNlOiBwcmUtd3JhcDsKfQoKLyogRGlzcGxheSB0YWdzIHdpdGhpbiBjaGlsZCBub3RlcyBpbmxpbmUgKi8KdWwubm90ZXMgaDMudGFncyB7CglkaXNwbGF5OiBpbmxpbmU7Cglmb250LXNpemU6IDFlbTsKfQoKdWwubm90ZXMgaDMudGFnczphZnRlciB7Cgljb250ZW50OiAnICc7Cn0KCnVsLm5vdGVzIHVsLnRhZ3MgewoJZGlzcGxheTogaW5saW5lOwp9Cgp1bC5ub3RlcyB1bC50YWdzIGxpOm5vdCg6bGFzdC1jaGlsZCk6YWZ0ZXIgewoJY29udGVudDogJywgJzsKfQoKCi8qIENoaWxkIGF0dGFjaG1lbnRzICovCmgzLmF0dGFjaG1lbnRzIHsKCWZvbnQtc2l6ZTogMS4xZW07Cn0KCnVsLmF0dGFjaG1lbnRzIGxpIHsKCXBhZGRpbmctdG9wOiAuNWVtOwp9Cgp1bC5hdHRhY2htZW50cyBkaXYubm90ZSB7CgltYXJnaW4tbGVmdDogMmVtOwp9Cgp1bC5hdHRhY2htZW50cyBkaXYubm90ZSBwOmZpcnN0LWNoaWxkIHsKCW1hcmdpbi10b3A6IC43NWVtOwp9Cg==">
+		<link rel="stylesheet" type="text/css" media="screen,projection" href="data:text/css;base64,LyogR2VuZXJpYyBzdHlsZXMgKi8KYm9keSB7Cglmb250OiA2Mi41JSBHZW9yZ2lhLCBUaW1lcywgc2VyaWY7Cgl3aWR0aDogNzgwcHg7CgltYXJnaW46IDAgYXV0bzsKfQoKaDIgewoJZm9udC1zaXplOiAxLjVlbTsKCWxpbmUtaGVpZ2h0OiAxLjVlbTsKCWZvbnQtZmFtaWx5OiBHZW9yZ2lhLCBUaW1lcywgc2VyaWY7Cn0KCnAgewoJbGluZS1oZWlnaHQ6IDEuNWVtOwp9CgphOmxpbmssIGE6dmlzaXRlZCB7Cgljb2xvcjogIzkwMDsKfQoKYTpob3ZlciwgYTphY3RpdmUgewoJY29sb3I6ICM3Nzc7Cn0KCgp1bC5yZXBvcnQgewoJZm9udC1zaXplOiAxLjRlbTsKCXdpZHRoOiA2ODBweDsKCW1hcmdpbjogMCBhdXRvOwoJcGFkZGluZzogMjBweCAyMHB4Owp9CgovKiBNZXRhZGF0YSB0YWJsZSAqLwp0YWJsZSB7Cglib3JkZXI6IDFweCAjY2NjIHNvbGlkOwoJb3ZlcmZsb3c6IGF1dG87Cgl3aWR0aDogMTAwJTsKCW1hcmdpbjogLjFlbSBhdXRvIC43NWVtOwoJcGFkZGluZzogMC41ZW07Cn0K">
+		<link rel="stylesheet" type="text/css" media="print" href="data:text/css;base64,Ym9keSB7Cglmb250OiAxMnB0ICJUaW1lcyBOZXcgUm9tYW4iLCBUaW1lcywgR2VvcmdpYSwgc2VyaWY7CgltYXJnaW46IDA7Cgl3aWR0aDogYXV0bzsKCWNvbG9yOiBibGFjazsKfQoKLyogUGFnZSBCcmVha3MgKHBhZ2UtYnJlYWstaW5zaWRlIG9ubHkgcmVjb2duaXplZCBieSBPcGVyYSkgKi8KaDEsIGgyLCBoMywgaDQsIGg1LCBoNiB7CglwYWdlLWJyZWFrLWFmdGVyOiBhdm9pZDsKCXBhZ2UtYnJlYWstaW5zaWRlOiBhdm9pZDsKfQoKdWwsIG9sLCBkbCB7CglwYWdlLWJyZWFrLWluc2lkZTogYXZvaWQ7Cgljb2xvci1hZGp1c3Q6IGV4YWN0Owp9CgpoMiB7Cglmb250LXNpemU6IDEuM2VtOwoJbGluZS1oZWlnaHQ6IDEuM2VtOwp9CgphIHsKCWNvbG9yOiAjMDAwOwoJdGV4dC1kZWNvcmF0aW9uOiBub25lOwp9Cg==">
+	</head>
+	<body>
+		<ul class="report combineChildItems">
+			<li id="item_L5UCIA27" class="item journalArticle">
+			<h2>Mastering the game of Go with deep neural networks and tree search</h2>
+				<table>
+					<tbody><tr>
+						<th>Type</th>
+						<td>Article de revue</td>
+					</tr>
+					<tr>
+						<th class="author">Auteur</th>
+						<td>David Silver</td>
+					</tr>
+					<tr>
+						<th class="author">Auteur</th>
+						<td>Aja Huang</td>
+					</tr>
+					<tr>
+						<th class="author">Auteur</th>
+						<td>Chris J. Maddison</td>
+					</tr>
+					<tr>
+						<th class="author">Auteur</th>
+						<td>Arthur Guez</td>
+					</tr>
+					<tr>
+						<th class="author">Auteur</th>
+						<td>Laurent Sifre</td>
+					</tr>
+					<tr>
+						<th class="author">Auteur</th>
+						<td>George van den Driessche</td>
+					</tr>
+					<tr>
+						<th class="author">Auteur</th>
+						<td>Julian Schrittwieser</td>
+					</tr>
+					<tr>
+						<th class="author">Auteur</th>
+						<td>Ioannis Antonoglou</td>
+					</tr>
+					<tr>
+						<th class="author">Auteur</th>
+						<td>Veda Panneershelvam</td>
+					</tr>
+					<tr>
+						<th class="author">Auteur</th>
+						<td>Marc Lanctot</td>
+					</tr>
+					<tr>
+						<th class="author">Auteur</th>
+						<td>Sander Dieleman</td>
+					</tr>
+					<tr>
+						<th class="author">Auteur</th>
+						<td>Dominik Grewe</td>
+					</tr>
+					<tr>
+						<th class="author">Auteur</th>
+						<td>John Nham</td>
+					</tr>
+					<tr>
+						<th class="author">Auteur</th>
+						<td>Nal Kalchbrenner</td>
+					</tr>
+					<tr>
+						<th class="author">Auteur</th>
+						<td>Ilya Sutskever</td>
+					</tr>
+					<tr>
+						<th class="author">Auteur</th>
+						<td>Timothy Lillicrap</td>
+					</tr>
+					<tr>
+						<th class="author">Auteur</th>
+						<td>Madeleine Leach</td>
+					</tr>
+					<tr>
+						<th class="author">Auteur</th>
+						<td>Koray Kavukcuoglu</td>
+					</tr>
+					<tr>
+						<th class="author">Auteur</th>
+						<td>Thore Graepel</td>
+					</tr>
+					<tr>
+						<th class="author">Auteur</th>
+						<td>Demis Hassabis</td>
+					</tr>
+					<tr>
+					<th>Résumé</th>
+						<td>The game of Go has long been viewed as the most challenging of
+ classic games for artificial intelligence owing to its enormous search 
+space and the difficulty of evaluating board positions and moves. Here 
+we introduce a new approach to computer Go that uses ‘value networks’ to
+ evaluate board positions and ‘policy networks’ to select moves. These 
+deep neural networks are trained by a novel combination of supervised 
+learning from human expert games, and reinforcement learning from games 
+of self-play. Without any lookahead search, the neural networks play Go 
+at the level of state-of-the-art Monte Carlo tree search programs that 
+simulate thousands of random games of self-play. We also introduce a new
+ search algorithm that combines Monte Carlo simulation with value and 
+policy networks. Using this search algorithm, our program AlphaGo 
+achieved a 99.8% winning rate against other Go programs, and defeated 
+the human European Go champion by 5 games to 0. This is the first time 
+that a computer program has defeated a human professional player in the 
+full-sized game of Go, a feat previously thought to be at least a decade
+ away.</td>
+					</tr>
+					<tr>
+					<th>Date</th>
+						<td>2016-01</td>
+					</tr>
+					<tr>
+					<th>Langue</th>
+						<td>en</td>
+					</tr>
+					<tr>
+					<th>Catalogue de bibl.</th>
+						<td>www.nature.com</td>
+					</tr>
+					<tr>
+					<th>URL</th>
+						<td><a href="https://www.nature.com/articles/nature16961">https://www.nature.com/articles/nature16961</a></td>
+					</tr>
+					<tr>
+					<th>Consulté le</th>
+						<td>15/12/2021 à 00:35:07</td>
+					</tr>
+					<tr>
+					<th>Autorisations</th>
+						<td>2016 Nature Publishing Group, a division of Macmillan Publishers Limited. All Rights Reserved.</td>
+					</tr>
+					<tr>
+					<th>Extra</th>
+						<td>Bandiera_abtest: a
+Cg_type: Nature Research Journals
+Number: 7587
+Primary_atype: Research
+Publisher: Nature Publishing Group
+Subject_term: Computational science;Computer science;Reward
+Subject_term_id: computational-science;computer-science;reward</td>
+					</tr>
+					<tr>
+					<th>Volume</th>
+						<td>529</td>
+					</tr>
+					<tr>
+					<th>Pages</th>
+						<td>484-489</td>
+					</tr>
+					<tr>
+					<th>Publication</th>
+						<td>Nature</td>
+					</tr>
+					<tr>
+					<th>DOI</th>
+						<td><a href="http://doi.org/10.1038/nature16961">10.1038/nature16961</a></td>
+					</tr>
+					<tr>
+					<th>Numéro</th>
+						<td>7587</td>
+					</tr>
+					<tr>
+					<th>ISSN</th>
+						<td>1476-4687</td>
+					</tr>
+					<tr>
+					<th>Date d'ajout</th>
+						<td>15/12/2021 à 00:35:07</td>
+					</tr>
+					<tr>
+					<th>Modifié le</th>
+						<td>15/12/2021 à 00:35:07</td>
+					</tr>
+				</tbody></table>
+				<h3 class="tags">Marqueurs :</h3>
+				<ul class="tags">
+					<li>Computational science</li>
+					<li>Computer science</li>
+					<li>Reward</li>
+				</ul>
+				<h3 class="attachments">Pièces jointes</h3>
+				<ul class="attachments">
+					<li id="item_RPJQE8YL">Mastering the game of Go with deep neural networks and tree search					</li>
+				</ul>
+			</li>
+
+
+			<li id="item_A6ENMWF8" class="item journalArticle">
+			<h2>Dueling Network Architectures for Deep Reinforcement Learning</h2>
+				<table>
+					<tbody><tr>
+						<th>Type</th>
+						<td>Article de revue</td>
+					</tr>
+					<tr>
+						<th class="author">Auteur</th>
+						<td>Ziyu Wang</td>
+					</tr>
+					<tr>
+						<th class="author">Auteur</th>
+						<td>Tom Schaul</td>
+					</tr>
+					<tr>
+						<th class="author">Auteur</th>
+						<td>Matteo Hessel</td>
+					</tr>
+					<tr>
+						<th class="author">Auteur</th>
+						<td>Hado van Hasselt</td>
+					</tr>
+					<tr>
+						<th class="author">Auteur</th>
+						<td>Marc Lanctot</td>
+					</tr>
+					<tr>
+						<th class="author">Auteur</th>
+						<td>Nando de Freitas</td>
+					</tr>
+					<tr>
+					<th>Résumé</th>
+						<td>In recent years there have been many successes of using deep 
+representations in reinforcement learning. Still, many of these 
+applications use conventional architectures, such as convolutional 
+networks, LSTMs, or auto-encoders. In this paper, we present a new 
+neural network architecture for model-free reinforcement learning. Our 
+dueling network represents two separate estimators: one for the state 
+value function and one for the state-dependent action advantage 
+function. The main benefit of this factoring is to generalize learning 
+across actions without imposing any change to the underlying 
+reinforcement learning algorithm. Our results show that this 
+architecture leads to better policy evaluation in the presence of many 
+similar-valued actions. Moreover, the dueling architecture enables our 
+RL agent to outperform the state-of-the-art on the Atari 2600 domain.</td>
+					</tr>
+					<tr>
+					<th>Date</th>
+						<td>2016-04-05</td>
+					</tr>
+					<tr>
+					<th>Catalogue de bibl.</th>
+						<td>arXiv.org</td>
+					</tr>
+					<tr>
+					<th>URL</th>
+						<td><a href="http://arxiv.org/abs/1511.06581">http://arxiv.org/abs/1511.06581</a></td>
+					</tr>
+					<tr>
+					<th>Consulté le</th>
+						<td>22/09/2021 à 14:58:08</td>
+					</tr>
+					<tr>
+					<th>Extra</th>
+						<td>arXiv: 1511.06581</td>
+					</tr>
+					<tr>
+					<th>Publication</th>
+						<td>arXiv:1511.06581 [cs]</td>
+					</tr>
+					<tr>
+					<th>Date d'ajout</th>
+						<td>22/09/2021 à 14:58:09</td>
+					</tr>
+					<tr>
+					<th>Modifié le</th>
+						<td>22/09/2021 à 14:58:09</td>
+					</tr>
+				</tbody></table>
+				<h3 class="tags">Marqueurs :</h3>
+				<ul class="tags">
+					<li>Computer Science - Machine Learning</li>
+				</ul>
+				<h3 class="notes">Notes :</h3>
+				<ul class="notes">
+					<li id="item_8KABHFB7">
+<p class="plaintext">Comment: 15 pages, 5 figures, and 5 tables</p>
+					</li>
+				</ul>
+				<h3 class="attachments">Pièces jointes</h3>
+				<ul class="attachments">
+					<li id="item_5SWZW7LH">arXiv Fulltext PDF					</li>
+					<li id="item_F458TIKB">arXiv.org Snapshot					</li>
+				</ul>
+			</li>
+
+
+			<li id="item_M64P65PZ" class="item journalArticle">
+			<h2>Mastering the game of Go without human knowledge</h2>
+				<table>
+					<tbody><tr>
+						<th>Type</th>
+						<td>Article de revue</td>
+					</tr>
+					<tr>
+						<th class="author">Auteur</th>
+						<td>David Silver</td>
+					</tr>
+					<tr>
+						<th class="author">Auteur</th>
+						<td>Julian Schrittwieser</td>
+					</tr>
+					<tr>
+						<th class="author">Auteur</th>
+						<td>Karen Simonyan</td>
+					</tr>
+					<tr>
+						<th class="author">Auteur</th>
+						<td>Ioannis Antonoglou</td>
+					</tr>
+					<tr>
+						<th class="author">Auteur</th>
+						<td>Aja Huang</td>
+					</tr>
+					<tr>
+						<th class="author">Auteur</th>
+						<td>Arthur Guez</td>
+					</tr>
+					<tr>
+						<th class="author">Auteur</th>
+						<td>Thomas Hubert</td>
+					</tr>
+					<tr>
+						<th class="author">Auteur</th>
+						<td>Lucas Baker</td>
+					</tr>
+					<tr>
+						<th class="author">Auteur</th>
+						<td>Matthew Lai</td>
+					</tr>
+					<tr>
+						<th class="author">Auteur</th>
+						<td>Adrian Bolton</td>
+					</tr>
+					<tr>
+						<th class="author">Auteur</th>
+						<td>Yutian Chen</td>
+					</tr>
+					<tr>
+						<th class="author">Auteur</th>
+						<td>Timothy Lillicrap</td>
+					</tr>
+					<tr>
+						<th class="author">Auteur</th>
+						<td>Fan Hui</td>
+					</tr>
+					<tr>
+						<th class="author">Auteur</th>
+						<td>Laurent Sifre</td>
+					</tr>
+					<tr>
+						<th class="author">Auteur</th>
+						<td>George van den Driessche</td>
+					</tr>
+					<tr>
+						<th class="author">Auteur</th>
+						<td>Thore Graepel</td>
+					</tr>
+					<tr>
+						<th class="author">Auteur</th>
+						<td>Demis Hassabis</td>
+					</tr>
+					<tr>
+					<th>Résumé</th>
+						<td>A long-standing goal of artificial intelligence is an 
+algorithm that learns, tabula rasa, superhuman proficiency in 
+challenging domains. Recently, AlphaGo became the first program to 
+defeat a world champion in the game of Go. The tree search in AlphaGo 
+evaluated positions and selected moves using deep neural networks. These
+ neural networks were trained by supervised learning from human expert 
+moves, and by reinforcement learning from self-play. Here we introduce 
+an algorithm based solely on reinforcement learning, without human data,
+ guidance or domain knowledge beyond game rules. AlphaGo becomes its own
+ teacher: a neural network is trained to predict AlphaGo’s own move 
+selections and also the winner of AlphaGo’s games. This neural network 
+improves the strength of the tree search, resulting in higher quality 
+move selection and stronger self-play in the next iteration. Starting 
+tabula rasa, our new program AlphaGo Zero achieved superhuman 
+performance, winning 100–0 against the previously published, 
+champion-defeating AlphaGo. Starting from zero knowledge and without 
+human data, AlphaGo Zero was able to teach itself to play Go and to 
+develop novel strategies that provide new insights into the oldest of 
+games. To beat world champions at the game of Go, the computer program 
+AlphaGo has relied largely on supervised learning from millions of human
+ expert moves. David Silver and colleagues have now produced a system 
+called AlphaGo Zero, which is based purely on reinforcement learning and
+ learns solely from self-play. Starting from random moves, it can reach 
+superhuman level in just a couple of days of training and five million 
+games of self-play, and can now beat all previous versions of AlphaGo. 
+Because the machine independently discovers the same fundamental 
+principles of the game that took humans millennia to conceptualize, the 
+work suggests that such principles have some universal character, beyond
+ human bias.</td>
+					</tr>
+					<tr>
+					<th>Date</th>
+						<td>2017-10</td>
+					</tr>
+					<tr>
+					<th>Langue</th>
+						<td>en</td>
+					</tr>
+					<tr>
+					<th>Catalogue de bibl.</th>
+						<td>www.nature.com</td>
+					</tr>
+					<tr>
+					<th>URL</th>
+						<td><a href="https://www.nature.com/articles/nature24270">https://www.nature.com/articles/nature24270</a></td>
+					</tr>
+					<tr>
+					<th>Consulté le</th>
+						<td>22/09/2021 à 15:23:29</td>
+					</tr>
+					<tr>
+					<th>Autorisations</th>
+						<td>2017 Macmillan Publishers Limited, part of Springer Nature. All rights reserved.</td>
+					</tr>
+					<tr>
+					<th>Extra</th>
+						<td>Number: 7676
+Primary_atype: Research
+Publisher: Nature Publishing Group
+Subject_term: Computational science;Computer science;Reward
+Subject_term_id: computational-science;computer-science;reward</td>
+					</tr>
+					<tr>
+					<th>Volume</th>
+						<td>550</td>
+					</tr>
+					<tr>
+					<th>Pages</th>
+						<td>354-359</td>
+					</tr>
+					<tr>
+					<th>Publication</th>
+						<td>Nature</td>
+					</tr>
+					<tr>
+					<th>DOI</th>
+						<td><a href="http://doi.org/10.1038/nature24270">10.1038/nature24270</a></td>
+					</tr>
+					<tr>
+					<th>Numéro</th>
+						<td>7676</td>
+					</tr>
+					<tr>
+					<th>ISSN</th>
+						<td>1476-4687</td>
+					</tr>
+					<tr>
+					<th>Date d'ajout</th>
+						<td>22/09/2021 à 15:23:29</td>
+					</tr>
+					<tr>
+					<th>Modifié le</th>
+						<td>22/09/2021 à 15:23:29</td>
+					</tr>
+				</tbody></table>
+				<h3 class="attachments">Pièces jointes</h3>
+				<ul class="attachments">
+					<li id="item_UXLCEDN5">Mastering the game of Go without human knowledge					</li>
+					<li id="item_N7WQQFGL">Version soumise					</li>
+					<li id="item_V9LISQKW">Snapshot					</li>
+				</ul>
+			</li>
+
+
+			<li id="item_7HI4EERQ" class="item conferencePaper">
+			<h2>Rainbow: Combining Improvements in Deep Reinforcement Learning</h2>
+				<table>
+					<tbody><tr>
+						<th>Type</th>
+						<td>Article de colloque</td>
+					</tr>
+					<tr>
+						<th class="author">Auteur</th>
+						<td>Matteo Hessel</td>
+					</tr>
+					<tr>
+						<th class="author">Auteur</th>
+						<td>Joseph Modayil</td>
+					</tr>
+					<tr>
+						<th class="author">Auteur</th>
+						<td>Hado van Hasselt</td>
+					</tr>
+					<tr>
+						<th class="author">Auteur</th>
+						<td>Tom Schaul</td>
+					</tr>
+					<tr>
+						<th class="author">Auteur</th>
+						<td>Georg Ostrovski</td>
+					</tr>
+					<tr>
+						<th class="author">Auteur</th>
+						<td>Will Dabney</td>
+					</tr>
+					<tr>
+						<th class="author">Auteur</th>
+						<td>Dan Horgan</td>
+					</tr>
+					<tr>
+						<th class="author">Auteur</th>
+						<td>Bilal Piot</td>
+					</tr>
+					<tr>
+						<th class="author">Auteur</th>
+						<td>Mohammad Azar</td>
+					</tr>
+					<tr>
+						<th class="author">Auteur</th>
+						<td>David Silver</td>
+					</tr>
+					<tr>
+					<th>Résumé</th>
+						<td>The deep reinforcement learning community has made several 
+independent improvements to the DQN algorithm. However, it is unclear 
+which of these extensions are complementary and can be fruitfully 
+combined. This paper examines six extensions to the DQN algorithm and 
+empirically studies their combination. Our experiments show that the 
+combination provides state-of-the-art performance on the Atari 2600 
+benchmark, both in terms of data efficiency and final performance. We 
+also provide results from a detailed ablation study that shows the 
+contribution of each component to overall performance.</td>
+					</tr>
+					<tr>
+					<th>Date</th>
+						<td>2018/04/29</td>
+					</tr>
+					<tr>
+					<th>Langue</th>
+						<td>en</td>
+					</tr>
+					<tr>
+					<th>Titre abrégé</th>
+						<td>Rainbow</td>
+					</tr>
+					<tr>
+					<th>Catalogue de bibl.</th>
+						<td>www.aaai.org</td>
+					</tr>
+					<tr>
+					<th>URL</th>
+						<td><a href="https://www.aaai.org/ocs/index.php/AAAI/AAAI18/paper/view/17204">https://www.aaai.org/ocs/index.php/AAAI/AAAI18/paper/view/17204</a></td>
+					</tr>
+					<tr>
+					<th>Consulté le</th>
+						<td>15/12/2021 à 00:26:27</td>
+					</tr>
+					<tr>
+					<th>Autorisations</th>
+						<td>Authors who publish a paper in this conference agree to the 
+following terms:   Author(s) agree to transfer their copyrights in their
+ article/paper to the Association for the Advancement of Artificial 
+Intelligence (AAAI), in order to deal with future requests for reprints,
+ translations, anthologies, reproductions, excerpts, and other 
+publications. This grant will include, without limitation, the entire 
+copyright in the article/paper in all countries of the world, including 
+all renewals, extensions, and reversions thereof, whether such rights 
+current exist or hereafter come into effect, and also the exclusive 
+right to create electronic versions of the article/paper, to the extent 
+that such right is not subsumed under copyright.  The author(s) warrants
+ that they are the sole author and owner of the copyright in the above 
+article/paper, except for those portions shown to be in quotations; that
+ the article/paper is original throughout; and that the undersigned 
+right to make the grants set forth above is complete and unencumbered.  
+The author(s) agree that if anyone brings any claim or action alleging 
+facts that, if true, constitute a breach of any of the foregoing 
+warranties, the author(s) will hold harmless and indemnify AAAI, their 
+grantees, their licensees, and their distributors against any liability,
+ whether under judgment, decree, or compromise, and any legal fees and 
+expenses arising out of that claim or actions, and the undersigned will 
+cooperate fully in any defense AAAI may make to such claim or action. 
+Moreover, the undersigned agrees to cooperate in any claim or other 
+action seeking to protect or enforce any right the undersigned has 
+granted to AAAI in the article/paper. If any such claim or action fails 
+because of facts that constitute a breach of any of the foregoing 
+warranties, the undersigned agrees to reimburse whomever brings such 
+claim or action for expenses and attorneys’ fees incurred therein.  
+Author(s) retain all proprietary rights other than copyright (such as 
+patent rights).  Author(s) may make personal reuse of all or portions of
+ the above article/paper in other works of their own authorship.  
+Author(s) may reproduce, or have reproduced, their article/paper for the
+ author’s personal use, or for company use provided that AAAI copyright 
+and the source are indicated, and that the copies are not used in a way 
+that implies AAAI endorsement of a product or service of an employer, 
+and that the copies per se are not offered for sale. The foregoing right
+ shall not permit the posting of the article/paper in electronic or 
+digital form on any computer network, except by the author or the 
+author’s employer, and then only on the author’s or the employer’s own 
+web page or ftp site. Such web page or ftp site, in addition to the 
+aforementioned requirements of this Paragraph, must provide an 
+electronic reference or link back to the AAAI electronic server, and 
+shall not post other AAAI copyrighted materials not of the author’s or 
+the employer’s creation (including tables of contents with links to 
+other papers) without AAAI’s written permission.  Author(s) may make 
+limited distribution of all or portions of their article/paper prior to 
+publication.  In the case of work performed under U.S. Government 
+contract, AAAI grants the U.S. Government royalty-free permission to 
+reproduce all or portions of the above article/paper, and to authorize 
+others to do so, for U.S. Government purposes.  In the event the above 
+article/paper is not accepted and published by AAAI, or is withdrawn by 
+the author(s) before acceptance by AAAI, this agreement becomes null and
+ void.</td>
+					</tr>
+					<tr>
+					<th>Titre des actes</th>
+						<td>Thirty-Second AAAI Conference on Artificial Intelligence</td>
+					</tr>
+					<tr>
+					<th>Intitulé du colloque</th>
+						<td>Thirty-Second AAAI Conference on Artificial Intelligence</td>
+					</tr>
+					<tr>
+					<th>Date d'ajout</th>
+						<td>15/12/2021 à 00:26:27</td>
+					</tr>
+					<tr>
+					<th>Modifié le</th>
+						<td>15/12/2021 à 00:26:27</td>
+					</tr>
+				</tbody></table>
+				<h3 class="attachments">Pièces jointes</h3>
+				<ul class="attachments">
+					<li id="item_3UJGZX6E">Full Text PDF					</li>
+					<li id="item_6SHB7SGB">Snapshot					</li>
+				</ul>
+			</li>
+
+
+			<li id="item_DEYXFD8E" class="item journalArticle">
+			<h2>Continuous control with deep reinforcement learning</h2>
+				<table>
+					<tbody><tr>
+						<th>Type</th>
+						<td>Article de revue</td>
+					</tr>
+					<tr>
+						<th class="author">Auteur</th>
+						<td>Timothy P. Lillicrap</td>
+					</tr>
+					<tr>
+						<th class="author">Auteur</th>
+						<td>Jonathan J. Hunt</td>
+					</tr>
+					<tr>
+						<th class="author">Auteur</th>
+						<td>Alexander Pritzel</td>
+					</tr>
+					<tr>
+						<th class="author">Auteur</th>
+						<td>Nicolas Heess</td>
+					</tr>
+					<tr>
+						<th class="author">Auteur</th>
+						<td>Tom Erez</td>
+					</tr>
+					<tr>
+						<th class="author">Auteur</th>
+						<td>Yuval Tassa</td>
+					</tr>
+					<tr>
+						<th class="author">Auteur</th>
+						<td>David Silver</td>
+					</tr>
+					<tr>
+						<th class="author">Auteur</th>
+						<td>Daan Wierstra</td>
+					</tr>
+					<tr>
+					<th>Résumé</th>
+						<td>We adapt the ideas underlying the success of Deep Q-Learning 
+to the continuous action domain. We present an actor-critic, model-free 
+algorithm based on the deterministic policy gradient that can operate 
+over continuous action spaces. Using the same learning algorithm, 
+network architecture and hyper-parameters, our algorithm robustly solves
+ more than 20 simulated physics tasks, including classic problems such 
+as cartpole swing-up, dexterous manipulation, legged locomotion and car 
+driving. Our algorithm is able to find policies whose performance is 
+competitive with those found by a planning algorithm with full access to
+ the dynamics of the domain and its derivatives. We further demonstrate 
+that for many of the tasks the algorithm can learn policies end-to-end: 
+directly from raw pixel inputs.</td>
+					</tr>
+					<tr>
+					<th>Date</th>
+						<td>2019-07-05</td>
+					</tr>
+					<tr>
+					<th>Catalogue de bibl.</th>
+						<td>arXiv.org</td>
+					</tr>
+					<tr>
+					<th>URL</th>
+						<td><a href="http://arxiv.org/abs/1509.02971">http://arxiv.org/abs/1509.02971</a></td>
+					</tr>
+					<tr>
+					<th>Consulté le</th>
+						<td>22/09/2021 à 15:27:53</td>
+					</tr>
+					<tr>
+					<th>Extra</th>
+						<td>arXiv: 1509.02971</td>
+					</tr>
+					<tr>
+					<th>Publication</th>
+						<td>arXiv:1509.02971 [cs, stat]</td>
+					</tr>
+					<tr>
+					<th>Date d'ajout</th>
+						<td>22/09/2021 à 15:27:53</td>
+					</tr>
+					<tr>
+					<th>Modifié le</th>
+						<td>22/09/2021 à 15:27:53</td>
+					</tr>
+				</tbody></table>
+				<h3 class="tags">Marqueurs :</h3>
+				<ul class="tags">
+					<li>Computer Science - Machine Learning</li>
+					<li>Statistics - Machine Learning</li>
+				</ul>
+				<h3 class="notes">Notes :</h3>
+				<ul class="notes">
+					<li id="item_5FZ7RH3L">
+<p class="plaintext">Comment: 10 pages + supplementary</p>
+					</li>
+				</ul>
+				<h3 class="attachments">Pièces jointes</h3>
+				<ul class="attachments">
+					<li id="item_KIQCN42U">arXiv Fulltext PDF					</li>
+					<li id="item_CHTU83LV">arXiv.org Snapshot					</li>
+				</ul>
+			</li>
+
+		</ul>
+	
+</body></html>
