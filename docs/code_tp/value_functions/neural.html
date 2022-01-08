@@ -31,18 +31,6 @@
                     <h2>API Documentation</h2>
                         <ul class="memberlist">
             <li>
-                    <a class="class" href="#ConvolutionalNN">ConvolutionalNN</a>
-                            <ul class="memberlist">
-                        <li>
-                                <a class="function" href="#ConvolutionalNN.__init__">ConvolutionalNN</a>
-                        </li>
-                        <li>
-                                <a class="function" href="#ConvolutionalNN.forward">forward</a>
-                        </li>
-                </ul>
-
-            </li>
-            <li>
                     <a class="class" href="#ConvolutionalQFunction">ConvolutionalQFunction</a>
                             <ul class="memberlist">
                         <li>
@@ -103,108 +91,18 @@
 <span class="kn">import</span> <span class="nn">torch</span>
 <span class="kn">from</span> <span class="nn">torch</span> <span class="kn">import</span> <span class="n">nn</span>
 <span class="kn">from</span> <span class="nn">einops</span> <span class="kn">import</span> <span class="n">rearrange</span>
-
-<span class="k">class</span> <span class="nc">ConvolutionalNN</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Implémente un réseau convolutionnel en PyTorch</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
-                 <span class="n">img_shape</span><span class="p">,</span>
-                 <span class="n">n_actions</span><span class="p">,</span>
-                 <span class="n">n_filters</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                 <span class="n">kernel_size</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
-                 <span class="n">stride</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
-                 <span class="n">padding</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
-                 <span class="n">dilation</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
-                 <span class="n">hidden_linear</span><span class="o">=</span><span class="p">[],</span>
-                 <span class="n">activation</span><span class="o">=</span><span class="n">nn</span><span class="o">.</span><span class="n">Tanh</span><span class="p">,</span>
-                 <span class="n">pooling</span><span class="o">=</span><span class="kc">None</span>
-            <span class="p">):</span>
-        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">img_shape</span> <span class="o">=</span> <span class="n">img_shape</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">n_actions</span> <span class="o">=</span> <span class="n">n_actions</span>
-        <span class="n">layers</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="k">if</span> <span class="n">n_filters</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">n_filters</span> <span class="o">=</span> <span class="p">[</span><span class="mi">16</span><span class="p">,</span><span class="mi">16</span><span class="p">]</span>
-
-        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">kernel_size</span><span class="p">)</span> <span class="ow">is</span> <span class="nb">int</span><span class="p">:</span>
-            <span class="n">kernel_sizes</span> <span class="o">=</span> <span class="p">[</span><span class="n">kernel_size</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">n_filters</span><span class="p">]</span>
-        <span class="k">elif</span> <span class="nb">type</span><span class="p">(</span><span class="n">kernel_size</span><span class="p">)</span> <span class="ow">is</span> <span class="nb">list</span><span class="p">:</span>
-            <span class="n">kernel_sizes</span> <span class="o">=</span> <span class="n">kernel_size</span>
-
-        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">pooling</span><span class="p">)</span> <span class="ow">is</span> <span class="nb">int</span><span class="p">:</span>
-            <span class="n">poolings</span> <span class="o">=</span> <span class="p">[</span><span class="n">pooling</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">n_filters</span><span class="p">]</span>
-        <span class="k">elif</span> <span class="nb">type</span><span class="p">(</span><span class="n">pooling</span><span class="p">)</span> <span class="ow">is</span> <span class="nb">list</span><span class="p">:</span>
-            <span class="n">poolings</span> <span class="o">=</span> <span class="n">pooling</span>
-
-        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">padding</span><span class="p">)</span> <span class="ow">is</span> <span class="nb">int</span><span class="p">:</span>
-            <span class="n">paddings</span> <span class="o">=</span> <span class="p">[</span><span class="n">padding</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">n_filters</span><span class="p">]</span>
-        <span class="k">elif</span> <span class="nb">type</span><span class="p">(</span><span class="n">padding</span><span class="p">)</span> <span class="ow">is</span> <span class="nb">list</span><span class="p">:</span>
-            <span class="n">paddings</span> <span class="o">=</span> <span class="n">padding</span>
-
-        <span class="n">n_filters</span> <span class="o">=</span> <span class="p">[</span><span class="n">img_shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]]</span> <span class="o">+</span> <span class="n">n_filters</span>
-
-        <span class="k">for</span> <span class="n">n_in</span><span class="p">,</span> <span class="n">n_out</span><span class="p">,</span> <span class="n">kernel_size</span><span class="p">,</span> <span class="n">padding</span><span class="p">,</span> <span class="n">pooling</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span>
-                <span class="n">n_filters</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">n_filters</span><span class="p">[</span><span class="mi">1</span><span class="p">:],</span> <span class="n">kernel_sizes</span><span class="p">,</span> <span class="n">paddings</span><span class="p">,</span> <span class="n">poolings</span>
-        <span class="p">):</span>
-            <span class="n">i_layer</span> <span class="o">=</span> <span class="mi">0</span>
-            <span class="n">layers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Conv2d</span><span class="p">(</span>
-                <span class="n">n_in</span><span class="p">,</span>
-                <span class="n">n_out</span><span class="p">,</span>
-                <span class="n">kernel_size</span><span class="p">,</span>
-                <span class="n">stride</span><span class="p">,</span>
-                <span class="n">padding</span><span class="p">,</span>
-                <span class="n">dilation</span>
-            <span class="p">))</span>
-            <span class="k">if</span> <span class="n">pooling</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="k">if</span> <span class="n">pooling</span> <span class="o">==</span> <span class="s2">&quot;max&quot;</span><span class="p">:</span>
-                    <span class="n">layers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">MaxPool2d</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
-                <span class="k">elif</span> <span class="n">pooling</span> <span class="o">==</span> <span class="s2">&quot;avg&quot;</span><span class="p">:</span>
-                    <span class="n">layers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">AvgPool2d</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
-                <span class="k">else</span><span class="p">:</span>
-                    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Pooling type </span><span class="si">{}</span><span class="s2"> unkwown :  no pooling used&quot;</span><span class="p">)</span>
-            <span class="n">layers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">activation</span><span class="p">())</span>
-        <span class="n">layers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Flatten</span><span class="p">())</span>
-        <span class="n">conv_stack</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Sequential</span><span class="p">(</span><span class="o">*</span><span class="n">layers</span><span class="p">)</span>
-
-        <span class="n">x</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="n">img_shape</span><span class="p">)</span>
-        <span class="n">y</span><span class="o">=</span><span class="n">conv_stack</span><span class="p">(</span><span class="n">rearrange</span><span class="p">([</span><span class="n">x</span><span class="p">],</span> <span class="s1">&#39;b w h c -&gt; b c w h&#39;</span><span class="p">))</span>
-
-        <span class="n">last_layers</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="n">in_size</span> <span class="o">=</span> <span class="n">y</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
-        <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="n">hidden_linear</span><span class="p">:</span>
-            <span class="n">last_layers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="n">in_size</span><span class="p">,</span> <span class="n">l</span><span class="p">))</span>
-            <span class="n">last_layers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">activation</span><span class="p">())</span>
-            <span class="n">in_size</span> <span class="o">=</span> <span class="n">l</span>
-
-        <span class="n">last_layer</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="n">in_size</span><span class="p">,</span> <span class="n">n_actions</span><span class="p">)</span>
-        <span class="n">last_layer</span><span class="o">.</span><span class="n">weight</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">uniform_</span><span class="p">(</span><span class="o">-</span><span class="mf">1e-3</span><span class="p">,</span><span class="mf">1e-3</span><span class="p">)</span>
-        <span class="n">last_layer</span><span class="o">.</span><span class="n">bias</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">uniform_</span><span class="p">(</span><span class="o">-</span><span class="mf">1e-3</span><span class="p">,</span><span class="mf">1e-3</span><span class="p">)</span>
-
-        <span class="bp">self</span><span class="o">.</span><span class="n">layers</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Sequential</span><span class="p">(</span>
-            <span class="n">conv_stack</span><span class="p">,</span>
-            <span class="o">*</span><span class="n">last_layers</span><span class="p">,</span>
-            <span class="n">last_layer</span>
-        <span class="p">)</span>
-
-    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
-        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">4</span><span class="p">:</span>
-            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">layers</span><span class="p">(</span><span class="n">rearrange</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="s2">&quot;b w h c -&gt; b c w h&quot;</span><span class="p">))</span>
-        <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
-            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">layers</span><span class="p">(</span><span class="n">rearrange</span><span class="p">([</span><span class="n">x</span><span class="p">],</span> <span class="s2">&quot;b w h c -&gt; b c w h&quot;</span><span class="p">))[</span><span class="mi">0</span><span class="p">]</span>
-
-
+<span class="kn">from</span> <span class="nn">.neural_nets.convolutional</span> <span class="kn">import</span> <span class="n">ConvolutionalNN</span>
 
 <span class="k">class</span> <span class="nc">ConvolutionalQFunction</span><span class="p">(</span><span class="n">DiscreteQFunction</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Implémente une fonction de valeur basée sur un réseau convolutionnel en PyTorch</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">env</span><span class="p">,</span> <span class="n">nn_args</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">env</span><span class="p">,</span> <span class="n">nn_args</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="n">nn_class</span><span class="o">=</span><span class="n">ConvolutionalNN</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">env</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">device</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">device</span><span class="p">(</span><span class="s2">&quot;cuda&quot;</span> <span class="k">if</span> <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">is_available</span><span class="p">()</span> <span class="k">else</span> <span class="s2">&quot;cpu&quot;</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">nn</span> <span class="o">=</span> <span class="n">ConvolutionalNN</span><span class="p">(</span>
-            <span class="n">env</span><span class="o">.</span><span class="n">observation_space</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">env</span><span class="o">.</span><span class="n">action_space</span><span class="o">.</span><span class="n">n</span><span class="p">,</span> <span class="o">**</span><span class="n">nn_args</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nn</span> <span class="o">=</span> <span class="n">nn_class</span><span class="p">(</span>
+            <span class="n">img_shape</span><span class="o">=</span><span class="n">env</span><span class="o">.</span><span class="n">observation_space</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span>
+            <span class="n">n_actions</span><span class="o">=</span><span class="n">env</span><span class="o">.</span><span class="n">action_space</span><span class="o">.</span><span class="n">n</span><span class="p">,</span>
+            <span class="o">**</span><span class="n">nn_args</span>
         <span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nn</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">optim</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">optim</span><span class="o">.</span><span class="n">Adam</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">parameters</span><span class="p">(),</span> <span class="n">lr</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">lr</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">update</span><span class="p">({</span>
             <span class="s1">&#39;nn_loss&#39;</span><span class="p">:</span> <span class="p">{</span>
@@ -272,302 +170,6 @@
         </details>
 
             </section>
-                <section id="ConvolutionalNN">
-                                <div class="attr class">
-        <a class="headerlink" href="#ConvolutionalNN">#&nbsp;&nbsp</a>
-
-        
-        <span class="def">class</span>
-        <span class="name">ConvolutionalNN</span><wbr>(<span class="base">torch.nn.modules.module.Module</span>):
-    </div>
-
-                <details>
-            <summary>View Source</summary>
-            <div class="codehilite"><pre><span></span><span class="k">class</span> <span class="nc">ConvolutionalNN</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Implémente un réseau convolutionnel en PyTorch</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
-                 <span class="n">img_shape</span><span class="p">,</span>
-                 <span class="n">n_actions</span><span class="p">,</span>
-                 <span class="n">n_filters</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                 <span class="n">kernel_size</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
-                 <span class="n">stride</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
-                 <span class="n">padding</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
-                 <span class="n">dilation</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
-                 <span class="n">hidden_linear</span><span class="o">=</span><span class="p">[],</span>
-                 <span class="n">activation</span><span class="o">=</span><span class="n">nn</span><span class="o">.</span><span class="n">Tanh</span><span class="p">,</span>
-                 <span class="n">pooling</span><span class="o">=</span><span class="kc">None</span>
-            <span class="p">):</span>
-        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">img_shape</span> <span class="o">=</span> <span class="n">img_shape</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">n_actions</span> <span class="o">=</span> <span class="n">n_actions</span>
-        <span class="n">layers</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="k">if</span> <span class="n">n_filters</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">n_filters</span> <span class="o">=</span> <span class="p">[</span><span class="mi">16</span><span class="p">,</span><span class="mi">16</span><span class="p">]</span>
-
-        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">kernel_size</span><span class="p">)</span> <span class="ow">is</span> <span class="nb">int</span><span class="p">:</span>
-            <span class="n">kernel_sizes</span> <span class="o">=</span> <span class="p">[</span><span class="n">kernel_size</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">n_filters</span><span class="p">]</span>
-        <span class="k">elif</span> <span class="nb">type</span><span class="p">(</span><span class="n">kernel_size</span><span class="p">)</span> <span class="ow">is</span> <span class="nb">list</span><span class="p">:</span>
-            <span class="n">kernel_sizes</span> <span class="o">=</span> <span class="n">kernel_size</span>
-
-        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">pooling</span><span class="p">)</span> <span class="ow">is</span> <span class="nb">int</span><span class="p">:</span>
-            <span class="n">poolings</span> <span class="o">=</span> <span class="p">[</span><span class="n">pooling</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">n_filters</span><span class="p">]</span>
-        <span class="k">elif</span> <span class="nb">type</span><span class="p">(</span><span class="n">pooling</span><span class="p">)</span> <span class="ow">is</span> <span class="nb">list</span><span class="p">:</span>
-            <span class="n">poolings</span> <span class="o">=</span> <span class="n">pooling</span>
-
-        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">padding</span><span class="p">)</span> <span class="ow">is</span> <span class="nb">int</span><span class="p">:</span>
-            <span class="n">paddings</span> <span class="o">=</span> <span class="p">[</span><span class="n">padding</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">n_filters</span><span class="p">]</span>
-        <span class="k">elif</span> <span class="nb">type</span><span class="p">(</span><span class="n">padding</span><span class="p">)</span> <span class="ow">is</span> <span class="nb">list</span><span class="p">:</span>
-            <span class="n">paddings</span> <span class="o">=</span> <span class="n">padding</span>
-
-        <span class="n">n_filters</span> <span class="o">=</span> <span class="p">[</span><span class="n">img_shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]]</span> <span class="o">+</span> <span class="n">n_filters</span>
-
-        <span class="k">for</span> <span class="n">n_in</span><span class="p">,</span> <span class="n">n_out</span><span class="p">,</span> <span class="n">kernel_size</span><span class="p">,</span> <span class="n">padding</span><span class="p">,</span> <span class="n">pooling</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span>
-                <span class="n">n_filters</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">n_filters</span><span class="p">[</span><span class="mi">1</span><span class="p">:],</span> <span class="n">kernel_sizes</span><span class="p">,</span> <span class="n">paddings</span><span class="p">,</span> <span class="n">poolings</span>
-        <span class="p">):</span>
-            <span class="n">i_layer</span> <span class="o">=</span> <span class="mi">0</span>
-            <span class="n">layers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Conv2d</span><span class="p">(</span>
-                <span class="n">n_in</span><span class="p">,</span>
-                <span class="n">n_out</span><span class="p">,</span>
-                <span class="n">kernel_size</span><span class="p">,</span>
-                <span class="n">stride</span><span class="p">,</span>
-                <span class="n">padding</span><span class="p">,</span>
-                <span class="n">dilation</span>
-            <span class="p">))</span>
-            <span class="k">if</span> <span class="n">pooling</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="k">if</span> <span class="n">pooling</span> <span class="o">==</span> <span class="s2">&quot;max&quot;</span><span class="p">:</span>
-                    <span class="n">layers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">MaxPool2d</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
-                <span class="k">elif</span> <span class="n">pooling</span> <span class="o">==</span> <span class="s2">&quot;avg&quot;</span><span class="p">:</span>
-                    <span class="n">layers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">AvgPool2d</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
-                <span class="k">else</span><span class="p">:</span>
-                    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Pooling type </span><span class="si">{}</span><span class="s2"> unkwown :  no pooling used&quot;</span><span class="p">)</span>
-            <span class="n">layers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">activation</span><span class="p">())</span>
-        <span class="n">layers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Flatten</span><span class="p">())</span>
-        <span class="n">conv_stack</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Sequential</span><span class="p">(</span><span class="o">*</span><span class="n">layers</span><span class="p">)</span>
-
-        <span class="n">x</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="n">img_shape</span><span class="p">)</span>
-        <span class="n">y</span><span class="o">=</span><span class="n">conv_stack</span><span class="p">(</span><span class="n">rearrange</span><span class="p">([</span><span class="n">x</span><span class="p">],</span> <span class="s1">&#39;b w h c -&gt; b c w h&#39;</span><span class="p">))</span>
-
-        <span class="n">last_layers</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="n">in_size</span> <span class="o">=</span> <span class="n">y</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
-        <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="n">hidden_linear</span><span class="p">:</span>
-            <span class="n">last_layers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="n">in_size</span><span class="p">,</span> <span class="n">l</span><span class="p">))</span>
-            <span class="n">last_layers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">activation</span><span class="p">())</span>
-            <span class="n">in_size</span> <span class="o">=</span> <span class="n">l</span>
-
-        <span class="n">last_layer</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="n">in_size</span><span class="p">,</span> <span class="n">n_actions</span><span class="p">)</span>
-        <span class="n">last_layer</span><span class="o">.</span><span class="n">weight</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">uniform_</span><span class="p">(</span><span class="o">-</span><span class="mf">1e-3</span><span class="p">,</span><span class="mf">1e-3</span><span class="p">)</span>
-        <span class="n">last_layer</span><span class="o">.</span><span class="n">bias</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">uniform_</span><span class="p">(</span><span class="o">-</span><span class="mf">1e-3</span><span class="p">,</span><span class="mf">1e-3</span><span class="p">)</span>
-
-        <span class="bp">self</span><span class="o">.</span><span class="n">layers</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Sequential</span><span class="p">(</span>
-            <span class="n">conv_stack</span><span class="p">,</span>
-            <span class="o">*</span><span class="n">last_layers</span><span class="p">,</span>
-            <span class="n">last_layer</span>
-        <span class="p">)</span>
-
-    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
-        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">4</span><span class="p">:</span>
-            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">layers</span><span class="p">(</span><span class="n">rearrange</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="s2">&quot;b w h c -&gt; b c w h&quot;</span><span class="p">))</span>
-        <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
-            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">layers</span><span class="p">(</span><span class="n">rearrange</span><span class="p">([</span><span class="n">x</span><span class="p">],</span> <span class="s2">&quot;b w h c -&gt; b c w h&quot;</span><span class="p">))[</span><span class="mi">0</span><span class="p">]</span>
-</pre></div>
-
-        </details>
-
-            <div class="docstring"><p>Implémente un réseau convolutionnel en PyTorch</p>
-</div>
-
-
-                            <div id="ConvolutionalNN.__init__" class="classattr">
-                                        <div class="attr function"><a class="headerlink" href="#ConvolutionalNN.__init__">#&nbsp;&nbsp</a>
-
-        
-            <span class="name">ConvolutionalNN</span><span class="signature">(
-    img_shape,
-    n_actions,
-    n_filters=None,
-    kernel_size=4,
-    stride=2,
-    padding=0,
-    dilation=1,
-    hidden_linear=[],
-    activation=&lt;class &#39;torch.nn.modules.activation.Tanh&#39;&gt;,
-    pooling=None
-)</span>
-    </div>
-
-                <details>
-            <summary>View Source</summary>
-            <div class="codehilite"><pre><span></span>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
-                 <span class="n">img_shape</span><span class="p">,</span>
-                 <span class="n">n_actions</span><span class="p">,</span>
-                 <span class="n">n_filters</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                 <span class="n">kernel_size</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
-                 <span class="n">stride</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
-                 <span class="n">padding</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
-                 <span class="n">dilation</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
-                 <span class="n">hidden_linear</span><span class="o">=</span><span class="p">[],</span>
-                 <span class="n">activation</span><span class="o">=</span><span class="n">nn</span><span class="o">.</span><span class="n">Tanh</span><span class="p">,</span>
-                 <span class="n">pooling</span><span class="o">=</span><span class="kc">None</span>
-            <span class="p">):</span>
-        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">img_shape</span> <span class="o">=</span> <span class="n">img_shape</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">n_actions</span> <span class="o">=</span> <span class="n">n_actions</span>
-        <span class="n">layers</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="k">if</span> <span class="n">n_filters</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">n_filters</span> <span class="o">=</span> <span class="p">[</span><span class="mi">16</span><span class="p">,</span><span class="mi">16</span><span class="p">]</span>
-
-        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">kernel_size</span><span class="p">)</span> <span class="ow">is</span> <span class="nb">int</span><span class="p">:</span>
-            <span class="n">kernel_sizes</span> <span class="o">=</span> <span class="p">[</span><span class="n">kernel_size</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">n_filters</span><span class="p">]</span>
-        <span class="k">elif</span> <span class="nb">type</span><span class="p">(</span><span class="n">kernel_size</span><span class="p">)</span> <span class="ow">is</span> <span class="nb">list</span><span class="p">:</span>
-            <span class="n">kernel_sizes</span> <span class="o">=</span> <span class="n">kernel_size</span>
-
-        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">pooling</span><span class="p">)</span> <span class="ow">is</span> <span class="nb">int</span><span class="p">:</span>
-            <span class="n">poolings</span> <span class="o">=</span> <span class="p">[</span><span class="n">pooling</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">n_filters</span><span class="p">]</span>
-        <span class="k">elif</span> <span class="nb">type</span><span class="p">(</span><span class="n">pooling</span><span class="p">)</span> <span class="ow">is</span> <span class="nb">list</span><span class="p">:</span>
-            <span class="n">poolings</span> <span class="o">=</span> <span class="n">pooling</span>
-
-        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">padding</span><span class="p">)</span> <span class="ow">is</span> <span class="nb">int</span><span class="p">:</span>
-            <span class="n">paddings</span> <span class="o">=</span> <span class="p">[</span><span class="n">padding</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">n_filters</span><span class="p">]</span>
-        <span class="k">elif</span> <span class="nb">type</span><span class="p">(</span><span class="n">padding</span><span class="p">)</span> <span class="ow">is</span> <span class="nb">list</span><span class="p">:</span>
-            <span class="n">paddings</span> <span class="o">=</span> <span class="n">padding</span>
-
-        <span class="n">n_filters</span> <span class="o">=</span> <span class="p">[</span><span class="n">img_shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]]</span> <span class="o">+</span> <span class="n">n_filters</span>
-
-        <span class="k">for</span> <span class="n">n_in</span><span class="p">,</span> <span class="n">n_out</span><span class="p">,</span> <span class="n">kernel_size</span><span class="p">,</span> <span class="n">padding</span><span class="p">,</span> <span class="n">pooling</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span>
-                <span class="n">n_filters</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">n_filters</span><span class="p">[</span><span class="mi">1</span><span class="p">:],</span> <span class="n">kernel_sizes</span><span class="p">,</span> <span class="n">paddings</span><span class="p">,</span> <span class="n">poolings</span>
-        <span class="p">):</span>
-            <span class="n">i_layer</span> <span class="o">=</span> <span class="mi">0</span>
-            <span class="n">layers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Conv2d</span><span class="p">(</span>
-                <span class="n">n_in</span><span class="p">,</span>
-                <span class="n">n_out</span><span class="p">,</span>
-                <span class="n">kernel_size</span><span class="p">,</span>
-                <span class="n">stride</span><span class="p">,</span>
-                <span class="n">padding</span><span class="p">,</span>
-                <span class="n">dilation</span>
-            <span class="p">))</span>
-            <span class="k">if</span> <span class="n">pooling</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="k">if</span> <span class="n">pooling</span> <span class="o">==</span> <span class="s2">&quot;max&quot;</span><span class="p">:</span>
-                    <span class="n">layers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">MaxPool2d</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
-                <span class="k">elif</span> <span class="n">pooling</span> <span class="o">==</span> <span class="s2">&quot;avg&quot;</span><span class="p">:</span>
-                    <span class="n">layers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">AvgPool2d</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
-                <span class="k">else</span><span class="p">:</span>
-                    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Pooling type </span><span class="si">{}</span><span class="s2"> unkwown :  no pooling used&quot;</span><span class="p">)</span>
-            <span class="n">layers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">activation</span><span class="p">())</span>
-        <span class="n">layers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Flatten</span><span class="p">())</span>
-        <span class="n">conv_stack</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Sequential</span><span class="p">(</span><span class="o">*</span><span class="n">layers</span><span class="p">)</span>
-
-        <span class="n">x</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="n">img_shape</span><span class="p">)</span>
-        <span class="n">y</span><span class="o">=</span><span class="n">conv_stack</span><span class="p">(</span><span class="n">rearrange</span><span class="p">([</span><span class="n">x</span><span class="p">],</span> <span class="s1">&#39;b w h c -&gt; b c w h&#39;</span><span class="p">))</span>
-
-        <span class="n">last_layers</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="n">in_size</span> <span class="o">=</span> <span class="n">y</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
-        <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="n">hidden_linear</span><span class="p">:</span>
-            <span class="n">last_layers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="n">in_size</span><span class="p">,</span> <span class="n">l</span><span class="p">))</span>
-            <span class="n">last_layers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">activation</span><span class="p">())</span>
-            <span class="n">in_size</span> <span class="o">=</span> <span class="n">l</span>
-
-        <span class="n">last_layer</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="n">in_size</span><span class="p">,</span> <span class="n">n_actions</span><span class="p">)</span>
-        <span class="n">last_layer</span><span class="o">.</span><span class="n">weight</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">uniform_</span><span class="p">(</span><span class="o">-</span><span class="mf">1e-3</span><span class="p">,</span><span class="mf">1e-3</span><span class="p">)</span>
-        <span class="n">last_layer</span><span class="o">.</span><span class="n">bias</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">uniform_</span><span class="p">(</span><span class="o">-</span><span class="mf">1e-3</span><span class="p">,</span><span class="mf">1e-3</span><span class="p">)</span>
-
-        <span class="bp">self</span><span class="o">.</span><span class="n">layers</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Sequential</span><span class="p">(</span>
-            <span class="n">conv_stack</span><span class="p">,</span>
-            <span class="o">*</span><span class="n">last_layers</span><span class="p">,</span>
-            <span class="n">last_layer</span>
-        <span class="p">)</span>
-</pre></div>
-
-        </details>
-
-            <div class="docstring"><p>Initializes internal Module state, shared by both nn.Module and ScriptModule.</p>
-</div>
-
-
-                            </div>
-                            <div id="ConvolutionalNN.forward" class="classattr">
-                                        <div class="attr function"><a class="headerlink" href="#ConvolutionalNN.forward">#&nbsp;&nbsp</a>
-
-        
-            <span class="def">def</span>
-            <span class="name">forward</span><span class="signature">(self, x)</span>:
-    </div>
-
-                <details>
-            <summary>View Source</summary>
-            <div class="codehilite"><pre><span></span>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
-        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">4</span><span class="p">:</span>
-            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">layers</span><span class="p">(</span><span class="n">rearrange</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="s2">&quot;b w h c -&gt; b c w h&quot;</span><span class="p">))</span>
-        <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
-            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">layers</span><span class="p">(</span><span class="n">rearrange</span><span class="p">([</span><span class="n">x</span><span class="p">],</span> <span class="s2">&quot;b w h c -&gt; b c w h&quot;</span><span class="p">))[</span><span class="mi">0</span><span class="p">]</span>
-</pre></div>
-
-        </details>
-
-            <div class="docstring"><p>Defines the computation performed at every call.</p>
-
-<p>Should be overridden by all subclasses.</p>
-
-<p>.. note::
-    Although the recipe for forward pass needs to be defined within
-    this function, one should call the :class:<code>Module</code> instance afterwards
-    instead of this since the former takes care of running the
-    registered hooks while the latter silently ignores them.</p>
-</div>
-
-
-                            </div>
-                            <div class="inherited">
-                                <h5>Inherited Members</h5>
-                                <dl>
-                                    <div><dt>torch.nn.modules.module.Module</dt>
-                                <dd id="ConvolutionalNN.dump_patches" class="variable">dump_patches</dd>
-                <dd id="ConvolutionalNN.register_buffer" class="function">register_buffer</dd>
-                <dd id="ConvolutionalNN.register_parameter" class="function">register_parameter</dd>
-                <dd id="ConvolutionalNN.add_module" class="function">add_module</dd>
-                <dd id="ConvolutionalNN.get_submodule" class="function">get_submodule</dd>
-                <dd id="ConvolutionalNN.get_parameter" class="function">get_parameter</dd>
-                <dd id="ConvolutionalNN.get_buffer" class="function">get_buffer</dd>
-                <dd id="ConvolutionalNN.get_extra_state" class="function">get_extra_state</dd>
-                <dd id="ConvolutionalNN.set_extra_state" class="function">set_extra_state</dd>
-                <dd id="ConvolutionalNN.apply" class="function">apply</dd>
-                <dd id="ConvolutionalNN.cuda" class="function">cuda</dd>
-                <dd id="ConvolutionalNN.xpu" class="function">xpu</dd>
-                <dd id="ConvolutionalNN.cpu" class="function">cpu</dd>
-                <dd id="ConvolutionalNN.type" class="function">type</dd>
-                <dd id="ConvolutionalNN.float" class="function">float</dd>
-                <dd id="ConvolutionalNN.double" class="function">double</dd>
-                <dd id="ConvolutionalNN.half" class="function">half</dd>
-                <dd id="ConvolutionalNN.bfloat16" class="function">bfloat16</dd>
-                <dd id="ConvolutionalNN.to_empty" class="function">to_empty</dd>
-                <dd id="ConvolutionalNN.to" class="function">to</dd>
-                <dd id="ConvolutionalNN.register_backward_hook" class="function">register_backward_hook</dd>
-                <dd id="ConvolutionalNN.register_full_backward_hook" class="function">register_full_backward_hook</dd>
-                <dd id="ConvolutionalNN.register_forward_pre_hook" class="function">register_forward_pre_hook</dd>
-                <dd id="ConvolutionalNN.register_forward_hook" class="function">register_forward_hook</dd>
-                <dd id="ConvolutionalNN.T_destination" class="variable">T_destination</dd>
-                <dd id="ConvolutionalNN.state_dict" class="function">state_dict</dd>
-                <dd id="ConvolutionalNN.load_state_dict" class="function">load_state_dict</dd>
-                <dd id="ConvolutionalNN.parameters" class="function">parameters</dd>
-                <dd id="ConvolutionalNN.named_parameters" class="function">named_parameters</dd>
-                <dd id="ConvolutionalNN.buffers" class="function">buffers</dd>
-                <dd id="ConvolutionalNN.named_buffers" class="function">named_buffers</dd>
-                <dd id="ConvolutionalNN.children" class="function">children</dd>
-                <dd id="ConvolutionalNN.named_children" class="function">named_children</dd>
-                <dd id="ConvolutionalNN.modules" class="function">modules</dd>
-                <dd id="ConvolutionalNN.named_modules" class="function">named_modules</dd>
-                <dd id="ConvolutionalNN.train" class="function">train</dd>
-                <dd id="ConvolutionalNN.eval" class="function">eval</dd>
-                <dd id="ConvolutionalNN.requires_grad_" class="function">requires_grad_</dd>
-                <dd id="ConvolutionalNN.zero_grad" class="function">zero_grad</dd>
-                <dd id="ConvolutionalNN.share_memory" class="function">share_memory</dd>
-                <dd id="ConvolutionalNN.extra_repr" class="function">extra_repr</dd>
-
-            </div>
-                                </dl>
-                            </div>
-                </section>
                 <section id="ConvolutionalQFunction">
                                 <div class="attr class">
         <a class="headerlink" href="#ConvolutionalQFunction">#&nbsp;&nbsp</a>
@@ -580,15 +182,15 @@
                 <details>
             <summary>View Source</summary>
             <div class="codehilite"><pre><span></span><span class="k">class</span> <span class="nc">ConvolutionalQFunction</span><span class="p">(</span><span class="n">DiscreteQFunction</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Implémente une fonction de valeur basée sur un réseau convolutionnel en PyTorch</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">env</span><span class="p">,</span> <span class="n">nn_args</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">env</span><span class="p">,</span> <span class="n">nn_args</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="n">nn_class</span><span class="o">=</span><span class="n">ConvolutionalNN</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">env</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">device</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">device</span><span class="p">(</span><span class="s2">&quot;cuda&quot;</span> <span class="k">if</span> <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">is_available</span><span class="p">()</span> <span class="k">else</span> <span class="s2">&quot;cpu&quot;</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">nn</span> <span class="o">=</span> <span class="n">ConvolutionalNN</span><span class="p">(</span>
-            <span class="n">env</span><span class="o">.</span><span class="n">observation_space</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">env</span><span class="o">.</span><span class="n">action_space</span><span class="o">.</span><span class="n">n</span><span class="p">,</span> <span class="o">**</span><span class="n">nn_args</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nn</span> <span class="o">=</span> <span class="n">nn_class</span><span class="p">(</span>
+            <span class="n">img_shape</span><span class="o">=</span><span class="n">env</span><span class="o">.</span><span class="n">observation_space</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span>
+            <span class="n">n_actions</span><span class="o">=</span><span class="n">env</span><span class="o">.</span><span class="n">action_space</span><span class="o">.</span><span class="n">n</span><span class="p">,</span>
+            <span class="o">**</span><span class="n">nn_args</span>
         <span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nn</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">optim</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">optim</span><span class="o">.</span><span class="n">Adam</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">parameters</span><span class="p">(),</span> <span class="n">lr</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">lr</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">update</span><span class="p">({</span>
             <span class="s1">&#39;nn_loss&#39;</span><span class="p">:</span> <span class="p">{</span>
@@ -655,7 +257,7 @@
 
         </details>
 
-            <div class="docstring"><p>Implémente une fonction de valeur basée sur un réseau convolutionnel en PyTorch</p>
+            <div class="docstring"><p>Classe de base pour les fonctions de valeur de type $q(s,a)$ dans les espaces d'actions discrets</p>
 </div>
 
 
@@ -663,17 +265,26 @@
                                         <div class="attr function"><a class="headerlink" href="#ConvolutionalQFunction.__init__">#&nbsp;&nbsp</a>
 
         
-            <span class="name">ConvolutionalQFunction</span><span class="signature">(env, nn_args, *args, **kwargs)</span>
+            <span class="name">ConvolutionalQFunction</span><span class="signature">(
+    env,
+    nn_args,
+    *args,
+    nn_class=&lt;class &#39;<a href="neural_nets/convolutional.html#ConvolutionalNN">code_tp.value_functions.neural_nets.convolutional.ConvolutionalNN</a>&#39;&gt;,
+    **kwargs
+)</span>
     </div>
 
                 <details>
             <summary>View Source</summary>
-            <div class="codehilite"><pre><span></span>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">env</span><span class="p">,</span> <span class="n">nn_args</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+            <div class="codehilite"><pre><span></span>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">env</span><span class="p">,</span> <span class="n">nn_args</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="n">nn_class</span><span class="o">=</span><span class="n">ConvolutionalNN</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">env</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">device</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">device</span><span class="p">(</span><span class="s2">&quot;cuda&quot;</span> <span class="k">if</span> <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">is_available</span><span class="p">()</span> <span class="k">else</span> <span class="s2">&quot;cpu&quot;</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">nn</span> <span class="o">=</span> <span class="n">ConvolutionalNN</span><span class="p">(</span>
-            <span class="n">env</span><span class="o">.</span><span class="n">observation_space</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">env</span><span class="o">.</span><span class="n">action_space</span><span class="o">.</span><span class="n">n</span><span class="p">,</span> <span class="o">**</span><span class="n">nn_args</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nn</span> <span class="o">=</span> <span class="n">nn_class</span><span class="p">(</span>
+            <span class="n">img_shape</span><span class="o">=</span><span class="n">env</span><span class="o">.</span><span class="n">observation_space</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span>
+            <span class="n">n_actions</span><span class="o">=</span><span class="n">env</span><span class="o">.</span><span class="n">action_space</span><span class="o">.</span><span class="n">n</span><span class="p">,</span>
+            <span class="o">**</span><span class="n">nn_args</span>
         <span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nn</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">optim</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">optim</span><span class="o">.</span><span class="n">Adam</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">parameters</span><span class="p">(),</span> <span class="n">lr</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">lr</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">update</span><span class="p">({</span>
             <span class="s1">&#39;nn_loss&#39;</span><span class="p">:</span> <span class="p">{</span>

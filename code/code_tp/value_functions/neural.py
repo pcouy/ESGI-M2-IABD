@@ -4,108 +4,18 @@ from .base import DiscreteQFunction
 import torch
 from torch import nn
 from einops import rearrange
-
-class ConvolutionalNN(nn.Module):
-    """
-    Implémente un réseau convolutionnel en PyTorch
-    """
-    def __init__(self,
-                 img_shape,
-                 n_actions,
-                 n_filters=None,
-                 kernel_size=4,
-                 stride=2,
-                 padding=0,
-                 dilation=1,
-                 hidden_linear=[],
-                 activation=nn.Tanh,
-                 pooling=None
-            ):
-        super().__init__()
-        self.img_shape = img_shape
-        self.n_actions = n_actions
-        layers = []
-        if n_filters is None:
-            n_filters = [16,16]
-
-        if type(kernel_size) is int:
-            kernel_sizes = [kernel_size for _ in n_filters]
-        elif type(kernel_size) is list:
-            kernel_sizes = kernel_size
-
-        if type(pooling) is int:
-            poolings = [pooling for _ in n_filters]
-        elif type(pooling) is list:
-            poolings = pooling
-
-        if type(padding) is int:
-            paddings = [padding for _ in n_filters]
-        elif type(padding) is list:
-            paddings = padding
-
-        n_filters = [img_shape[-1]] + n_filters
-
-        for n_in, n_out, kernel_size, padding, pooling in zip(
-                n_filters[:-1], n_filters[1:], kernel_sizes, paddings, poolings
-        ):
-            i_layer = 0
-            layers.append(nn.Conv2d(
-                n_in,
-                n_out,
-                kernel_size,
-                stride,
-                padding,
-                dilation
-            ))
-            if pooling is not None:
-                if pooling == "max":
-                    layers.append(nn.MaxPool2d(3, 2, 1))
-                elif pooling == "avg":
-                    layers.append(nn.AvgPool2d(3, 2, 1))
-                else:
-                    print("Pooling type {} unkwown :  no pooling used")
-            layers.append(activation())
-        layers.append(nn.Flatten())
-        conv_stack = nn.Sequential(*layers)
-
-        x = torch.rand(img_shape)
-        y=conv_stack(rearrange([x], 'b w h c -> b c w h'))
-
-        last_layers = []
-        in_size = y.shape[-1]
-        for l in hidden_linear:
-            last_layers.append(nn.Linear(in_size, l))
-            last_layers.append(activation())
-            in_size = l
-
-        last_layer = nn.Linear(in_size, n_actions)
-        last_layer.weight.data.uniform_(-1e-3,1e-3)
-        last_layer.bias.data.uniform_(-1e-3,1e-3)
-
-        self.layers = nn.Sequential(
-            conv_stack,
-            *last_layers,
-            last_layer
-        )
-
-    def forward(self, x):
-        if len(x.shape) == 4:
-            return self.layers(rearrange(x, "b w h c -> b c w h"))
-        elif len(x.shape) == 3:
-            return self.layers(rearrange([x], "b w h c -> b c w h"))[0]
-
-
+from .neural_nets.convolutional import ConvolutionalNN
 
 class ConvolutionalQFunction(DiscreteQFunction):
-    """
-    Implémente une fonction de valeur basée sur un réseau convolutionnel en PyTorch
-    """
-    def __init__(self, env, nn_args, *args, **kwargs):
+    def __init__(self, env, nn_args, *args, nn_class=ConvolutionalNN, **kwargs):
         super().__init__(env, *args, **kwargs)
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        self.nn = ConvolutionalNN(
-            env.observation_space.shape, env.action_space.n, **nn_args
+        self.nn = nn_class(
+            img_shape=env.observation_space.shape,
+            n_actions=env.action_space.n,
+            **nn_args
         ).to(self.device)
+        print(self.nn)
         self.optim = torch.optim.Adam(self.nn.parameters(), lr=self.lr)
         self.stats.update({
             'nn_loss': {

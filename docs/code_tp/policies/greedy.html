@@ -37,6 +37,9 @@
                                 <a class="function" href="#RandomPolicy.__init__">RandomPolicy</a>
                         </li>
                         <li>
+                                <a class="function" href="#RandomPolicy.batch_call">batch_call</a>
+                        </li>
+                        <li>
                                 <a class="function" href="#RandomPolicy.test">test</a>
                         </li>
                         <li>
@@ -51,6 +54,15 @@
                         <li>
                                 <a class="function" href="#GreedyQPolicy.__init__">GreedyQPolicy</a>
                         </li>
+                        <li>
+                                <a class="function" href="#GreedyQPolicy.best_action_value_from_values">best_action_value_from_values</a>
+                        </li>
+                        <li>
+                                <a class="function" href="#GreedyQPolicy.best_action_value_from_values_batch">best_action_value_from_values_batch</a>
+                        </li>
+                        <li>
+                                <a class="function" href="#GreedyQPolicy.batch_call">batch_call</a>
+                        </li>
                 </ul>
 
             </li>
@@ -59,6 +71,9 @@
                             <ul class="memberlist">
                         <li>
                                 <a class="function" href="#EGreedyPolicy.__init__">EGreedyPolicy</a>
+                        </li>
+                        <li>
+                                <a class="function" href="#EGreedyPolicy.batch_call">batch_call</a>
                         </li>
                         <li>
                                 <a class="function" href="#EGreedyPolicy.test">test</a>
@@ -105,6 +120,7 @@
             <summary>View Source</summary>
             <div class="codehilite"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">torch</span>
+<span class="kn">from</span> <span class="nn">einops</span> <span class="kn">import</span> <span class="n">rearrange</span>
 
 <span class="k">class</span> <span class="nc">RandomPolicy</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;</span>
@@ -121,6 +137,12 @@
 <span class="sd">        Prend un état en argument, retourne une action</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">value_function</span><span class="o">.</span><span class="n">action_space</span><span class="o">.</span><span class="n">sample</span><span class="p">()</span>
+    
+    <span class="k">def</span> <span class="nf">batch_call</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state_batch</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Prend un batch d&#39;état en argument, retourne un batch de valeurs</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="p">(</span><span class="n">state_batch</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">test</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -149,10 +171,29 @@
                 <span class="s1">&#39;data&#39;</span><span class="p">:</span> <span class="p">[]</span>
             <span class="p">}</span>
         <span class="p">})</span>
+        
+    <span class="k">def</span> <span class="nf">best_action_value_from_values</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">values</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">values</span><span class="p">)</span> <span class="ow">is</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+            <span class="n">values</span> <span class="o">=</span> <span class="n">rearrange</span><span class="p">(</span><span class="n">values</span><span class="p">,</span> <span class="s1">&#39;a -&gt; 1 a&#39;</span><span class="p">)</span>
+            <span class="n">maxa</span><span class="p">,</span> <span class="n">maxv</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">best_action_value_from_values_batch</span><span class="p">(</span><span class="n">values</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">maxa</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">maxv</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">maxv</span><span class="p">,</span> <span class="n">maxa</span> <span class="o">=</span> <span class="nb">max</span><span class="p">((</span><span class="n">v</span><span class="p">,</span><span class="n">a</span><span class="p">)</span> <span class="k">for</span> <span class="n">a</span><span class="p">,</span><span class="n">v</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">values</span><span class="p">))</span>
+            <span class="k">return</span> <span class="n">maxa</span><span class="p">,</span> <span class="n">maxv</span>
+    
+    <span class="k">def</span> <span class="nf">best_action_value_from_values_batch</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">values_batch</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">values_batch</span><span class="p">)</span> <span class="ow">is</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+            <span class="n">m</span> <span class="o">=</span> <span class="n">values_batch</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">m</span><span class="o">.</span><span class="n">indices</span><span class="p">,</span> <span class="n">m</span><span class="o">.</span><span class="n">values</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">maxv</span> <span class="o">=</span> <span class="n">values_batch</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+            <span class="n">maxa</span> <span class="o">=</span> <span class="n">values_batch</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">maxa</span><span class="p">,</span> <span class="n">maxv</span>
+            
 
     <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">):</span>
         <span class="n">values</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">value_function</span><span class="o">.</span><span class="n">from_state</span><span class="p">(</span><span class="n">state</span><span class="p">)</span>
-        <span class="n">action</span><span class="p">,</span> <span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">value_function</span><span class="o">.</span><span class="n">best_action_value_from_state</span><span class="p">(</span><span class="n">state</span><span class="p">)</span>
+        <span class="n">action</span><span class="p">,</span> <span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">best_action_value_from_values</span><span class="p">(</span><span class="n">values</span><span class="p">)</span>
         <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="ow">is</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
             <span class="n">value</span> <span class="o">=</span> <span class="n">value</span><span class="o">.</span><span class="n">clone</span><span class="p">()</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
         <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">values</span><span class="p">)</span> <span class="ow">is</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
@@ -162,6 +203,18 @@
 
         <span class="bp">self</span><span class="o">.</span><span class="n">agent</span><span class="o">.</span><span class="n">log_data</span><span class="p">(</span><span class="s2">&quot;predicted_value&quot;</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="n">actions</span><span class="p">)</span>
+    
+    <span class="k">def</span> <span class="nf">batch_call</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state_batch</span><span class="p">):</span>
+        <span class="n">values_batch</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">value_function</span><span class="o">.</span><span class="n">from_state_batch</span><span class="p">(</span><span class="n">state_batch</span><span class="p">)</span>
+        <span class="n">action_batch</span><span class="p">,</span> <span class="n">value_batch</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">best_action_value_from_values_batch</span><span class="p">(</span><span class="n">values_batch</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">value_batch</span><span class="p">)</span> <span class="ow">is</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+            <span class="n">value_batch</span> <span class="o">=</span> <span class="n">value_batch</span><span class="o">.</span><span class="n">clone</span><span class="p">()</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">action_batch</span><span class="p">)</span> <span class="ow">is</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+            <span class="n">action_batch</span> <span class="o">=</span> <span class="n">action_batch</span><span class="o">.</span><span class="n">clone</span><span class="p">()</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">agent</span><span class="o">.</span><span class="n">log_data</span><span class="p">(</span><span class="s2">&quot;predicted_value&quot;</span><span class="p">,</span> <span class="n">value_batch</span><span class="o">.</span><span class="n">mean</span><span class="p">())</span>
+        <span class="k">return</span> <span class="n">action_batch</span>
+        
 
 <span class="k">class</span> <span class="nc">EGreedyPolicy</span><span class="p">(</span><span class="n">RandomPolicy</span><span class="p">):</span>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value_function</span><span class="p">,</span> <span class="n">greedy_policy_class</span><span class="o">=</span><span class="n">GreedyQPolicy</span><span class="p">,</span> <span class="n">epsilon</span><span class="o">=</span><span class="mf">0.05</span><span class="p">,</span> <span class="n">epsilon_decay</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">epsilon_min</span><span class="o">=</span><span class="mf">0.05</span><span class="p">,</span> <span class="n">epsilon_test</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
@@ -190,6 +243,18 @@
             <span class="n">action</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__call__</span><span class="p">(</span><span class="n">state</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">action</span>
+    
+    <span class="k">def</span> <span class="nf">batch_call</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state_batch</span><span class="p">,</span> <span class="n">epsilon</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">epsilon</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">epsilon</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">epsilon</span>
+            
+        <span class="n">greedy_action_batch</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">greedy_policy</span><span class="o">.</span><span class="n">batch_call</span><span class="p">(</span><span class="n">state_batch</span><span class="p">)</span>
+        <span class="n">random_action_batch</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">batch_call</span><span class="p">(</span><span class="n">state_batch</span><span class="p">)</span>
+        <span class="n">random_mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="p">(</span><span class="n">state_batch</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],))</span>
+        <span class="n">action_batch</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">random_mask</span> <span class="o">&gt;</span> <span class="n">epsilon</span><span class="p">,</span>
+                                <span class="n">greedy_action_batch</span><span class="p">,</span>
+                                <span class="n">random_action_batch</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">action_batch</span>
 
     <span class="k">def</span> <span class="nf">test</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="p">(</span><span class="n">state</span><span class="p">,</span> <span class="n">epsilon</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">epsilon_test</span><span class="p">)</span>
@@ -260,6 +325,12 @@
 <span class="sd">        Prend un état en argument, retourne une action</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">value_function</span><span class="o">.</span><span class="n">action_space</span><span class="o">.</span><span class="n">sample</span><span class="p">()</span>
+    
+    <span class="k">def</span> <span class="nf">batch_call</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state_batch</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Prend un batch d&#39;état en argument, retourne un batch de valeurs</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="p">(</span><span class="n">state_batch</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">test</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -302,6 +373,30 @@ Un agent suivant cette politique est équivalent à un <code>RandomAgent</code> 
         </details>
 
     
+
+                            </div>
+                            <div id="RandomPolicy.batch_call" class="classattr">
+                                        <div class="attr function"><a class="headerlink" href="#RandomPolicy.batch_call">#&nbsp;&nbsp</a>
+
+        
+            <span class="def">def</span>
+            <span class="name">batch_call</span><span class="signature">(self, state_batch)</span>:
+    </div>
+
+                <details>
+            <summary>View Source</summary>
+            <div class="codehilite"><pre><span></span>    <span class="k">def</span> <span class="nf">batch_call</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state_batch</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Prend un batch d&#39;état en argument, retourne un batch de valeurs</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="p">(</span><span class="n">state_batch</span><span class="p">)</span>
+</pre></div>
+
+        </details>
+
+            <div class="docstring"><p>Prend un batch d'état en argument, retourne un batch de valeurs</p>
+</div>
+
 
                             </div>
                             <div id="RandomPolicy.test" class="classattr">
@@ -382,10 +477,29 @@ la politique définie dans <code>__call__</code></p>
                 <span class="s1">&#39;data&#39;</span><span class="p">:</span> <span class="p">[]</span>
             <span class="p">}</span>
         <span class="p">})</span>
+        
+    <span class="k">def</span> <span class="nf">best_action_value_from_values</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">values</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">values</span><span class="p">)</span> <span class="ow">is</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+            <span class="n">values</span> <span class="o">=</span> <span class="n">rearrange</span><span class="p">(</span><span class="n">values</span><span class="p">,</span> <span class="s1">&#39;a -&gt; 1 a&#39;</span><span class="p">)</span>
+            <span class="n">maxa</span><span class="p">,</span> <span class="n">maxv</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">best_action_value_from_values_batch</span><span class="p">(</span><span class="n">values</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">maxa</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">maxv</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">maxv</span><span class="p">,</span> <span class="n">maxa</span> <span class="o">=</span> <span class="nb">max</span><span class="p">((</span><span class="n">v</span><span class="p">,</span><span class="n">a</span><span class="p">)</span> <span class="k">for</span> <span class="n">a</span><span class="p">,</span><span class="n">v</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">values</span><span class="p">))</span>
+            <span class="k">return</span> <span class="n">maxa</span><span class="p">,</span> <span class="n">maxv</span>
+    
+    <span class="k">def</span> <span class="nf">best_action_value_from_values_batch</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">values_batch</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">values_batch</span><span class="p">)</span> <span class="ow">is</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+            <span class="n">m</span> <span class="o">=</span> <span class="n">values_batch</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">m</span><span class="o">.</span><span class="n">indices</span><span class="p">,</span> <span class="n">m</span><span class="o">.</span><span class="n">values</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">maxv</span> <span class="o">=</span> <span class="n">values_batch</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+            <span class="n">maxa</span> <span class="o">=</span> <span class="n">values_batch</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">maxa</span><span class="p">,</span> <span class="n">maxv</span>
+            
 
     <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">):</span>
         <span class="n">values</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">value_function</span><span class="o">.</span><span class="n">from_state</span><span class="p">(</span><span class="n">state</span><span class="p">)</span>
-        <span class="n">action</span><span class="p">,</span> <span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">value_function</span><span class="o">.</span><span class="n">best_action_value_from_state</span><span class="p">(</span><span class="n">state</span><span class="p">)</span>
+        <span class="n">action</span><span class="p">,</span> <span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">best_action_value_from_values</span><span class="p">(</span><span class="n">values</span><span class="p">)</span>
         <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="ow">is</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
             <span class="n">value</span> <span class="o">=</span> <span class="n">value</span><span class="o">.</span><span class="n">clone</span><span class="p">()</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
         <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">values</span><span class="p">)</span> <span class="ow">is</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
@@ -395,6 +509,17 @@ la politique définie dans <code>__call__</code></p>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">agent</span><span class="o">.</span><span class="n">log_data</span><span class="p">(</span><span class="s2">&quot;predicted_value&quot;</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="n">actions</span><span class="p">)</span>
+    
+    <span class="k">def</span> <span class="nf">batch_call</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state_batch</span><span class="p">):</span>
+        <span class="n">values_batch</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">value_function</span><span class="o">.</span><span class="n">from_state_batch</span><span class="p">(</span><span class="n">state_batch</span><span class="p">)</span>
+        <span class="n">action_batch</span><span class="p">,</span> <span class="n">value_batch</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">best_action_value_from_values_batch</span><span class="p">(</span><span class="n">values_batch</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">value_batch</span><span class="p">)</span> <span class="ow">is</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+            <span class="n">value_batch</span> <span class="o">=</span> <span class="n">value_batch</span><span class="o">.</span><span class="n">clone</span><span class="p">()</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">action_batch</span><span class="p">)</span> <span class="ow">is</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+            <span class="n">action_batch</span> <span class="o">=</span> <span class="n">action_batch</span><span class="o">.</span><span class="n">clone</span><span class="p">()</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">agent</span><span class="o">.</span><span class="n">log_data</span><span class="p">(</span><span class="s2">&quot;predicted_value&quot;</span><span class="p">,</span> <span class="n">value_batch</span><span class="o">.</span><span class="n">mean</span><span class="p">())</span>
+        <span class="k">return</span> <span class="n">action_batch</span>
 </pre></div>
 
         </details>
@@ -425,6 +550,85 @@ la politique définie dans <code>__call__</code></p>
         </details>
 
     
+
+                            </div>
+                            <div id="GreedyQPolicy.best_action_value_from_values" class="classattr">
+                                        <div class="attr function"><a class="headerlink" href="#GreedyQPolicy.best_action_value_from_values">#&nbsp;&nbsp</a>
+
+        
+            <span class="def">def</span>
+            <span class="name">best_action_value_from_values</span><span class="signature">(self, values)</span>:
+    </div>
+
+                <details>
+            <summary>View Source</summary>
+            <div class="codehilite"><pre><span></span>    <span class="k">def</span> <span class="nf">best_action_value_from_values</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">values</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">values</span><span class="p">)</span> <span class="ow">is</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+            <span class="n">values</span> <span class="o">=</span> <span class="n">rearrange</span><span class="p">(</span><span class="n">values</span><span class="p">,</span> <span class="s1">&#39;a -&gt; 1 a&#39;</span><span class="p">)</span>
+            <span class="n">maxa</span><span class="p">,</span> <span class="n">maxv</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">best_action_value_from_values_batch</span><span class="p">(</span><span class="n">values</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">maxa</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">maxv</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">maxv</span><span class="p">,</span> <span class="n">maxa</span> <span class="o">=</span> <span class="nb">max</span><span class="p">((</span><span class="n">v</span><span class="p">,</span><span class="n">a</span><span class="p">)</span> <span class="k">for</span> <span class="n">a</span><span class="p">,</span><span class="n">v</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">values</span><span class="p">))</span>
+            <span class="k">return</span> <span class="n">maxa</span><span class="p">,</span> <span class="n">maxv</span>
+</pre></div>
+
+        </details>
+
+    
+
+                            </div>
+                            <div id="GreedyQPolicy.best_action_value_from_values_batch" class="classattr">
+                                        <div class="attr function"><a class="headerlink" href="#GreedyQPolicy.best_action_value_from_values_batch">#&nbsp;&nbsp</a>
+
+        
+            <span class="def">def</span>
+            <span class="name">best_action_value_from_values_batch</span><span class="signature">(self, values_batch)</span>:
+    </div>
+
+                <details>
+            <summary>View Source</summary>
+            <div class="codehilite"><pre><span></span>    <span class="k">def</span> <span class="nf">best_action_value_from_values_batch</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">values_batch</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">values_batch</span><span class="p">)</span> <span class="ow">is</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+            <span class="n">m</span> <span class="o">=</span> <span class="n">values_batch</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">m</span><span class="o">.</span><span class="n">indices</span><span class="p">,</span> <span class="n">m</span><span class="o">.</span><span class="n">values</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">maxv</span> <span class="o">=</span> <span class="n">values_batch</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+            <span class="n">maxa</span> <span class="o">=</span> <span class="n">values_batch</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">maxa</span><span class="p">,</span> <span class="n">maxv</span>
+</pre></div>
+
+        </details>
+
+    
+
+                            </div>
+                            <div id="GreedyQPolicy.batch_call" class="classattr">
+                                        <div class="attr function"><a class="headerlink" href="#GreedyQPolicy.batch_call">#&nbsp;&nbsp</a>
+
+        
+            <span class="def">def</span>
+            <span class="name">batch_call</span><span class="signature">(self, state_batch)</span>:
+    </div>
+
+                <details>
+            <summary>View Source</summary>
+            <div class="codehilite"><pre><span></span>    <span class="k">def</span> <span class="nf">batch_call</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state_batch</span><span class="p">):</span>
+        <span class="n">values_batch</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">value_function</span><span class="o">.</span><span class="n">from_state_batch</span><span class="p">(</span><span class="n">state_batch</span><span class="p">)</span>
+        <span class="n">action_batch</span><span class="p">,</span> <span class="n">value_batch</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">best_action_value_from_values_batch</span><span class="p">(</span><span class="n">values_batch</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">value_batch</span><span class="p">)</span> <span class="ow">is</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+            <span class="n">value_batch</span> <span class="o">=</span> <span class="n">value_batch</span><span class="o">.</span><span class="n">clone</span><span class="p">()</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">action_batch</span><span class="p">)</span> <span class="ow">is</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+            <span class="n">action_batch</span> <span class="o">=</span> <span class="n">action_batch</span><span class="o">.</span><span class="n">clone</span><span class="p">()</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">agent</span><span class="o">.</span><span class="n">log_data</span><span class="p">(</span><span class="s2">&quot;predicted_value&quot;</span><span class="p">,</span> <span class="n">value_batch</span><span class="o">.</span><span class="n">mean</span><span class="p">())</span>
+        <span class="k">return</span> <span class="n">action_batch</span>
+</pre></div>
+
+        </details>
+
+            <div class="docstring"><p>Prend un batch d'état en argument, retourne un batch de valeurs</p>
+</div>
+
 
                             </div>
                             <div class="inherited">
@@ -476,6 +680,18 @@ la politique définie dans <code>__call__</code></p>
             <span class="n">action</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__call__</span><span class="p">(</span><span class="n">state</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">action</span>
+    
+    <span class="k">def</span> <span class="nf">batch_call</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state_batch</span><span class="p">,</span> <span class="n">epsilon</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">epsilon</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">epsilon</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">epsilon</span>
+            
+        <span class="n">greedy_action_batch</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">greedy_policy</span><span class="o">.</span><span class="n">batch_call</span><span class="p">(</span><span class="n">state_batch</span><span class="p">)</span>
+        <span class="n">random_action_batch</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">batch_call</span><span class="p">(</span><span class="n">state_batch</span><span class="p">)</span>
+        <span class="n">random_mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="p">(</span><span class="n">state_batch</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],))</span>
+        <span class="n">action_batch</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">random_mask</span> <span class="o">&gt;</span> <span class="n">epsilon</span><span class="p">,</span>
+                                <span class="n">greedy_action_batch</span><span class="p">,</span>
+                                <span class="n">random_action_batch</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">action_batch</span>
 
     <span class="k">def</span> <span class="nf">test</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="p">(</span><span class="n">state</span><span class="p">,</span> <span class="n">epsilon</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">epsilon_test</span><span class="p">)</span>
@@ -530,6 +746,36 @@ Un agent suivant cette politique est équivalent à un <code>RandomAgent</code> 
         </details>
 
     
+
+                            </div>
+                            <div id="EGreedyPolicy.batch_call" class="classattr">
+                                        <div class="attr function"><a class="headerlink" href="#EGreedyPolicy.batch_call">#&nbsp;&nbsp</a>
+
+        
+            <span class="def">def</span>
+            <span class="name">batch_call</span><span class="signature">(self, state_batch, epsilon=None)</span>:
+    </div>
+
+                <details>
+            <summary>View Source</summary>
+            <div class="codehilite"><pre><span></span>    <span class="k">def</span> <span class="nf">batch_call</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state_batch</span><span class="p">,</span> <span class="n">epsilon</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">epsilon</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">epsilon</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">epsilon</span>
+            
+        <span class="n">greedy_action_batch</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">greedy_policy</span><span class="o">.</span><span class="n">batch_call</span><span class="p">(</span><span class="n">state_batch</span><span class="p">)</span>
+        <span class="n">random_action_batch</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">batch_call</span><span class="p">(</span><span class="n">state_batch</span><span class="p">)</span>
+        <span class="n">random_mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="p">(</span><span class="n">state_batch</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],))</span>
+        <span class="n">action_batch</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">random_mask</span> <span class="o">&gt;</span> <span class="n">epsilon</span><span class="p">,</span>
+                                <span class="n">greedy_action_batch</span><span class="p">,</span>
+                                <span class="n">random_action_batch</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">action_batch</span>
+</pre></div>
+
+        </details>
+
+            <div class="docstring"><p>Prend un batch d'état en argument, retourne un batch de valeurs</p>
+</div>
+
 
                             </div>
                             <div id="EGreedyPolicy.test" class="classattr">
@@ -706,7 +952,8 @@ la politique définie dans <code>__call__</code></p>
                                 <h5>Inherited Members</h5>
                                 <dl>
                                     <div><dt><a href="#EGreedyPolicy">EGreedyPolicy</a></dt>
-                                <dd id="CosineEGreedyPolicy.test" class="function"><a href="#EGreedyPolicy.test">test</a></dd>
+                                <dd id="CosineEGreedyPolicy.batch_call" class="function"><a href="#EGreedyPolicy.batch_call">batch_call</a></dd>
+                <dd id="CosineEGreedyPolicy.test" class="function"><a href="#EGreedyPolicy.test">test</a></dd>
                 <dd id="CosineEGreedyPolicy.update" class="function"><a href="#EGreedyPolicy.update">update</a></dd>
 
             </div>

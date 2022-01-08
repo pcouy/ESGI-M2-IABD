@@ -5,5 +5,5 @@ setup(
     name="M2-IABD-DeepRL",
     version="1.0",
     packages=find_packages(),
-    install_requires=['gym>=0.21.0','numpy','matplotlib','pillow','pyqt5', 'torch==1.10', 'einops']
+    install_requires=['gym>=0.21.0', 'gym[atari]', 'gym[accept-rom-license]' ,'opencv-python','numpy','matplotlib','pillow','pyqt5==5.15', 'torch', 'einops', 'tensorboard']
 )

@@ -36,6 +36,9 @@
                         <li>
                                 <a class="function" href="#SoftmaxSamplingPolicy.__init__">SoftmaxSamplingPolicy</a>
                         </li>
+                        <li>
+                                <a class="function" href="#SoftmaxSamplingPolicy.call_batch">call_batch</a>
+                        </li>
                 </ul>
 
             </li>
@@ -111,6 +114,9 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">greedy_policy</span><span class="o">.</span><span class="n">stats</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">action</span>
+    
+    <span class="k">def</span> <span class="nf">call_batch</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state_batch</span><span class="p">,</span> <span class="n">epsilon</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span>
 </pre></div>
 
         </details>
@@ -176,6 +182,9 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">greedy_policy</span><span class="o">.</span><span class="n">stats</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">action</span>
+    
+    <span class="k">def</span> <span class="nf">call_batch</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state_batch</span><span class="p">,</span> <span class="n">epsilon</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span>
 </pre></div>
 
         </details>
@@ -213,11 +222,31 @@ epsilon=0 &lt;=&gt; Politique greedy</p>
     
 
                             </div>
+                            <div id="SoftmaxSamplingPolicy.call_batch" class="classattr">
+                                        <div class="attr function"><a class="headerlink" href="#SoftmaxSamplingPolicy.call_batch">#&nbsp;&nbsp</a>
+
+        
+            <span class="def">def</span>
+            <span class="name">call_batch</span><span class="signature">(self, state_batch, epsilon=None)</span>:
+    </div>
+
+                <details>
+            <summary>View Source</summary>
+            <div class="codehilite"><pre><span></span>    <span class="k">def</span> <span class="nf">call_batch</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state_batch</span><span class="p">,</span> <span class="n">epsilon</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span>
+</pre></div>
+
+        </details>
+
+    
+
+                            </div>
                             <div class="inherited">
                                 <h5>Inherited Members</h5>
                                 <dl>
                                     <div><dt><a href="greedy.html#EGreedyPolicy">code_tp.policies.greedy.EGreedyPolicy</a></dt>
-                                <dd id="SoftmaxSamplingPolicy.test" class="function"><a href="greedy.html#EGreedyPolicy.test">test</a></dd>
+                                <dd id="SoftmaxSamplingPolicy.batch_call" class="function"><a href="greedy.html#EGreedyPolicy.batch_call">batch_call</a></dd>
+                <dd id="SoftmaxSamplingPolicy.test" class="function"><a href="greedy.html#EGreedyPolicy.test">test</a></dd>
                 <dd id="SoftmaxSamplingPolicy.update_epsilon" class="function"><a href="greedy.html#EGreedyPolicy.update_epsilon">update_epsilon</a></dd>
                 <dd id="SoftmaxSamplingPolicy.update" class="function"><a href="greedy.html#EGreedyPolicy.update">update</a></dd>
 

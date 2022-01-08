@@ -92,7 +92,8 @@ class ReplayBufferAgent(Agent):
         self.replay_buffer.store(state, action, next_state, reward, done, infos)
         if self.replay_buffer.ready():
             n_stored = min(self.replay_buffer.n_inserted, self.replay_buffer.max_size)
-            update_interval = self.replay_buffer.max_size/n_stored
+            #update_interval = self.replay_buffer.max_size/n_stored
+            update_interval = self.update_interval
             if self.training_steps-self.last_update >= update_interval:
                 states, actions, next_states, rewards, dones, infos = self.replay_buffer.sample()
                 #print(actions.shape)

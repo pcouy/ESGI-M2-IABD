@@ -51,3 +51,6 @@ class SoftmaxSamplingPolicy(EGreedyPolicy):
         self.stats.update(self.greedy_policy.stats)
 
         return action
+    
+    def call_batch(self, state_batch, epsilon=None):
+        raise NotImplementedError

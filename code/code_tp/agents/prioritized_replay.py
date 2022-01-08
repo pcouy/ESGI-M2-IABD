@@ -85,7 +85,7 @@ class PrioritizedReplayBuffer(ReplayBuffer):
     e = 0.01
     a = 0.6
     beta = 0.4
-    beta_increment_per_sampling = 0.001
+    beta_increment_per_sampling = 0.0000002
 
     def __init__(self, obs_shape, max_size=100000, batch_size=32, default_error=10000):
         self.tree = SumTree(max_size)
@@ -145,7 +145,8 @@ class PrioritizedReplayBufferAgent(ReplayBufferAgent):
         self.replay_buffer.store(state, action, next_state, reward, done, infos)
         if self.replay_buffer.ready():
             n_stored = min(self.replay_buffer.n_inserted, self.replay_buffer.max_size)
-            update_interval = self.replay_buffer.max_size/n_stored
+            #update_interval = self.replay_buffer.max_size/n_stored
+            update_interval = self.update_interval
             if self.training_steps-self.last_update >= update_interval:
                 (states, actions, next_states, rewards, dones, infos), idxs, is_weights =\
                     self.replay_buffer.sample()
