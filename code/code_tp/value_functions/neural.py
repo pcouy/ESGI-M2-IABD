@@ -7,7 +7,7 @@ from einops import rearrange
 from .neural_nets.convolutional import ConvolutionalNN
 
 class ConvolutionalQFunction(DiscreteQFunction):
-    def __init__(self, env, nn_args, *args, nn_class=ConvolutionalNN, **kwargs):
+    def __init__(self, env, nn_args, *args, nn_class=ConvolutionalNN, gradient_clipping=None, **kwargs):
         super().__init__(env, *args, **kwargs)
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.nn = nn_class(
@@ -17,6 +17,10 @@ class ConvolutionalQFunction(DiscreteQFunction):
         ).to(self.device)
         print(self.nn)
         self.optim = torch.optim.Adam(self.nn.parameters(), lr=self.lr)
+
+        if gradient_clipping is not None:
+            nn.utils.clip_grad_norm_(self.nn.parameters(), gradient_clipping)
+
         self.stats.update({
             'nn_loss': {
                 'x_label': 'step',
@@ -32,8 +36,8 @@ class ConvolutionalQFunction(DiscreteQFunction):
     def from_state_batch(self, states):
         return self.nn(torch.tensor(states, dtype=torch.float32, device=self.device))
 
-    def __call__(state, action):
-        return self.call_batch(rearrange(action, "a b c -> 1 a b c"))[0]
+    def __call__(self, state, action):
+        return self.call_batch([state], rearrange(action, "a b c -> 1 a b c"))[0]
 
     def call_batch(self, states, actions):
         values = self.nn(torch.tensor(states, dtype=torch.float32, device=self.device))\

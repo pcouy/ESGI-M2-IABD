@@ -201,10 +201,10 @@
     <span class="n">beta</span> <span class="o">=</span> <span class="mf">0.4</span>
     <span class="n">beta_increment_per_sampling</span> <span class="o">=</span> <span class="mf">0.0000002</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obs_shape</span><span class="p">,</span> <span class="n">max_size</span><span class="o">=</span><span class="mi">100000</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="mi">32</span><span class="p">,</span> <span class="n">default_error</span><span class="o">=</span><span class="mi">10000</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obs_shape</span><span class="p">,</span> <span class="n">max_size</span><span class="o">=</span><span class="mi">100000</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="mi">32</span><span class="p">,</span> <span class="n">default_error</span><span class="o">=</span><span class="mi">10000</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">tree</span> <span class="o">=</span> <span class="n">SumTree</span><span class="p">(</span><span class="n">max_size</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">default_error</span> <span class="o">=</span> <span class="n">default_error</span>
-        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">obs_shape</span><span class="p">,</span> <span class="n">max_size</span><span class="p">,</span> <span class="n">batch_size</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">obs_shape</span><span class="p">,</span> <span class="n">max_size</span><span class="p">,</span> <span class="n">batch_size</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_get_priority</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">error</span><span class="p">):</span>
         <span class="k">return</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">error</span><span class="p">)</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">e</span><span class="p">)</span> <span class="o">**</span> <span class="bp">self</span><span class="o">.</span><span class="n">a</span>
@@ -238,7 +238,9 @@
         <span class="n">is_weight</span> <span class="o">/=</span> <span class="n">is_weight</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
 
         <span class="n">batch</span> <span class="o">=</span> <span class="p">(</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">states</span><span class="p">[</span><span class="n">js</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">actions</span><span class="p">[</span><span class="n">js</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">next_states</span><span class="p">[</span><span class="n">js</span><span class="p">],</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">normalize</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">states</span><span class="p">[</span><span class="n">js</span><span class="p">]),</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">actions</span><span class="p">[</span><span class="n">js</span><span class="p">],</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">normalize</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">next_states</span><span class="p">[</span><span class="n">js</span><span class="p">]),</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">rewards</span><span class="p">[</span><span class="n">js</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">dones</span><span class="p">[</span><span class="n">js</span><span class="p">],</span> <span class="kc">None</span>
                 <span class="p">)</span>
 
@@ -506,10 +508,10 @@
     <span class="n">beta</span> <span class="o">=</span> <span class="mf">0.4</span>
     <span class="n">beta_increment_per_sampling</span> <span class="o">=</span> <span class="mf">0.0000002</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obs_shape</span><span class="p">,</span> <span class="n">max_size</span><span class="o">=</span><span class="mi">100000</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="mi">32</span><span class="p">,</span> <span class="n">default_error</span><span class="o">=</span><span class="mi">10000</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obs_shape</span><span class="p">,</span> <span class="n">max_size</span><span class="o">=</span><span class="mi">100000</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="mi">32</span><span class="p">,</span> <span class="n">default_error</span><span class="o">=</span><span class="mi">10000</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">tree</span> <span class="o">=</span> <span class="n">SumTree</span><span class="p">(</span><span class="n">max_size</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">default_error</span> <span class="o">=</span> <span class="n">default_error</span>
-        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">obs_shape</span><span class="p">,</span> <span class="n">max_size</span><span class="p">,</span> <span class="n">batch_size</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">obs_shape</span><span class="p">,</span> <span class="n">max_size</span><span class="p">,</span> <span class="n">batch_size</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_get_priority</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">error</span><span class="p">):</span>
         <span class="k">return</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">error</span><span class="p">)</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">e</span><span class="p">)</span> <span class="o">**</span> <span class="bp">self</span><span class="o">.</span><span class="n">a</span>
@@ -543,7 +545,9 @@
         <span class="n">is_weight</span> <span class="o">/=</span> <span class="n">is_weight</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
 
         <span class="n">batch</span> <span class="o">=</span> <span class="p">(</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">states</span><span class="p">[</span><span class="n">js</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">actions</span><span class="p">[</span><span class="n">js</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">next_states</span><span class="p">[</span><span class="n">js</span><span class="p">],</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">normalize</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">states</span><span class="p">[</span><span class="n">js</span><span class="p">]),</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">actions</span><span class="p">[</span><span class="n">js</span><span class="p">],</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">normalize</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">next_states</span><span class="p">[</span><span class="n">js</span><span class="p">]),</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">rewards</span><span class="p">[</span><span class="n">js</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">dones</span><span class="p">[</span><span class="n">js</span><span class="p">],</span> <span class="kc">None</span>
                 <span class="p">)</span>
 
@@ -567,15 +571,21 @@ telle que décrit dans <a href="http://arxiv.org/abs/1511.05952">l'article <em>P
                                         <div class="attr function"><a class="headerlink" href="#PrioritizedReplayBuffer.__init__">#&nbsp;&nbsp</a>
 
         
-            <span class="name">PrioritizedReplayBuffer</span><span class="signature">(obs_shape, max_size=100000, batch_size=32, default_error=10000)</span>
+            <span class="name">PrioritizedReplayBuffer</span><span class="signature">(
+    obs_shape,
+    max_size=100000,
+    batch_size=32,
+    default_error=10000,
+    **kwargs
+)</span>
     </div>
 
                 <details>
             <summary>View Source</summary>
-            <div class="codehilite"><pre><span></span>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obs_shape</span><span class="p">,</span> <span class="n">max_size</span><span class="o">=</span><span class="mi">100000</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="mi">32</span><span class="p">,</span> <span class="n">default_error</span><span class="o">=</span><span class="mi">10000</span><span class="p">):</span>
+            <div class="codehilite"><pre><span></span>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obs_shape</span><span class="p">,</span> <span class="n">max_size</span><span class="o">=</span><span class="mi">100000</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="mi">32</span><span class="p">,</span> <span class="n">default_error</span><span class="o">=</span><span class="mi">10000</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">tree</span> <span class="o">=</span> <span class="n">SumTree</span><span class="p">(</span><span class="n">max_size</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">default_error</span> <span class="o">=</span> <span class="n">default_error</span>
-        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">obs_shape</span><span class="p">,</span> <span class="n">max_size</span><span class="p">,</span> <span class="n">batch_size</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">obs_shape</span><span class="p">,</span> <span class="n">max_size</span><span class="p">,</span> <span class="n">batch_size</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 </pre></div>
 
         </details>
@@ -685,7 +695,9 @@ maximum est atteinte)</p>
         <span class="n">is_weight</span> <span class="o">/=</span> <span class="n">is_weight</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
 
         <span class="n">batch</span> <span class="o">=</span> <span class="p">(</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">states</span><span class="p">[</span><span class="n">js</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">actions</span><span class="p">[</span><span class="n">js</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">next_states</span><span class="p">[</span><span class="n">js</span><span class="p">],</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">normalize</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">states</span><span class="p">[</span><span class="n">js</span><span class="p">]),</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">actions</span><span class="p">[</span><span class="n">js</span><span class="p">],</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">normalize</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">next_states</span><span class="p">[</span><span class="n">js</span><span class="p">]),</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">rewards</span><span class="p">[</span><span class="n">js</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">dones</span><span class="p">[</span><span class="n">js</span><span class="p">],</span> <span class="kc">None</span>
                 <span class="p">)</span>
 
@@ -730,6 +742,7 @@ le format suivant :</p>
                                 <dl>
                                     <div><dt><a href="replay_buffer.html#ReplayBuffer">code_tp.agents.replay_buffer.ReplayBuffer</a></dt>
                                 <dd id="PrioritizedReplayBuffer.ready" class="function"><a href="replay_buffer.html#ReplayBuffer.ready">ready</a></dd>
+                <dd id="PrioritizedReplayBuffer.normalize" class="function"><a href="replay_buffer.html#ReplayBuffer.normalize">normalize</a></dd>
 
             </div>
                                 </dl>

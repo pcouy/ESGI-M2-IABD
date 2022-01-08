@@ -87,10 +87,10 @@ class PrioritizedReplayBuffer(ReplayBuffer):
     beta = 0.4
     beta_increment_per_sampling = 0.0000002
 
-    def __init__(self, obs_shape, max_size=100000, batch_size=32, default_error=10000):
+    def __init__(self, obs_shape, max_size=100000, batch_size=32, default_error=10000, **kwargs):
         self.tree = SumTree(max_size)
         self.default_error = default_error
-        super().__init__(obs_shape, max_size, batch_size)
+        super().__init__(obs_shape, max_size, batch_size, **kwargs)
 
     def _get_priority(self, error):
         return (np.abs(error) + self.e) ** self.a
@@ -124,7 +124,9 @@ class PrioritizedReplayBuffer(ReplayBuffer):
         is_weight /= is_weight.max()
 
         batch = (
-                    self.states[js], self.actions[js], self.next_states[js],
+                    self.normalize(self.states[js]),
+                    self.actions[js],
+                    self.normalize(self.next_states[js]),
                     self.rewards[js], self.dones[js], None
                 )
 

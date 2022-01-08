@@ -21,6 +21,8 @@ class ReplayBuffer:
         self.max_size = max_size
         self.batch_size = batch_size
         self.n_inserted = 0
+        self.max_obs_val = -99999
+        self.min_obs_val = 99999
 
     def ready(self):
         """
@@ -35,6 +37,8 @@ class ReplayBuffer:
 
         Les paramètres représentent la transition à stocker
         """
+        self.max_obs_val = max(self.max_obs_val, state.max())
+        self.min_obs_val = min(self.min_obs_val, state.min())
         i = self.n_inserted % self.max_size
         self.states[i] = state
         self.actions[i] = action
@@ -44,6 +48,9 @@ class ReplayBuffer:
 
         self.n_inserted+= 1
         return i
+
+    def normalize(state):
+        return (2*state - (self.max_obs_val + self.min_obs_val)) / (self.max_obs_val - self.min_obs_val)
 
     def sample(self):
         """
@@ -56,7 +63,9 @@ class ReplayBuffer:
         n_stored = min(self.n_inserted, self.max_size)
         i = np.random.randint(0, n_stored, size=(self.batch_size,))
 
-        return self.states[i], self.actions[i], self.next_states[i],\
+        return self.normalize(self.states[i]),\
+                self.actions[i],\
+                self.normalize(self.next_states[i]),\
                 self.rewards[i], self.dones[i], None
 
 class ReplayBufferAgent(Agent):

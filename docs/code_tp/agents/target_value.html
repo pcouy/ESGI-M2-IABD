@@ -95,6 +95,7 @@
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">env</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">target_update</span> <span class="o">=</span> <span class="n">target_update</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">target_value_function</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">value_function</span><span class="o">.</span><span class="n">clone</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">target_value_function</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">eval</span><span class="p">()</span> <span class="c1">#On économise le calcul des gradients sur la fonction cible</span>
 
     <span class="k">def</span> <span class="nf">train_with_transition</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="c1">#print(&quot;Training from TargetValueAgent&quot;)</span>
@@ -149,6 +150,7 @@
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">env</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">target_update</span> <span class="o">=</span> <span class="n">target_update</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">target_value_function</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">value_function</span><span class="o">.</span><span class="n">clone</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">target_value_function</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">eval</span><span class="p">()</span> <span class="c1">#On économise le calcul des gradients sur la fonction cible</span>
 
     <span class="k">def</span> <span class="nf">train_with_transition</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="c1">#print(&quot;Training from TargetValueAgent&quot;)</span>
@@ -188,6 +190,7 @@ lors d'un update. (http://arxiv.org/abs/1312.5602)</p>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">env</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">target_update</span> <span class="o">=</span> <span class="n">target_update</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">target_value_function</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">value_function</span><span class="o">.</span><span class="n">clone</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">target_value_function</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">eval</span><span class="p">()</span> <span class="c1">#On économise le calcul des gradients sur la fonction cible</span>
 </pre></div>
 
         </details>
