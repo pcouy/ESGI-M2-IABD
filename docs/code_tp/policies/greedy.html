@@ -217,6 +217,13 @@
         
 
 <span class="k">class</span> <span class="nc">EGreedyPolicy</span><span class="p">(</span><span class="n">RandomPolicy</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Implémente une politique *epsilon-greedy* qui choisit une action aléatoire avec la</span>
+<span class="sd">    probabilité `epsilon` et l&#39;action définie par la politique *greedy* le reste du temps.</span>
+
+<span class="sd">    `epsilon_decay` et `epsilon_min` permettent de faire varier la valeur donnée à</span>
+<span class="sd">    `epsilon` au cours de l&#39;entrainement</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value_function</span><span class="p">,</span> <span class="n">greedy_policy_class</span><span class="o">=</span><span class="n">GreedyQPolicy</span><span class="p">,</span> <span class="n">epsilon</span><span class="o">=</span><span class="mf">0.05</span><span class="p">,</span> <span class="n">epsilon_decay</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">epsilon_min</span><span class="o">=</span><span class="mf">0.05</span><span class="p">,</span> <span class="n">epsilon_test</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">greedy_policy</span> <span class="o">=</span> <span class="n">greedy_policy_class</span><span class="p">(</span><span class="n">value_function</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">epsilon</span> <span class="o">=</span> <span class="n">epsilon</span>
@@ -654,6 +661,13 @@ la politique définie dans <code>__call__</code></p>
                 <details>
             <summary>View Source</summary>
             <div class="codehilite"><pre><span></span><span class="k">class</span> <span class="nc">EGreedyPolicy</span><span class="p">(</span><span class="n">RandomPolicy</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Implémente une politique *epsilon-greedy* qui choisit une action aléatoire avec la</span>
+<span class="sd">    probabilité `epsilon` et l&#39;action définie par la politique *greedy* le reste du temps.</span>
+
+<span class="sd">    `epsilon_decay` et `epsilon_min` permettent de faire varier la valeur donnée à</span>
+<span class="sd">    `epsilon` au cours de l&#39;entrainement</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value_function</span><span class="p">,</span> <span class="n">greedy_policy_class</span><span class="o">=</span><span class="n">GreedyQPolicy</span><span class="p">,</span> <span class="n">epsilon</span><span class="o">=</span><span class="mf">0.05</span><span class="p">,</span> <span class="n">epsilon_decay</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">epsilon_min</span><span class="o">=</span><span class="mf">0.05</span><span class="p">,</span> <span class="n">epsilon_test</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">greedy_policy</span> <span class="o">=</span> <span class="n">greedy_policy_class</span><span class="p">(</span><span class="n">value_function</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">epsilon</span> <span class="o">=</span> <span class="n">epsilon</span>
@@ -707,8 +721,11 @@ la politique définie dans <code>__call__</code></p>
 
         </details>
 
-            <div class="docstring"><p>Politique aléatoire, sert de classe de base à toutes les politiques.
-Un agent suivant cette politique est équivalent à un <code>RandomAgent</code> dans son comportement</p>
+            <div class="docstring"><p>Implémente une politique <em>epsilon-greedy</em> qui choisit une action aléatoire avec la
+probabilité <code>epsilon</code> et l'action définie par la politique <em>greedy</em> le reste du temps.</p>
+
+<p><code>epsilon_decay</code> et <code>epsilon_min</code> permettent de faire varier la valeur donnée à
+<code>epsilon</code> au cours de l'entrainement</p>
 </div>
 
 

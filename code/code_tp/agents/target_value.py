@@ -31,6 +31,10 @@ class TargetValueAgent(QLearningAgent):
         return self.target_value_function.best_action_value_from_state_batch(states)
 
 class DoubleQLearning(TargetValueAgent):
+    """
+    Modifie `TargetValueAgent` pour utiliser la variante proposée par l'article
+    [Deep Reinforcement Learning with Double Q-learning](http://arxiv.org/abs/1509.06461)
+    """
     def eval_state_batch(self, states):
         selected_actions, _ = self.value_function.best_action_value_from_state_batch(states)
         values = self.target_value_function.call_batch(states, selected_actions)

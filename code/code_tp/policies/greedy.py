@@ -97,6 +97,13 @@ class GreedyQPolicy(RandomPolicy):
         
 
 class EGreedyPolicy(RandomPolicy):
+    """
+    Implémente une politique *epsilon-greedy* qui choisit une action aléatoire avec la
+    probabilité `epsilon` et l'action définie par la politique *greedy* le reste du temps.
+
+    `epsilon_decay` et `epsilon_min` permettent de faire varier la valeur donnée à
+    `epsilon` au cours de l'entrainement
+    """
     def __init__(self, value_function, greedy_policy_class=GreedyQPolicy, epsilon=0.05, epsilon_decay=0, epsilon_min=0.05, epsilon_test=0):
         self.greedy_policy = greedy_policy_class(value_function)
         self.epsilon = epsilon

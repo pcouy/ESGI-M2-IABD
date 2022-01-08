@@ -94,6 +94,11 @@
 <span class="kn">from</span> <span class="nn">.neural_nets.convolutional</span> <span class="kn">import</span> <span class="n">ConvolutionalNN</span>
 
 <span class="k">class</span> <span class="nc">ConvolutionalQFunction</span><span class="p">(</span><span class="n">DiscreteQFunction</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Implémente une approximation de la fonction de valeur basée sur un réseau de neurones</span>
+<span class="sd">    convolutionnel en PyTorch (voir `code_tp.value_functions.neural_nets` pour plus</span>
+<span class="sd">    de détails)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">env</span><span class="p">,</span> <span class="n">nn_args</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="n">nn_class</span><span class="o">=</span><span class="n">ConvolutionalNN</span><span class="p">,</span> <span class="n">gradient_clipping</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">env</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">device</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">device</span><span class="p">(</span><span class="s2">&quot;cuda&quot;</span> <span class="k">if</span> <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">is_available</span><span class="p">()</span> <span class="k">else</span> <span class="s2">&quot;cpu&quot;</span><span class="p">)</span>
@@ -186,6 +191,11 @@
                 <details>
             <summary>View Source</summary>
             <div class="codehilite"><pre><span></span><span class="k">class</span> <span class="nc">ConvolutionalQFunction</span><span class="p">(</span><span class="n">DiscreteQFunction</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Implémente une approximation de la fonction de valeur basée sur un réseau de neurones</span>
+<span class="sd">    convolutionnel en PyTorch (voir `code_tp.value_functions.neural_nets` pour plus</span>
+<span class="sd">    de détails)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">env</span><span class="p">,</span> <span class="n">nn_args</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="n">nn_class</span><span class="o">=</span><span class="n">ConvolutionalNN</span><span class="p">,</span> <span class="n">gradient_clipping</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">env</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">device</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">device</span><span class="p">(</span><span class="s2">&quot;cuda&quot;</span> <span class="k">if</span> <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">is_available</span><span class="p">()</span> <span class="k">else</span> <span class="s2">&quot;cpu&quot;</span><span class="p">)</span>
@@ -265,7 +275,9 @@
 
         </details>
 
-            <div class="docstring"><p>Classe de base pour les fonctions de valeur de type $q(s,a)$ dans les espaces d'actions discrets</p>
+            <div class="docstring"><p>Implémente une approximation de la fonction de valeur basée sur un réseau de neurones
+convolutionnel en PyTorch (voir <code><a href="neural_nets.html">code_tp.value_functions.neural_nets</a></code> pour plus
+de détails)</p>
 </div>
 
 

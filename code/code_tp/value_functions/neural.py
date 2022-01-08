@@ -7,6 +7,11 @@ from einops import rearrange
 from .neural_nets.convolutional import ConvolutionalNN
 
 class ConvolutionalQFunction(DiscreteQFunction):
+    """
+    Implémente une approximation de la fonction de valeur basée sur un réseau de neurones
+    convolutionnel en PyTorch (voir `code_tp.value_functions.neural_nets` pour plus
+    de détails)
+    """
     def __init__(self, env, nn_args, *args, nn_class=ConvolutionalNN, gradient_clipping=None, **kwargs):
         super().__init__(env, *args, **kwargs)
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")

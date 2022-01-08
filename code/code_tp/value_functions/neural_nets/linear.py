@@ -3,6 +3,9 @@ from torch import nn
 from einops import rearrange
 
 class LinearNeuralStack(nn.Module):
+    """
+    Implémente des couches de sorties linéaires (*fully connected*) simples
+    """
     def __init__(self, layers, in_dim, n_actions, activation=nn.ReLU):
         super().__init__()
         linear_layers = []

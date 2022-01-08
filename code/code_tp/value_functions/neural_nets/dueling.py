@@ -6,6 +6,10 @@ from einops import rearrange
 import copy
 
 class DuelingOutputStack(nn.Module):
+    """
+    Implémente les couches de sorties du réseau de neurones telles que décrites
+    dans [Dueling Network Architectures for Deep Reinforcement Learning](http://arxiv.org/abs/1511.06581)
+    """
     def __init__(self, layers, in_dim, n_actions, activation=nn.ReLU):
         super().__init__()
         # set advantage layer
