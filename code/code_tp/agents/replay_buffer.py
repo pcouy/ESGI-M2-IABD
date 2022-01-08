@@ -49,7 +49,7 @@ class ReplayBuffer:
         self.n_inserted+= 1
         return i
 
-    def normalize(state):
+    def normalize(self, state):
         """
         Recadre les valeurs d'entrées entre 0 et 1
         """
