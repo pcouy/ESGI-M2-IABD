@@ -105,6 +105,9 @@
 <span class="kn">from</span> <span class="nn">einops</span> <span class="kn">import</span> <span class="n">rearrange</span>
 
 <span class="k">class</span> <span class="nc">ConvolutionalNN</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Implémente un réseau convolutionnel en PyTorch</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
                  <span class="n">img_shape</span><span class="p">,</span>
                  <span class="n">n_actions</span><span class="p">,</span>
@@ -193,6 +196,9 @@
 
 
 <span class="k">class</span> <span class="nc">ConvolutionalQFunction</span><span class="p">(</span><span class="n">DiscreteQFunction</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Implémente une fonction de valeur basée sur un réseau convolutionnel en PyTorch</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">env</span><span class="p">,</span> <span class="n">nn_args</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">env</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">device</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">device</span><span class="p">(</span><span class="s2">&quot;cuda&quot;</span> <span class="k">if</span> <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">is_available</span><span class="p">()</span> <span class="k">else</span> <span class="s2">&quot;cpu&quot;</span><span class="p">)</span>
@@ -278,6 +284,9 @@
                 <details>
             <summary>View Source</summary>
             <div class="codehilite"><pre><span></span><span class="k">class</span> <span class="nc">ConvolutionalNN</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Implémente un réseau convolutionnel en PyTorch</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
                  <span class="n">img_shape</span><span class="p">,</span>
                  <span class="n">n_actions</span><span class="p">,</span>
@@ -366,33 +375,7 @@
 
         </details>
 
-            <div class="docstring"><p>Base class for all neural network modules.</p>
-
-<p>Your models should also subclass this class.</p>
-
-<p>Modules can also contain other Modules, allowing to nest them in
-a tree structure. You can assign the submodules as regular attributes::</p>
-
-<pre><code>import torch.nn as nn
-import torch.nn.functional as F
-
-class Model(nn.Module):
-    def __init__(self):
-        super(Model, self).__init__()
-        self.conv1 = nn.Conv2d(1, 20, 5)
-        self.conv2 = nn.Conv2d(20, 20, 5)
-
-    def forward(self, x):
-        x = F.relu(self.conv1(x))
-        return F.relu(self.conv2(x))
-</code></pre>
-
-<p>Submodules assigned in this way will be registered, and will have their
-parameters converted too when you call :meth:<code><a href="#ConvolutionalNN.to">to</a></code>, etc.</p>
-
-<p>:ivar training: Boolean represents whether this module is in training or
-                evaluation mode.
-:vartype training: bool</p>
+            <div class="docstring"><p>Implémente un réseau convolutionnel en PyTorch</p>
 </div>
 
 
@@ -597,6 +580,9 @@ parameters converted too when you call :meth:<code><a href="#ConvolutionalNN.to"
                 <details>
             <summary>View Source</summary>
             <div class="codehilite"><pre><span></span><span class="k">class</span> <span class="nc">ConvolutionalQFunction</span><span class="p">(</span><span class="n">DiscreteQFunction</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Implémente une fonction de valeur basée sur un réseau convolutionnel en PyTorch</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">env</span><span class="p">,</span> <span class="n">nn_args</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">env</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">device</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">device</span><span class="p">(</span><span class="s2">&quot;cuda&quot;</span> <span class="k">if</span> <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">is_available</span><span class="p">()</span> <span class="k">else</span> <span class="s2">&quot;cpu&quot;</span><span class="p">)</span>
@@ -669,7 +655,7 @@ parameters converted too when you call :meth:<code><a href="#ConvolutionalNN.to"
 
         </details>
 
-            <div class="docstring"><p>Classe de base pour les fonctions de valeur de type $q(s,a)$ dans les espaces d'actions discrets</p>
+            <div class="docstring"><p>Implémente une fonction de valeur basée sur un réseau convolutionnel en PyTorch</p>
 </div>
 
 

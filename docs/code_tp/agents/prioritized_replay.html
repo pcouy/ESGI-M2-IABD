@@ -116,11 +116,17 @@
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">from</span> <span class="nn">.replay_buffer</span> <span class="kn">import</span> <span class="n">ReplayBufferAgent</span><span class="p">,</span> <span class="n">ReplayBuffer</span>
 
-<span class="c1"># CREDITS TO https://github.com/rlcode/per</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">CREDITS TO https://github.com/rlcode/per</span>
 
-<span class="c1"># SumTree</span>
-<span class="c1"># a binary tree data structure where the parent’s value is the sum of its children</span>
+<span class="sd">SumTree</span>
+<span class="sd">a binary tree data structure where the parent’s value is the sum of its children</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
 <span class="k">class</span> <span class="nc">SumTree</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A binary tree data structure where the parent’s value is the sum of its children</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">write</span> <span class="o">=</span> <span class="mi">0</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">capacity</span><span class="p">):</span>
@@ -184,6 +190,12 @@
 
 
 <span class="k">class</span> <span class="nc">PrioritizedReplayBuffer</span><span class="p">(</span><span class="n">ReplayBuffer</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Implémentation d&#39;une mémoire des expériences passées avec échantillonage priorisé</span>
+<span class="sd">    telle que décrit dans [l&#39;article *Prioritized Experience Replay*](http://arxiv.org/abs/1511.05952)</span>
+
+<span class="sd">    Modifie `ReplayBuffer` pour échantilloner la mémoire en tenant compte d&#39;un critère de priorité</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">e</span> <span class="o">=</span> <span class="mf">0.01</span>
     <span class="n">a</span> <span class="o">=</span> <span class="mf">0.6</span>
     <span class="n">beta</span> <span class="o">=</span> <span class="mf">0.4</span>
@@ -237,6 +249,11 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">tree</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">idx</span><span class="p">,</span> <span class="n">p</span><span class="p">)</span>
 
 <span class="k">class</span> <span class="nc">PrioritizedReplayBufferAgent</span><span class="p">(</span><span class="n">ReplayBufferAgent</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Agent tirant profit du `PrioritizedReplayBuffer` en utilisant la **Différence Temporelle**</span>
+<span class="sd">    (càd l&#39;erreur entre la prédiction de la fonction de valeur et la valeur cible) comme</span>
+<span class="sd">    critère de priorité</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">def</span> <span class="nf">train_with_transition</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">,</span> <span class="n">action</span><span class="p">,</span> <span class="n">next_state</span><span class="p">,</span> <span class="n">reward</span><span class="p">,</span> <span class="n">done</span><span class="p">,</span> <span class="n">infos</span><span class="p">):</span>
         <span class="c1">#print(&quot;Training from PrioritizedReplayBufferAgent&quot;)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">replay_buffer</span><span class="o">.</span><span class="n">store</span><span class="p">(</span><span class="n">state</span><span class="p">,</span> <span class="n">action</span><span class="p">,</span> <span class="n">next_state</span><span class="p">,</span> <span class="n">reward</span><span class="p">,</span> <span class="n">done</span><span class="p">,</span> <span class="n">infos</span><span class="p">)</span>
@@ -271,6 +288,9 @@
                 <details>
             <summary>View Source</summary>
             <div class="codehilite"><pre><span></span><span class="k">class</span> <span class="nc">SumTree</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A binary tree data structure where the parent’s value is the sum of its children</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">write</span> <span class="o">=</span> <span class="mi">0</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">capacity</span><span class="p">):</span>
@@ -335,7 +355,9 @@
 
         </details>
 
-    
+            <div class="docstring"><p>A binary tree data structure where the parent’s value is the sum of its children</p>
+</div>
+
 
                             <div id="SumTree.__init__" class="classattr">
                                         <div class="attr function"><a class="headerlink" href="#SumTree.__init__">#&nbsp;&nbsp</a>
@@ -472,6 +494,12 @@
                 <details>
             <summary>View Source</summary>
             <div class="codehilite"><pre><span></span><span class="k">class</span> <span class="nc">PrioritizedReplayBuffer</span><span class="p">(</span><span class="n">ReplayBuffer</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Implémentation d&#39;une mémoire des expériences passées avec échantillonage priorisé</span>
+<span class="sd">    telle que décrit dans [l&#39;article *Prioritized Experience Replay*](http://arxiv.org/abs/1511.05952)</span>
+
+<span class="sd">    Modifie `ReplayBuffer` pour échantilloner la mémoire en tenant compte d&#39;un critère de priorité</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">e</span> <span class="o">=</span> <span class="mf">0.01</span>
     <span class="n">a</span> <span class="o">=</span> <span class="mf">0.6</span>
     <span class="n">beta</span> <span class="o">=</span> <span class="mf">0.4</span>
@@ -527,8 +555,10 @@
 
         </details>
 
-            <div class="docstring"><p>Implémentation d'une mémoire des expériences passées, telle que décrit dans
-<a href="http://arxiv.org/abs/1312.5602">l'article sur le DQN</a></p>
+            <div class="docstring"><p>Implémentation d'une mémoire des expériences passées avec échantillonage priorisé
+telle que décrit dans <a href="http://arxiv.org/abs/1511.05952">l'article <em>Prioritized Experience Replay</em></a></p>
+
+<p>Modifie <code>ReplayBuffer</code> pour échantilloner la mémoire en tenant compte d'un critère de priorité</p>
 </div>
 
 
@@ -716,6 +746,11 @@ le format suivant :</p>
                 <details>
             <summary>View Source</summary>
             <div class="codehilite"><pre><span></span><span class="k">class</span> <span class="nc">PrioritizedReplayBufferAgent</span><span class="p">(</span><span class="n">ReplayBufferAgent</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Agent tirant profit du `PrioritizedReplayBuffer` en utilisant la **Différence Temporelle**</span>
+<span class="sd">    (càd l&#39;erreur entre la prédiction de la fonction de valeur et la valeur cible) comme</span>
+<span class="sd">    critère de priorité</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">def</span> <span class="nf">train_with_transition</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">,</span> <span class="n">action</span><span class="p">,</span> <span class="n">next_state</span><span class="p">,</span> <span class="n">reward</span><span class="p">,</span> <span class="n">done</span><span class="p">,</span> <span class="n">infos</span><span class="p">):</span>
         <span class="c1">#print(&quot;Training from PrioritizedReplayBufferAgent&quot;)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">replay_buffer</span><span class="o">.</span><span class="n">store</span><span class="p">(</span><span class="n">state</span><span class="p">,</span> <span class="n">action</span><span class="p">,</span> <span class="n">next_state</span><span class="p">,</span> <span class="n">reward</span><span class="p">,</span> <span class="n">done</span><span class="p">,</span> <span class="n">infos</span><span class="p">)</span>
@@ -737,16 +772,9 @@ le format suivant :</p>
 
         </details>
 
-            <div class="docstring"><p>Agent de base utilisant un <em>replay buffer</em> (http://arxiv.org/abs/1312.5602)</p>
-
-<p>La mise à jour de l'agent (dans <code>self.train_with_transition(...)</code>) est modifiée
-par rapport à l'agent <em>Q-learning</em> de la manière suivante :</p>
-
-<ul>
-<li>Lorsque la méthode est appelée, la transition est stockée dans la mémoire de transitions (<em>replay buffer</em>)</li>
-<li>Si le <em>buffer</em> est prêt, on échantillonne périodiquement une <em>batch</em> de transitions qu'on utilise  ensuite
-pour mettre à jour l'approximation de la fonction de valeur</li>
-</ul>
+            <div class="docstring"><p>Agent tirant profit du <code><a href="#PrioritizedReplayBuffer">PrioritizedReplayBuffer</a></code> en utilisant la <strong>Différence Temporelle</strong>
+(càd l'erreur entre la prédiction de la fonction de valeur et la valeur cible) comme
+critère de priorité</p>
 </div>
 
 

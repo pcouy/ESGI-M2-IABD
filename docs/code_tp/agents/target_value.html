@@ -74,9 +74,12 @@
 <span class="k">class</span> <span class="nc">TargetValueAgent</span><span class="p">(</span><span class="n">QLearningAgent</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Agent qui utilise une fonction de valeur différente pour déterminer la valeur cible</span>
-<span class="sd">    lors d&#39;un update.</span>
+<span class="sd">    lors d&#39;un update. (http://arxiv.org/abs/1312.5602)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">env</span><span class="p">,</span> <span class="n">target_update</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        * `target_update`: Fréquence de mise à jour de la fonction de valeur cible</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">env</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">target_update</span> <span class="o">=</span> <span class="n">target_update</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">target_value_function</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">value_function</span><span class="o">.</span><span class="n">clone</span><span class="p">()</span>
@@ -113,9 +116,12 @@
             <div class="codehilite"><pre><span></span><span class="k">class</span> <span class="nc">TargetValueAgent</span><span class="p">(</span><span class="n">QLearningAgent</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Agent qui utilise une fonction de valeur différente pour déterminer la valeur cible</span>
-<span class="sd">    lors d&#39;un update.</span>
+<span class="sd">    lors d&#39;un update. (http://arxiv.org/abs/1312.5602)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">env</span><span class="p">,</span> <span class="n">target_update</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        * `target_update`: Fréquence de mise à jour de la fonction de valeur cible</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">env</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">target_update</span> <span class="o">=</span> <span class="n">target_update</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">target_value_function</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">value_function</span><span class="o">.</span><span class="n">clone</span><span class="p">()</span>
@@ -138,7 +144,7 @@
         </details>
 
             <div class="docstring"><p>Agent qui utilise une fonction de valeur différente pour déterminer la valeur cible
-lors d'un update.</p>
+lors d'un update. (http://arxiv.org/abs/1312.5602)</p>
 </div>
 
 
@@ -152,6 +158,9 @@ lors d'un update.</p>
                 <details>
             <summary>View Source</summary>
             <div class="codehilite"><pre><span></span>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">env</span><span class="p">,</span> <span class="n">target_update</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        * `target_update`: Fréquence de mise à jour de la fonction de valeur cible</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">env</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">target_update</span> <span class="o">=</span> <span class="n">target_update</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">target_value_function</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">value_function</span><span class="o">.</span><span class="n">clone</span><span class="p">()</span>
@@ -160,10 +169,7 @@ lors d'un update.</p>
         </details>
 
             <div class="docstring"><ul>
-<li><code>env</code>: Environnement gym dans lequel l'agent évolue</li>
-<li><code>value_function</code>: Instance d'une fonction de valeur (voir <code>code_tp/value_functions</code>)</li>
-<li><code>policy</code>: Instance d'une politique (voir <code>code_tp/policies</code>)</li>
-<li><code>gamma</code>: Taux de discount de l'agent. Doit être compris entre 0 et 1</li>
+<li><code>target_update</code>: Fréquence de mise à jour de la fonction de valeur cible</li>
 </ul>
 </div>
 
