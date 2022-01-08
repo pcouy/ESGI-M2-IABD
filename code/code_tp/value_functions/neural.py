@@ -6,6 +6,9 @@ from torch import nn
 from einops import rearrange
 
 class ConvolutionalNN(nn.Module):
+    """
+    Implémente un réseau convolutionnel en PyTorch
+    """
     def __init__(self,
                  img_shape,
                  n_actions,
@@ -94,6 +97,9 @@ class ConvolutionalNN(nn.Module):
 
 
 class ConvolutionalQFunction(DiscreteQFunction):
+    """
+    Implémente une fonction de valeur basée sur un réseau convolutionnel en PyTorch
+    """
     def __init__(self, env, nn_args, *args, **kwargs):
         super().__init__(env, *args, **kwargs)
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")

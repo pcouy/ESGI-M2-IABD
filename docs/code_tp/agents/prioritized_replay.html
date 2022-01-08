@@ -527,7 +527,10 @@
 
         </details>
 
-    
+            <div class="docstring"><p>Implémentation d'une mémoire des expériences passées, telle que décrit dans
+<a href="http://arxiv.org/abs/1312.5602">l'article sur le DQN</a></p>
+</div>
+
 
                             <div id="PrioritizedReplayBuffer.__init__" class="classattr">
                                         <div class="attr function"><a class="headerlink" href="#PrioritizedReplayBuffer.__init__">#&nbsp;&nbsp</a>
@@ -546,7 +549,13 @@
 
         </details>
 
-    
+            <div class="docstring"><ul>
+<li><code>obs_shape</code> : Taille d'un tableau numpy contenant une observation</li>
+<li><code>max_size</code> : Nombre de transitions conservées en mémoire</li>
+<li><code>batch_size</code> : Nombre de transitions échantillonnées depuis la mémoire</li>
+</ul>
+</div>
+
 
                             </div>
                             <div id="PrioritizedReplayBuffer.e" class="classattr">
@@ -603,7 +612,12 @@
 
         </details>
 
-    
+            <div class="docstring"><p>Enregistre  une transition en mémoire (écrase les anciennes si la taille
+maximum est atteinte)</p>
+
+<p>Les paramètres représentent la transition à stocker</p>
+</div>
+
 
                             </div>
                             <div id="PrioritizedReplayBuffer.sample" class="classattr">
@@ -649,7 +663,15 @@
 
         </details>
 
-    
+            <div class="docstring"><p>Renvoit un tuple de tableaux numpy contenant <code>batch_size</code> transitions dans
+le format suivant :</p>
+
+<ul>
+<li>Les éléments du tuple renvoyé sont dans le même ordre que les paramètres de <code>self.store(...)</code></li>
+<li>Pour chaque élément du tuple, la première dimension du tableau correspond aux différents éléments d'un batch</li>
+</ul>
+</div>
+
 
                             </div>
                             <div id="PrioritizedReplayBuffer.update" class="classattr">
@@ -715,7 +737,16 @@
 
         </details>
 
-            <div class="docstring"><p>Classe de base pour tous les agents.</p>
+            <div class="docstring"><p>Agent de base utilisant un <em>replay buffer</em> (http://arxiv.org/abs/1312.5602)</p>
+
+<p>La mise à jour de l'agent (dans <code>self.train_with_transition(...)</code>) est modifiée
+par rapport à l'agent <em>Q-learning</em> de la manière suivante :</p>
+
+<ul>
+<li>Lorsque la méthode est appelée, la transition est stockée dans la mémoire de transitions (<em>replay buffer</em>)</li>
+<li>Si le <em>buffer</em> est prêt, on échantillonne périodiquement une <em>batch</em> de transitions qu'on utilise  ensuite
+pour mettre à jour l'approximation de la fonction de valeur</li>
+</ul>
 </div>
 
 

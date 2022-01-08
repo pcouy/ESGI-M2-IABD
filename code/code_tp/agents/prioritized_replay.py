@@ -2,11 +2,17 @@ import random
 import numpy as np
 from .replay_buffer import ReplayBufferAgent, ReplayBuffer
 
-# CREDITS TO https://github.com/rlcode/per
+"""
+CREDITS TO https://github.com/rlcode/per
 
-# SumTree
-# a binary tree data structure where the parent’s value is the sum of its children
+SumTree
+a binary tree data structure where the parent’s value is the sum of its children
+"""
+
 class SumTree:
+    """
+    A binary tree data structure where the parent’s value is the sum of its children
+    """
     write = 0
 
     def __init__(self, capacity):
@@ -70,6 +76,12 @@ class SumTree:
 
 
 class PrioritizedReplayBuffer(ReplayBuffer):
+    """
+    Implémentation d'une mémoire des expériences passées avec échantillonage priorisé
+    telle que décrit dans [l'article *Prioritized Experience Replay*](http://arxiv.org/abs/1511.05952)
+
+    Modifie `ReplayBuffer` pour échantilloner la mémoire en tenant compte d'un critère de priorité
+    """
     e = 0.01
     a = 0.6
     beta = 0.4
@@ -123,6 +135,11 @@ class PrioritizedReplayBuffer(ReplayBuffer):
         self.tree.update(idx, p)
 
 class PrioritizedReplayBufferAgent(ReplayBufferAgent):
+    """
+    Agent tirant profit du `PrioritizedReplayBuffer` en utilisant la **Différence Temporelle**
+    (càd l'erreur entre la prédiction de la fonction de valeur et la valeur cible) comme
+    critère de priorité
+    """
     def train_with_transition(self, state, action, next_state, reward, done, infos):
         #print("Training from PrioritizedReplayBufferAgent")
         self.replay_buffer.store(state, action, next_state, reward, done, infos)

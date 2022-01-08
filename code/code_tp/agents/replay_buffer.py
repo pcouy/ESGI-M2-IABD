@@ -2,7 +2,16 @@ from .base import Agent
 import numpy as np
 
 class ReplayBuffer:
+    """
+    Implémentation d'une mémoire des expériences passées, telle que décrit dans
+    [l'article sur le DQN](http://arxiv.org/abs/1312.5602)
+    """
     def __init__(self, obs_shape, max_size=100000, batch_size=32):
+        """
+        * `obs_shape` : Taille d'un tableau numpy contenant une observation
+        * `max_size` : Nombre de transitions conservées en mémoire
+        * `batch_size` : Nombre de transitions échantillonnées depuis la mémoire
+        """
         self.states = np.zeros((max_size, *obs_shape), dtype=np.float32)
         self.actions = np.zeros((max_size,), dtype=np.int8)
         self.next_states = np.zeros((max_size, *obs_shape), dtype=np.float32)
@@ -14,9 +23,18 @@ class ReplayBuffer:
         self.n_inserted = 0
 
     def ready(self):
+        """
+        Indique si la mémoire contient au minimum 10 *batchs* de transitions
+        """
         return self.n_inserted > self.batch_size*10
 
     def store(self, state, action, next_state, reward, done, infos):
+        """
+        Enregistre  une transition en mémoire (écrase les anciennes si la taille
+        maximum est atteinte)
+
+        Les paramètres représentent la transition à stocker
+        """
         i = self.n_inserted % self.max_size
         self.states[i] = state
         self.actions[i] = action
@@ -28,6 +46,13 @@ class ReplayBuffer:
         return i
 
     def sample(self):
+        """
+        Renvoit un tuple de tableaux numpy contenant `batch_size` transitions dans
+        le format suivant :
+
+        * Les éléments du tuple renvoyé sont dans le même ordre que les paramètres de `self.store(...)`
+        * Pour chaque élément du tuple, la première dimension du tableau correspond aux différents éléments d'un batch
+        """
         n_stored = min(self.n_inserted, self.max_size)
         i = np.random.randint(0, n_stored, size=(self.batch_size,))
 
@@ -35,7 +60,24 @@ class ReplayBuffer:
                 self.rewards[i], self.dones[i], None
 
 class ReplayBufferAgent(Agent):
+    """
+    Agent de base utilisant un *replay buffer* (http://arxiv.org/abs/1312.5602)
+
+    La mise à jour de l'agent (dans `self.train_with_transition(...)`) est modifiée
+    par rapport à l'agent *Q-learning* de la manière suivante :
+
+    * Lorsque la méthode est appelée, la transition est stockée dans la mémoire de transitions (*replay buffer*)
+    * Si le *buffer* est prêt, on échantillonne périodiquement une *batch* de transitions qu'on utilise  ensuite
+    pour mettre à jour l'approximation de la fonction de valeur
+    """
     def __init__(self, env, replay_buffer_class, replay_buffer_args={}, update_interval=1, **kwargs):
+        """
+        * `env`: Environnement gym dans lequel l'agent va évoluer
+        * `replay_buffer_class`: Classe implémentant le *replay buffer*
+        * `replay_buffer_args`: Arguments à passer au constructeur du *replay buffer*
+        * `update_interval`: Interval 
+        * `kwargs`: Dictionnaire d'arguments passés au constructeur de la classe parente
+        """
         print(kwargs)
         super().__init__(env, **kwargs)
         self.replay_buffer = replay_buffer_class(

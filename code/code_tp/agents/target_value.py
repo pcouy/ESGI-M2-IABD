@@ -5,9 +5,12 @@ import copy
 class TargetValueAgent(QLearningAgent):
     """
     Agent qui utilise une fonction de valeur différente pour déterminer la valeur cible
-    lors d'un update.
+    lors d'un update. (http://arxiv.org/abs/1312.5602)
     """
     def __init__(self, env, target_update, *args, **kwargs):
+        """
+        * `target_update`: Fréquence de mise à jour de la fonction de valeur cible
+        """
         super().__init__(env, *args, **kwargs)
         self.target_update = target_update
         self.target_value_function = self.value_function.clone()
