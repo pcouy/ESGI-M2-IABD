@@ -113,3 +113,6 @@ class ReplayBufferAgent(Agent):
                 self.value_function.update_batch(states, actions, target_values)
                 self.last_update = self.training_steps
             self.policy.update()
+
+    def select_action(self, state):
+        super().select_action(self.replay_buffer.normalize(state))

@@ -60,6 +60,9 @@
                         <li>
                                 <a class="function" href="#ReplayBufferAgent.train_with_transition">train_with_transition</a>
                         </li>
+                        <li>
+                                <a class="function" href="#ReplayBufferAgent.select_action">select_action</a>
+                        </li>
                 </ul>
 
             </li>
@@ -197,6 +200,9 @@
                 <span class="bp">self</span><span class="o">.</span><span class="n">value_function</span><span class="o">.</span><span class="n">update_batch</span><span class="p">(</span><span class="n">states</span><span class="p">,</span> <span class="n">actions</span><span class="p">,</span> <span class="n">target_values</span><span class="p">)</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">last_update</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">training_steps</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">policy</span><span class="o">.</span><span class="n">update</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">select_action</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">select_action</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">replay_buffer</span><span class="o">.</span><span class="n">normalize</span><span class="p">(</span><span class="n">state</span><span class="p">))</span>
 </pre></div>
 
         </details>
@@ -512,6 +518,9 @@ le format suivant :</p>
                 <span class="bp">self</span><span class="o">.</span><span class="n">value_function</span><span class="o">.</span><span class="n">update_batch</span><span class="p">(</span><span class="n">states</span><span class="p">,</span> <span class="n">actions</span><span class="p">,</span> <span class="n">target_values</span><span class="p">)</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">last_update</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">training_steps</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">policy</span><span class="o">.</span><span class="n">update</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">select_action</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">select_action</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">replay_buffer</span><span class="o">.</span><span class="n">normalize</span><span class="p">(</span><span class="n">state</span><span class="p">))</span>
 </pre></div>
 
         </details>
@@ -610,12 +619,32 @@ environnements gym, et est donc inclus</p>
 
 
                             </div>
+                            <div id="ReplayBufferAgent.select_action" class="classattr">
+                                        <div class="attr function"><a class="headerlink" href="#ReplayBufferAgent.select_action">#&nbsp;&nbsp</a>
+
+        
+            <span class="def">def</span>
+            <span class="name">select_action</span><span class="signature">(self, state)</span>:
+    </div>
+
+                <details>
+            <summary>View Source</summary>
+            <div class="codehilite"><pre><span></span>    <span class="k">def</span> <span class="nf">select_action</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">select_action</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">replay_buffer</span><span class="o">.</span><span class="n">normalize</span><span class="p">(</span><span class="n">state</span><span class="p">))</span>
+</pre></div>
+
+        </details>
+
+            <div class="docstring"><p>Prend un état en entrée, renvoie une action</p>
+</div>
+
+
+                            </div>
                             <div class="inherited">
                                 <h5>Inherited Members</h5>
                                 <dl>
                                     <div><dt><a href="base.html#Agent">code_tp.agents.base.Agent</a></dt>
                                 <dd id="ReplayBufferAgent.log_data" class="function"><a href="base.html#Agent.log_data">log_data</a></dd>
-                <dd id="ReplayBufferAgent.select_action" class="function"><a href="base.html#Agent.select_action">select_action</a></dd>
                 <dd id="ReplayBufferAgent.step" class="function"><a href="base.html#Agent.step">step</a></dd>
                 <dd id="ReplayBufferAgent.run_episode" class="function"><a href="base.html#Agent.run_episode">run_episode</a></dd>
                 <dd id="ReplayBufferAgent.run_n_episodes" class="function"><a href="base.html#Agent.run_n_episodes">run_n_episodes</a></dd>

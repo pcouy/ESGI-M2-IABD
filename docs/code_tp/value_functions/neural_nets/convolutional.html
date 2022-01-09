@@ -120,7 +120,7 @@
         <span class="k">elif</span> <span class="nb">type</span><span class="p">(</span><span class="n">kernel_size</span><span class="p">)</span> <span class="ow">is</span> <span class="nb">list</span><span class="p">:</span>
             <span class="n">kernel_sizes</span> <span class="o">=</span> <span class="n">kernel_size</span>
 
-        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">pooling</span><span class="p">)</span> <span class="ow">is</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">pooling</span><span class="p">)</span> <span class="ow">is</span> <span class="nb">int</span> <span class="ow">or</span> <span class="n">pooling</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">poolings</span> <span class="o">=</span> <span class="p">[</span><span class="n">pooling</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">n_filters</span><span class="p">]</span>
         <span class="k">elif</span> <span class="nb">type</span><span class="p">(</span><span class="n">pooling</span><span class="p">)</span> <span class="ow">is</span> <span class="nb">list</span><span class="p">:</span>
             <span class="n">poolings</span> <span class="o">=</span> <span class="n">pooling</span>
@@ -264,7 +264,7 @@
         <span class="k">elif</span> <span class="nb">type</span><span class="p">(</span><span class="n">kernel_size</span><span class="p">)</span> <span class="ow">is</span> <span class="nb">list</span><span class="p">:</span>
             <span class="n">kernel_sizes</span> <span class="o">=</span> <span class="n">kernel_size</span>
 
-        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">pooling</span><span class="p">)</span> <span class="ow">is</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">pooling</span><span class="p">)</span> <span class="ow">is</span> <span class="nb">int</span> <span class="ow">or</span> <span class="n">pooling</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">poolings</span> <span class="o">=</span> <span class="p">[</span><span class="n">pooling</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">n_filters</span><span class="p">]</span>
         <span class="k">elif</span> <span class="nb">type</span><span class="p">(</span><span class="n">pooling</span><span class="p">)</span> <span class="ow">is</span> <span class="nb">list</span><span class="p">:</span>
             <span class="n">poolings</span> <span class="o">=</span> <span class="n">pooling</span>
@@ -417,7 +417,7 @@
         <span class="k">elif</span> <span class="nb">type</span><span class="p">(</span><span class="n">kernel_size</span><span class="p">)</span> <span class="ow">is</span> <span class="nb">list</span><span class="p">:</span>
             <span class="n">kernel_sizes</span> <span class="o">=</span> <span class="n">kernel_size</span>
 
-        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">pooling</span><span class="p">)</span> <span class="ow">is</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">pooling</span><span class="p">)</span> <span class="ow">is</span> <span class="nb">int</span> <span class="ow">or</span> <span class="n">pooling</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">poolings</span> <span class="o">=</span> <span class="p">[</span><span class="n">pooling</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">n_filters</span><span class="p">]</span>
         <span class="k">elif</span> <span class="nb">type</span><span class="p">(</span><span class="n">pooling</span><span class="p">)</span> <span class="ow">is</span> <span class="nb">list</span><span class="p">:</span>
             <span class="n">poolings</span> <span class="o">=</span> <span class="n">pooling</span>
