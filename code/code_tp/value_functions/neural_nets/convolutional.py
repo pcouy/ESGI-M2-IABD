@@ -4,6 +4,9 @@ from einops import rearrange
 from .linear import LinearNeuralStack
 
 class ConvolutionalNN(nn.Module):
+    """
+    Implémente un réseau de neurones convolutionnel en PyTorch.
+    """
     def __init__(self,
                  img_shape,
                  n_actions,
@@ -17,6 +20,31 @@ class ConvolutionalNN(nn.Module):
                  output_stack_class=LinearNeuralStack,
                  output_stack_args={ 'layers': [256] }
             ):
+        """
+        * `img_shape` est un tuple représentant la forme d'une image passée en entrée du réseau
+        de neurones (telle que donnée par np_arrah.shape)
+        * `n_actions` est le nombre d'actions à évaluer, càd le nombre de sorties du réseau de
+        neurones
+        * L'argument `n_filters` doit être une liste contenant un élément par couche
+        convolutionnelle.
+        * Les arguments ` kernel_size`, ` stride`, `padding` et `pooling` peuvent être des entiers
+        ou des listes. S'il s'agit d'un entier, la valeur de cet entier sera utilisée
+        pour toutes les couches convolutionnelles. Si la valeur est une liste, la liste doit
+        contenir le même nombre d'éléments que `n_filters`
+        * `dilation` est un entier
+        * `activation` est la fonction d'activation utilisée entre chaque couche convolutionnelle.
+        Il doit s'agir d'une fonction d'activation PyTorch
+        * `pooling` permet de remplacer le *stride* des convolutions par une couche de
+        pooling en sortie si sa valeur est différente de `None`. Les valeurs possibles sont :
+        `None`, `"max"` et `"avg"`
+        * `output_stack_class` et `output_stack_args` sont utilisés pour instancier le module Torch
+        qui fera le lien entre la sortie des couches convolutionnelles et la sortie à `n_actions`
+        éléments du DQN
+
+        Si vous ne comprenez pas la signification d'un argument, la documentation de PyTorch
+        et/ou un tutoriel sur les réseaux de neurones convolutionnels devrait éclaircir le
+        rôle de chacun de ces paramètres
+        """
         super().__init__()
         self.img_shape = img_shape
         self.n_actions = n_actions

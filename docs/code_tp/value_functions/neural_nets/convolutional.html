@@ -67,6 +67,9 @@
 <span class="kn">from</span> <span class="nn">.linear</span> <span class="kn">import</span> <span class="n">LinearNeuralStack</span>
 
 <span class="k">class</span> <span class="nc">ConvolutionalNN</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Implémente un réseau de neurones convolutionnel en PyTorch.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
                  <span class="n">img_shape</span><span class="p">,</span>
                  <span class="n">n_actions</span><span class="p">,</span>
@@ -80,6 +83,31 @@
                  <span class="n">output_stack_class</span><span class="o">=</span><span class="n">LinearNeuralStack</span><span class="p">,</span>
                  <span class="n">output_stack_args</span><span class="o">=</span><span class="p">{</span> <span class="s1">&#39;layers&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">256</span><span class="p">]</span> <span class="p">}</span>
             <span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        * `img_shape` est un tuple représentant la forme d&#39;une image passée en entrée du réseau</span>
+<span class="sd">        de neurones (telle que donnée par np_arrah.shape)</span>
+<span class="sd">        * `n_actions` est le nombre d&#39;actions à évaluer, càd le nombre de sorties du réseau de</span>
+<span class="sd">        neurones</span>
+<span class="sd">        * L&#39;argument `n_filters` doit être une liste contenant un élément par couche</span>
+<span class="sd">        convolutionnelle.</span>
+<span class="sd">        * Les arguments ` kernel_size`, ` stride`, `padding` et `pooling` peuvent être des entiers</span>
+<span class="sd">        ou des listes. S&#39;il s&#39;agit d&#39;un entier, la valeur de cet entier sera utilisée</span>
+<span class="sd">        pour toutes les couches convolutionnelles. Si la valeur est une liste, la liste doit</span>
+<span class="sd">        contenir le même nombre d&#39;éléments que `n_filters`</span>
+<span class="sd">        * `dilation` est un entier</span>
+<span class="sd">        * `activation` est la fonction d&#39;activation utilisée entre chaque couche convolutionnelle.</span>
+<span class="sd">        Il doit s&#39;agir d&#39;une fonction d&#39;activation PyTorch</span>
+<span class="sd">        * `pooling` permet de remplacer le *stride* des convolutions par une couche de</span>
+<span class="sd">        pooling en sortie si sa valeur est différente de `None`. Les valeurs possibles sont :</span>
+<span class="sd">        `None`, `&quot;max&quot;` et `&quot;avg&quot;`</span>
+<span class="sd">        * `output_stack_class` et `output_stack_args` sont utilisés pour instancier le module Torch</span>
+<span class="sd">        qui fera le lien entre la sortie des couches convolutionnelles et la sortie à `n_actions`</span>
+<span class="sd">        éléments du DQN</span>
+
+<span class="sd">        Si vous ne comprenez pas la signification d&#39;un argument, la documentation de PyTorch</span>
+<span class="sd">        et/ou un tutoriel sur les réseaux de neurones convolutionnels devrait éclaircir le</span>
+<span class="sd">        rôle de chacun de ces paramètres</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">img_shape</span> <span class="o">=</span> <span class="n">img_shape</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">n_actions</span> <span class="o">=</span> <span class="n">n_actions</span>
@@ -183,6 +211,9 @@
                 <details>
             <summary>View Source</summary>
             <div class="codehilite"><pre><span></span><span class="k">class</span> <span class="nc">ConvolutionalNN</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Implémente un réseau de neurones convolutionnel en PyTorch.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
                  <span class="n">img_shape</span><span class="p">,</span>
                  <span class="n">n_actions</span><span class="p">,</span>
@@ -196,6 +227,31 @@
                  <span class="n">output_stack_class</span><span class="o">=</span><span class="n">LinearNeuralStack</span><span class="p">,</span>
                  <span class="n">output_stack_args</span><span class="o">=</span><span class="p">{</span> <span class="s1">&#39;layers&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">256</span><span class="p">]</span> <span class="p">}</span>
             <span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        * `img_shape` est un tuple représentant la forme d&#39;une image passée en entrée du réseau</span>
+<span class="sd">        de neurones (telle que donnée par np_arrah.shape)</span>
+<span class="sd">        * `n_actions` est le nombre d&#39;actions à évaluer, càd le nombre de sorties du réseau de</span>
+<span class="sd">        neurones</span>
+<span class="sd">        * L&#39;argument `n_filters` doit être une liste contenant un élément par couche</span>
+<span class="sd">        convolutionnelle.</span>
+<span class="sd">        * Les arguments ` kernel_size`, ` stride`, `padding` et `pooling` peuvent être des entiers</span>
+<span class="sd">        ou des listes. S&#39;il s&#39;agit d&#39;un entier, la valeur de cet entier sera utilisée</span>
+<span class="sd">        pour toutes les couches convolutionnelles. Si la valeur est une liste, la liste doit</span>
+<span class="sd">        contenir le même nombre d&#39;éléments que `n_filters`</span>
+<span class="sd">        * `dilation` est un entier</span>
+<span class="sd">        * `activation` est la fonction d&#39;activation utilisée entre chaque couche convolutionnelle.</span>
+<span class="sd">        Il doit s&#39;agir d&#39;une fonction d&#39;activation PyTorch</span>
+<span class="sd">        * `pooling` permet de remplacer le *stride* des convolutions par une couche de</span>
+<span class="sd">        pooling en sortie si sa valeur est différente de `None`. Les valeurs possibles sont :</span>
+<span class="sd">        `None`, `&quot;max&quot;` et `&quot;avg&quot;`</span>
+<span class="sd">        * `output_stack_class` et `output_stack_args` sont utilisés pour instancier le module Torch</span>
+<span class="sd">        qui fera le lien entre la sortie des couches convolutionnelles et la sortie à `n_actions`</span>
+<span class="sd">        éléments du DQN</span>
+
+<span class="sd">        Si vous ne comprenez pas la signification d&#39;un argument, la documentation de PyTorch</span>
+<span class="sd">        et/ou un tutoriel sur les réseaux de neurones convolutionnels devrait éclaircir le</span>
+<span class="sd">        rôle de chacun de ces paramètres</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">img_shape</span> <span class="o">=</span> <span class="n">img_shape</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">n_actions</span> <span class="o">=</span> <span class="n">n_actions</span>
@@ -286,33 +342,7 @@
 
         </details>
 
-            <div class="docstring"><p>Base class for all neural network modules.</p>
-
-<p>Your models should also subclass this class.</p>
-
-<p>Modules can also contain other Modules, allowing to nest them in
-a tree structure. You can assign the submodules as regular attributes::</p>
-
-<pre><code>import torch.nn as nn
-import torch.nn.functional as F
-
-class Model(nn.Module):
-    def __init__(self):
-        super(Model, self).__init__()
-        self.conv1 = nn.Conv2d(1, 20, 5)
-        self.conv2 = nn.Conv2d(20, 20, 5)
-
-    def forward(self, x):
-        x = F.relu(self.conv1(x))
-        return F.relu(self.conv2(x))
-</code></pre>
-
-<p>Submodules assigned in this way will be registered, and will have their
-parameters converted too when you call :meth:<code><a href="#ConvolutionalNN.to">to</a></code>, etc.</p>
-
-<p>:ivar training: Boolean represents whether this module is in training or
-                evaluation mode.
-:vartype training: bool</p>
+            <div class="docstring"><p>Implémente un réseau de neurones convolutionnel en PyTorch.</p>
 </div>
 
 
@@ -350,6 +380,31 @@ parameters converted too when you call :meth:<code><a href="#ConvolutionalNN.to"
                  <span class="n">output_stack_class</span><span class="o">=</span><span class="n">LinearNeuralStack</span><span class="p">,</span>
                  <span class="n">output_stack_args</span><span class="o">=</span><span class="p">{</span> <span class="s1">&#39;layers&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">256</span><span class="p">]</span> <span class="p">}</span>
             <span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        * `img_shape` est un tuple représentant la forme d&#39;une image passée en entrée du réseau</span>
+<span class="sd">        de neurones (telle que donnée par np_arrah.shape)</span>
+<span class="sd">        * `n_actions` est le nombre d&#39;actions à évaluer, càd le nombre de sorties du réseau de</span>
+<span class="sd">        neurones</span>
+<span class="sd">        * L&#39;argument `n_filters` doit être une liste contenant un élément par couche</span>
+<span class="sd">        convolutionnelle.</span>
+<span class="sd">        * Les arguments ` kernel_size`, ` stride`, `padding` et `pooling` peuvent être des entiers</span>
+<span class="sd">        ou des listes. S&#39;il s&#39;agit d&#39;un entier, la valeur de cet entier sera utilisée</span>
+<span class="sd">        pour toutes les couches convolutionnelles. Si la valeur est une liste, la liste doit</span>
+<span class="sd">        contenir le même nombre d&#39;éléments que `n_filters`</span>
+<span class="sd">        * `dilation` est un entier</span>
+<span class="sd">        * `activation` est la fonction d&#39;activation utilisée entre chaque couche convolutionnelle.</span>
+<span class="sd">        Il doit s&#39;agir d&#39;une fonction d&#39;activation PyTorch</span>
+<span class="sd">        * `pooling` permet de remplacer le *stride* des convolutions par une couche de</span>
+<span class="sd">        pooling en sortie si sa valeur est différente de `None`. Les valeurs possibles sont :</span>
+<span class="sd">        `None`, `&quot;max&quot;` et `&quot;avg&quot;`</span>
+<span class="sd">        * `output_stack_class` et `output_stack_args` sont utilisés pour instancier le module Torch</span>
+<span class="sd">        qui fera le lien entre la sortie des couches convolutionnelles et la sortie à `n_actions`</span>
+<span class="sd">        éléments du DQN</span>
+
+<span class="sd">        Si vous ne comprenez pas la signification d&#39;un argument, la documentation de PyTorch</span>
+<span class="sd">        et/ou un tutoriel sur les réseaux de neurones convolutionnels devrait éclaircir le</span>
+<span class="sd">        rôle de chacun de ces paramètres</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">img_shape</span> <span class="o">=</span> <span class="n">img_shape</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">n_actions</span> <span class="o">=</span> <span class="n">n_actions</span>
@@ -434,7 +489,31 @@ parameters converted too when you call :meth:<code><a href="#ConvolutionalNN.to"
 
         </details>
 
-            <div class="docstring"><p>Initializes internal Module state, shared by both nn.Module and ScriptModule.</p>
+            <div class="docstring"><ul>
+<li><code>img_shape</code> est un tuple représentant la forme d'une image passée en entrée du réseau
+de neurones (telle que donnée par np_arrah.shape)</li>
+<li><code>n_actions</code> est le nombre d'actions à évaluer, càd le nombre de sorties du réseau de
+neurones</li>
+<li>L'argument <code>n_filters</code> doit être une liste contenant un élément par couche
+convolutionnelle.</li>
+<li>Les arguments <code>kernel_size</code>, <code>stride</code>, <code>padding</code> et <code>pooling</code> peuvent être des entiers
+ou des listes. S'il s'agit d'un entier, la valeur de cet entier sera utilisée
+pour toutes les couches convolutionnelles. Si la valeur est une liste, la liste doit
+contenir le même nombre d'éléments que <code>n_filters</code></li>
+<li><code>dilation</code> est un entier</li>
+<li><code>activation</code> est la fonction d'activation utilisée entre chaque couche convolutionnelle.
+Il doit s'agir d'une fonction d'activation PyTorch</li>
+<li><code>pooling</code> permet de remplacer le <em>stride</em> des convolutions par une couche de
+pooling en sortie si sa valeur est différente de <code>None</code>. Les valeurs possibles sont :
+<code>None</code>, <code>"max"</code> et <code>"avg"</code></li>
+<li><code>output_stack_class</code> et <code>output_stack_args</code> sont utilisés pour instancier le module Torch
+qui fera le lien entre la sortie des couches convolutionnelles et la sortie à <code>n_actions</code>
+éléments du DQN</li>
+</ul>
+
+<p>Si vous ne comprenez pas la signification d'un argument, la documentation de PyTorch
+et/ou un tutoriel sur les réseaux de neurones convolutionnels devrait éclaircir le
+rôle de chacun de ces paramètres</p>
 </div>
 
 
