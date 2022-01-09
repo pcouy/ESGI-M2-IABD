@@ -140,6 +140,9 @@
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">import</span> <span class="nn">multiprocessing</span> <span class="k">as</span> <span class="nn">mp</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
 <span class="kn">import</span> <span class="nn">torch</span>
 <span class="kn">from</span> <span class="nn">torch.utils.tensorboard</span> <span class="kn">import</span> <span class="n">SummaryWriter</span>
@@ -317,11 +320,21 @@
                 <span class="p">))</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
-            <span class="n">plt</span><span class="o">.</span><span class="n">close</span><span class="p">(</span><span class="n">fig</span><span class="p">)</span>
+            <span class="n">fig</span><span class="o">.</span><span class="n">clf</span><span class="p">()</span>
             <span class="n">plt</span><span class="o">.</span><span class="n">clf</span><span class="p">()</span>
-
+            <span class="n">plt</span><span class="o">.</span><span class="n">close</span><span class="p">(</span><span class="n">fig</span><span class="p">)</span>
+        <span class="n">procs</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="c1"># &quot;Hack&quot; utilisant `multiprocessing` pour éviter une fuite de mémoire avec</span>
+        <span class="c1"># matplotlib</span>
         <span class="k">for</span> <span class="n">stat</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
-            <span class="n">plot_stat</span><span class="p">(</span><span class="n">stat</span><span class="p">,</span> <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">stats</span><span class="p">[</span><span class="n">stat</span><span class="p">])</span>
+            <span class="n">procs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">mp</span><span class="o">.</span><span class="n">Process</span><span class="p">(</span><span class="n">target</span><span class="o">=</span><span class="n">plot_stat</span><span class="p">,</span> 
+                                    <span class="n">args</span><span class="o">=</span><span class="p">(</span><span class="n">stat</span><span class="p">,),</span> 
+                                    <span class="n">kwargs</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">stats</span><span class="p">[</span><span class="n">stat</span><span class="p">]</span>
+                                   <span class="p">))</span>
+            <span class="n">procs</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">daemon</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="n">procs</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">proc</span> <span class="ow">in</span> <span class="n">procs</span><span class="p">:</span>
+            <span class="n">proc</span><span class="o">.</span><span class="n">join</span><span class="p">()</span>
 
 <span class="k">class</span> <span class="nc">RandomAgent</span><span class="p">(</span><span class="n">Agent</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
@@ -586,11 +599,21 @@
                 <span class="p">))</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
-            <span class="n">plt</span><span class="o">.</span><span class="n">close</span><span class="p">(</span><span class="n">fig</span><span class="p">)</span>
+            <span class="n">fig</span><span class="o">.</span><span class="n">clf</span><span class="p">()</span>
             <span class="n">plt</span><span class="o">.</span><span class="n">clf</span><span class="p">()</span>
-
+            <span class="n">plt</span><span class="o">.</span><span class="n">close</span><span class="p">(</span><span class="n">fig</span><span class="p">)</span>
+        <span class="n">procs</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="c1"># &quot;Hack&quot; utilisant `multiprocessing` pour éviter une fuite de mémoire avec</span>
+        <span class="c1"># matplotlib</span>
         <span class="k">for</span> <span class="n">stat</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
-            <span class="n">plot_stat</span><span class="p">(</span><span class="n">stat</span><span class="p">,</span> <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">stats</span><span class="p">[</span><span class="n">stat</span><span class="p">])</span>
+            <span class="n">procs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">mp</span><span class="o">.</span><span class="n">Process</span><span class="p">(</span><span class="n">target</span><span class="o">=</span><span class="n">plot_stat</span><span class="p">,</span> 
+                                    <span class="n">args</span><span class="o">=</span><span class="p">(</span><span class="n">stat</span><span class="p">,),</span> 
+                                    <span class="n">kwargs</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">stats</span><span class="p">[</span><span class="n">stat</span><span class="p">]</span>
+                                   <span class="p">))</span>
+            <span class="n">procs</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">daemon</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="n">procs</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">proc</span> <span class="ow">in</span> <span class="n">procs</span><span class="p">:</span>
+            <span class="n">proc</span><span class="o">.</span><span class="n">join</span><span class="p">()</span>
 </pre></div>
 
         </details>
@@ -965,11 +988,21 @@ score de l'épisode achevé comme argument.</p>
                 <span class="p">))</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
-            <span class="n">plt</span><span class="o">.</span><span class="n">close</span><span class="p">(</span><span class="n">fig</span><span class="p">)</span>
+            <span class="n">fig</span><span class="o">.</span><span class="n">clf</span><span class="p">()</span>
             <span class="n">plt</span><span class="o">.</span><span class="n">clf</span><span class="p">()</span>
-
+            <span class="n">plt</span><span class="o">.</span><span class="n">close</span><span class="p">(</span><span class="n">fig</span><span class="p">)</span>
+        <span class="n">procs</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="c1"># &quot;Hack&quot; utilisant `multiprocessing` pour éviter une fuite de mémoire avec</span>
+        <span class="c1"># matplotlib</span>
         <span class="k">for</span> <span class="n">stat</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
-            <span class="n">plot_stat</span><span class="p">(</span><span class="n">stat</span><span class="p">,</span> <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">stats</span><span class="p">[</span><span class="n">stat</span><span class="p">])</span>
+            <span class="n">procs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">mp</span><span class="o">.</span><span class="n">Process</span><span class="p">(</span><span class="n">target</span><span class="o">=</span><span class="n">plot_stat</span><span class="p">,</span> 
+                                    <span class="n">args</span><span class="o">=</span><span class="p">(</span><span class="n">stat</span><span class="p">,),</span> 
+                                    <span class="n">kwargs</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">stats</span><span class="p">[</span><span class="n">stat</span><span class="p">]</span>
+                                   <span class="p">))</span>
+            <span class="n">procs</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">daemon</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="n">procs</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">proc</span> <span class="ow">in</span> <span class="n">procs</span><span class="p">:</span>
+            <span class="n">proc</span><span class="o">.</span><span class="n">join</span><span class="p">()</span>
 </pre></div>
 
         </details>

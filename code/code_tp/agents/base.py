@@ -2,6 +2,9 @@ import gym
 import numpy as np
 import os
 import json
+import multiprocessing as mp
+
+import numpy as np
 import matplotlib.pyplot as plt
 import torch
 from torch.utils.tensorboard import SummaryWriter
@@ -179,11 +182,21 @@ class Agent:
                 ))
             else:
                 plt.show()
-            plt.close(fig)
+            fig.clf()
             plt.clf()
-
+            plt.close(fig)
+        procs = []
+        # "Hack" utilisant `multiprocessing` pour éviter une fuite de mémoire avec
+        # matplotlib
         for stat in self.stats.keys():
-            plot_stat(stat, **self.stats[stat])
+            procs.append(mp.Process(target=plot_stat, 
+                                    args=(stat,), 
+                                    kwargs=self.stats[stat]
+                                   ))
+            procs[-1].daemon = True
+            procs[-1].start()
+        for proc in procs:
+            proc.join()
 
 class RandomAgent(Agent):
     """
