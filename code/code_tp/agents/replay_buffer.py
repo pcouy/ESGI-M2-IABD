@@ -12,9 +12,9 @@ class ReplayBuffer:
         * `max_size` : Nombre de transitions conservées en mémoire
         * `batch_size` : Nombre de transitions échantillonnées depuis la mémoire
         """
-        self.states = np.zeros((max_size, *obs_shape), dtype=np.float32)
+        self.states = np.zeros((max_size, *obs_shape), dtype=np.uint8)
         self.actions = np.zeros((max_size,), dtype=np.int8)
-        self.next_states = np.zeros((max_size, *obs_shape), dtype=np.float32)
+        self.next_states = np.zeros((max_size, *obs_shape), dtype=np.uint8)
         self.rewards = np.zeros((max_size,), dtype=np.float16)
         self.dones = np.zeros((max_size,), dtype=np.bool)
 
