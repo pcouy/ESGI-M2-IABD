@@ -115,4 +115,4 @@ class ReplayBufferAgent(Agent):
             self.policy.update()
 
     def select_action(self, state):
-        super().select_action(self.replay_buffer.normalize(state))
+        return super().select_action(self.replay_buffer.normalize(state))
