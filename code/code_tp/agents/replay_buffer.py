@@ -51,9 +51,9 @@ class ReplayBuffer:
 
     def normalize(self, state):
         """
-        Recadre les valeurs d'entrées entre 0 et 1
+        Recadre les valeurs d'entrées entre -1 et 1
         """
-        return (2*state - (self.max_obs_val + self.min_obs_val)) / (self.max_obs_val - self.min_obs_val)
+        return (2*state.astype(np.int16) - (self.max_obs_val + self.min_obs_val)) / (self.max_obs_val - self.min_obs_val)
 
     def sample(self):
         """

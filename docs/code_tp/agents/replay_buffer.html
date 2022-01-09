@@ -135,9 +135,9 @@
 
     <span class="k">def</span> <span class="nf">normalize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Recadre les valeurs d&#39;entrées entre 0 et 1</span>
+<span class="sd">        Recadre les valeurs d&#39;entrées entre -1 et 1</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">state</span> <span class="o">-</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">max_obs_val</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">min_obs_val</span><span class="p">))</span> <span class="o">/</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">max_obs_val</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">min_obs_val</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">state</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int16</span><span class="p">)</span> <span class="o">-</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">max_obs_val</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">min_obs_val</span><span class="p">))</span> <span class="o">/</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">max_obs_val</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">min_obs_val</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">sample</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -263,9 +263,9 @@
 
     <span class="k">def</span> <span class="nf">normalize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Recadre les valeurs d&#39;entrées entre 0 et 1</span>
+<span class="sd">        Recadre les valeurs d&#39;entrées entre -1 et 1</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">state</span> <span class="o">-</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">max_obs_val</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">min_obs_val</span><span class="p">))</span> <span class="o">/</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">max_obs_val</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">min_obs_val</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">state</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int16</span><span class="p">)</span> <span class="o">-</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">max_obs_val</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">min_obs_val</span><span class="p">))</span> <span class="o">/</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">max_obs_val</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">min_obs_val</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">sample</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -406,14 +406,14 @@ maximum est atteinte)</p>
             <summary>View Source</summary>
             <div class="codehilite"><pre><span></span>    <span class="k">def</span> <span class="nf">normalize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Recadre les valeurs d&#39;entrées entre 0 et 1</span>
+<span class="sd">        Recadre les valeurs d&#39;entrées entre -1 et 1</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">state</span> <span class="o">-</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">max_obs_val</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">min_obs_val</span><span class="p">))</span> <span class="o">/</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">max_obs_val</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">min_obs_val</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">state</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int16</span><span class="p">)</span> <span class="o">-</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">max_obs_val</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">min_obs_val</span><span class="p">))</span> <span class="o">/</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">max_obs_val</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">min_obs_val</span><span class="p">)</span>
 </pre></div>
 
         </details>
 
-            <div class="docstring"><p>Recadre les valeurs d'entrées entre 0 et 1</p>
+            <div class="docstring"><p>Recadre les valeurs d'entrées entre -1 et 1</p>
 </div>
 
 
