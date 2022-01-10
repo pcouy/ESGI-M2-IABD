@@ -1,1 +1,1 @@
-from . import greedy
+from . import greedy, softmax_sampling

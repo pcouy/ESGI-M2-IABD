@@ -37,6 +37,9 @@
                                 <a class="function" href="#RandomPolicy.__init__">RandomPolicy</a>
                         </li>
                         <li>
+                                <a class="function" href="#RandomPolicy.batch_call">batch_call</a>
+                        </li>
+                        <li>
                                 <a class="function" href="#RandomPolicy.test">test</a>
                         </li>
                         <li>
@@ -51,6 +54,15 @@
                         <li>
                                 <a class="function" href="#GreedyQPolicy.__init__">GreedyQPolicy</a>
                         </li>
+                        <li>
+                                <a class="function" href="#GreedyQPolicy.best_action_value_from_values">best_action_value_from_values</a>
+                        </li>
+                        <li>
+                                <a class="function" href="#GreedyQPolicy.best_action_value_from_values_batch">best_action_value_from_values_batch</a>
+                        </li>
+                        <li>
+                                <a class="function" href="#GreedyQPolicy.batch_call">batch_call</a>
+                        </li>
                 </ul>
 
             </li>
@@ -61,10 +73,28 @@
                                 <a class="function" href="#EGreedyPolicy.__init__">EGreedyPolicy</a>
                         </li>
                         <li>
+                                <a class="function" href="#EGreedyPolicy.batch_call">batch_call</a>
+                        </li>
+                        <li>
                                 <a class="function" href="#EGreedyPolicy.test">test</a>
                         </li>
                         <li>
+                                <a class="function" href="#EGreedyPolicy.update_epsilon">update_epsilon</a>
+                        </li>
+                        <li>
                                 <a class="function" href="#EGreedyPolicy.update">update</a>
+                        </li>
+                </ul>
+
+            </li>
+            <li>
+                    <a class="class" href="#CosineEGreedyPolicy">CosineEGreedyPolicy</a>
+                            <ul class="memberlist">
+                        <li>
+                                <a class="function" href="#CosineEGreedyPolicy.__init__">CosineEGreedyPolicy</a>
+                        </li>
+                        <li>
+                                <a class="function" href="#CosineEGreedyPolicy.update_epsilon">update_epsilon</a>
                         </li>
                 </ul>
 
@@ -89,6 +119,8 @@
                         <details>
             <summary>View Source</summary>
             <div class="codehilite"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">torch</span>
+<span class="kn">from</span> <span class="nn">einops</span> <span class="kn">import</span> <span class="n">rearrange</span>
 
 <span class="k">class</span> <span class="nc">RandomPolicy</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;</span>
@@ -105,6 +137,12 @@
 <span class="sd">        Prend un état en argument, retourne une action</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">value_function</span><span class="o">.</span><span class="n">action_space</span><span class="o">.</span><span class="n">sample</span><span class="p">()</span>
+    
+    <span class="k">def</span> <span class="nf">batch_call</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state_batch</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Prend un batch d&#39;état en argument, retourne un batch de valeurs</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="p">(</span><span class="n">state_batch</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">test</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -133,19 +171,59 @@
                 <span class="s1">&#39;data&#39;</span><span class="p">:</span> <span class="p">[]</span>
             <span class="p">}</span>
         <span class="p">})</span>
+        
+    <span class="k">def</span> <span class="nf">best_action_value_from_values</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">values</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">values</span><span class="p">)</span> <span class="ow">is</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+            <span class="n">values</span> <span class="o">=</span> <span class="n">rearrange</span><span class="p">(</span><span class="n">values</span><span class="p">,</span> <span class="s1">&#39;a -&gt; 1 a&#39;</span><span class="p">)</span>
+            <span class="n">maxa</span><span class="p">,</span> <span class="n">maxv</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">best_action_value_from_values_batch</span><span class="p">(</span><span class="n">values</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">maxa</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">maxv</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">maxv</span><span class="p">,</span> <span class="n">maxa</span> <span class="o">=</span> <span class="nb">max</span><span class="p">((</span><span class="n">v</span><span class="p">,</span><span class="n">a</span><span class="p">)</span> <span class="k">for</span> <span class="n">a</span><span class="p">,</span><span class="n">v</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">values</span><span class="p">))</span>
+            <span class="k">return</span> <span class="n">maxa</span><span class="p">,</span> <span class="n">maxv</span>
+    
+    <span class="k">def</span> <span class="nf">best_action_value_from_values_batch</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">values_batch</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">values_batch</span><span class="p">)</span> <span class="ow">is</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+            <span class="n">m</span> <span class="o">=</span> <span class="n">values_batch</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">m</span><span class="o">.</span><span class="n">indices</span><span class="p">,</span> <span class="n">m</span><span class="o">.</span><span class="n">values</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">maxv</span> <span class="o">=</span> <span class="n">values_batch</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+            <span class="n">maxa</span> <span class="o">=</span> <span class="n">values_batch</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">maxa</span><span class="p">,</span> <span class="n">maxv</span>
+            
 
     <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">):</span>
         <span class="n">values</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">value_function</span><span class="o">.</span><span class="n">from_state</span><span class="p">(</span><span class="n">state</span><span class="p">)</span>
-        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">values</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="nb">dict</span><span class="p">:</span>
-            <span class="n">values</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span><span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span><span class="n">v</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">values</span><span class="p">)}</span>
-        <span class="n">value</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="nb">max</span><span class="p">((</span><span class="n">v</span><span class="p">,</span><span class="n">a</span><span class="p">)</span> <span class="k">for</span> <span class="n">a</span><span class="p">,</span><span class="n">v</span> <span class="ow">in</span> <span class="n">values</span><span class="o">.</span><span class="n">items</span><span class="p">())</span>
+        <span class="n">action</span><span class="p">,</span> <span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">best_action_value_from_values</span><span class="p">(</span><span class="n">values</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="ow">is</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+            <span class="n">value</span> <span class="o">=</span> <span class="n">value</span><span class="o">.</span><span class="n">clone</span><span class="p">()</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">values</span><span class="p">)</span> <span class="ow">is</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+            <span class="n">values</span> <span class="o">=</span> <span class="n">values</span><span class="o">.</span><span class="n">clone</span><span class="p">()</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span>
 
-        <span class="n">actions</span> <span class="o">=</span> <span class="p">[</span><span class="n">k</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span><span class="n">v</span> <span class="ow">in</span> <span class="n">values</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">v</span><span class="o">==</span><span class="n">value</span><span class="p">]</span>
+        <span class="n">actions</span> <span class="o">=</span> <span class="p">[</span><span class="n">k</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span><span class="n">v</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">values</span><span class="p">)</span> <span class="k">if</span> <span class="n">v</span> <span class="o">==</span> <span class="n">value</span><span class="p">]</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">stats</span><span class="p">[</span><span class="s1">&#39;predicted_value&#39;</span><span class="p">][</span><span class="s1">&#39;data&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">agent</span><span class="o">.</span><span class="n">log_data</span><span class="p">(</span><span class="s2">&quot;predicted_value&quot;</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="n">actions</span><span class="p">)</span>
+    
+    <span class="k">def</span> <span class="nf">batch_call</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state_batch</span><span class="p">):</span>
+        <span class="n">values_batch</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">value_function</span><span class="o">.</span><span class="n">from_state_batch</span><span class="p">(</span><span class="n">state_batch</span><span class="p">)</span>
+        <span class="n">action_batch</span><span class="p">,</span> <span class="n">value_batch</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">best_action_value_from_values_batch</span><span class="p">(</span><span class="n">values_batch</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">value_batch</span><span class="p">)</span> <span class="ow">is</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+            <span class="n">value_batch</span> <span class="o">=</span> <span class="n">value_batch</span><span class="o">.</span><span class="n">clone</span><span class="p">()</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">action_batch</span><span class="p">)</span> <span class="ow">is</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+            <span class="n">action_batch</span> <span class="o">=</span> <span class="n">action_batch</span><span class="o">.</span><span class="n">clone</span><span class="p">()</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">agent</span><span class="o">.</span><span class="n">log_data</span><span class="p">(</span><span class="s2">&quot;predicted_value&quot;</span><span class="p">,</span> <span class="n">value_batch</span><span class="o">.</span><span class="n">mean</span><span class="p">())</span>
+        <span class="k">return</span> <span class="n">action_batch</span>
+        
 
 <span class="k">class</span> <span class="nc">EGreedyPolicy</span><span class="p">(</span><span class="n">RandomPolicy</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Implémente une politique *epsilon-greedy* qui choisit une action aléatoire avec la</span>
+<span class="sd">    probabilité `epsilon` et l&#39;action définie par la politique *greedy* le reste du temps.</span>
+
+<span class="sd">    `epsilon_decay` et `epsilon_min` permettent de faire varier la valeur donnée à</span>
+<span class="sd">    `epsilon` au cours de l&#39;entrainement</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value_function</span><span class="p">,</span> <span class="n">greedy_policy_class</span><span class="o">=</span><span class="n">GreedyQPolicy</span><span class="p">,</span> <span class="n">epsilon</span><span class="o">=</span><span class="mf">0.05</span><span class="p">,</span> <span class="n">epsilon_decay</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">epsilon_min</span><span class="o">=</span><span class="mf">0.05</span><span class="p">,</span> <span class="n">epsilon_test</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">greedy_policy</span> <span class="o">=</span> <span class="n">greedy_policy_class</span><span class="p">(</span><span class="n">value_function</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">epsilon</span> <span class="o">=</span> <span class="n">epsilon</span>
@@ -165,20 +243,64 @@
             <span class="n">epsilon</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">epsilon</span>
 
         <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">epsilon</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">greedy_policy</span><span class="o">.</span><span class="n">agent</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">agent</span>
             <span class="n">action</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">greedy_policy</span><span class="p">(</span><span class="n">state</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">greedy_policy</span><span class="o">.</span><span class="n">stats</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">action</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__call__</span><span class="p">(</span><span class="n">state</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">action</span>
+    
+    <span class="k">def</span> <span class="nf">batch_call</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state_batch</span><span class="p">,</span> <span class="n">epsilon</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">epsilon</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">epsilon</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">epsilon</span>
+            
+        <span class="n">greedy_action_batch</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">greedy_policy</span><span class="o">.</span><span class="n">batch_call</span><span class="p">(</span><span class="n">state_batch</span><span class="p">)</span>
+        <span class="n">random_action_batch</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">batch_call</span><span class="p">(</span><span class="n">state_batch</span><span class="p">)</span>
+        <span class="n">random_mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="p">(</span><span class="n">state_batch</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],))</span>
+        <span class="n">action_batch</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">random_mask</span> <span class="o">&gt;</span> <span class="n">epsilon</span><span class="p">,</span>
+                                <span class="n">greedy_action_batch</span><span class="p">,</span>
+                                <span class="n">random_action_batch</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">action_batch</span>
 
     <span class="k">def</span> <span class="nf">test</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="p">(</span><span class="n">state</span><span class="p">,</span> <span class="n">epsilon</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">epsilon_test</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">update_epsilon</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">epsilon</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">epsilon</span><span class="o">*</span><span class="p">(</span><span class="mi">1</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">epsilon_decay</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">epsilon_min</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">stats</span><span class="p">[</span><span class="s2">&quot;epsilon&quot;</span><span class="p">][</span><span class="s2">&quot;data&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">epsilon</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">update_epsilon</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">agent</span><span class="o">.</span><span class="n">log_data</span><span class="p">(</span><span class="s2">&quot;epsilon&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">epsilon</span><span class="p">)</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">update</span><span class="p">()</span>
+
+<span class="k">class</span> <span class="nc">CosineEGreedyPolicy</span><span class="p">(</span><span class="n">EGreedyPolicy</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Fait varier epsilon comme un cosinus du pas de temps</span>
+
+<span class="sd">    Réutilise les paramètres de `EGreedyPolicy` pour définir le cosinus :</span>
+
+<span class="sd">    * `T`: Période du cosinus (en pas de temps)</span>
+<span class="sd">    * `epsilon`: Valeur max d&#39;epsilon</span>
+<span class="sd">    * `epsilon_min`: Valeur max d&#39;epsilon</span>
+<span class="sd">    * `epsilon_decay`: Décroissance de epsilon_max</span>
+
+<span class="sd">    $\epsilon = (\epsilon_{max}-\epsilon_{min})/2 \cos(\frac{2\Pi}{\epsilon_{decay}} t) + \epsilon_{min}$</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">epsilon_max_final</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">epsilon_max</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">epsilon</span>
+        <span class="k">if</span> <span class="n">epsilon_max_final</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">epsilon_max_final</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">epsilon_max_final</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">epsilon_min</span><span class="p">,</span> <span class="n">epsilon_max_final</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">t</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="n">T</span>
+
+    <span class="k">def</span> <span class="nf">update_epsilon</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">epsilon</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">epsilon_max</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">epsilon_min</span><span class="p">)</span><span class="o">/</span><span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">t</span><span class="o">*</span><span class="mi">2</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">T</span><span class="p">)</span> <span class="o">+</span>\
+                <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">epsilon_max</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">epsilon_min</span><span class="p">)</span><span class="o">/</span><span class="mi">2</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">epsilon_max</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">epsilon_max</span><span class="o">*</span><span class="p">(</span><span class="mi">1</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">epsilon_decay</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">epsilon_max_final</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">t</span><span class="o">+=</span> <span class="mi">1</span>
 </pre></div>
 
         </details>
@@ -210,6 +332,12 @@
 <span class="sd">        Prend un état en argument, retourne une action</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">value_function</span><span class="o">.</span><span class="n">action_space</span><span class="o">.</span><span class="n">sample</span><span class="p">()</span>
+    
+    <span class="k">def</span> <span class="nf">batch_call</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state_batch</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Prend un batch d&#39;état en argument, retourne un batch de valeurs</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="p">(</span><span class="n">state_batch</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">test</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -252,6 +380,30 @@ Un agent suivant cette politique est équivalent à un <code>RandomAgent</code> 
         </details>
 
     
+
+                            </div>
+                            <div id="RandomPolicy.batch_call" class="classattr">
+                                        <div class="attr function"><a class="headerlink" href="#RandomPolicy.batch_call">#&nbsp;&nbsp</a>
+
+        
+            <span class="def">def</span>
+            <span class="name">batch_call</span><span class="signature">(self, state_batch)</span>:
+    </div>
+
+                <details>
+            <summary>View Source</summary>
+            <div class="codehilite"><pre><span></span>    <span class="k">def</span> <span class="nf">batch_call</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state_batch</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Prend un batch d&#39;état en argument, retourne un batch de valeurs</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="p">(</span><span class="n">state_batch</span><span class="p">)</span>
+</pre></div>
+
+        </details>
+
+            <div class="docstring"><p>Prend un batch d'état en argument, retourne un batch de valeurs</p>
+</div>
+
 
                             </div>
                             <div id="RandomPolicy.test" class="classattr">
@@ -332,17 +484,49 @@ la politique définie dans <code>__call__</code></p>
                 <span class="s1">&#39;data&#39;</span><span class="p">:</span> <span class="p">[]</span>
             <span class="p">}</span>
         <span class="p">})</span>
+        
+    <span class="k">def</span> <span class="nf">best_action_value_from_values</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">values</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">values</span><span class="p">)</span> <span class="ow">is</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+            <span class="n">values</span> <span class="o">=</span> <span class="n">rearrange</span><span class="p">(</span><span class="n">values</span><span class="p">,</span> <span class="s1">&#39;a -&gt; 1 a&#39;</span><span class="p">)</span>
+            <span class="n">maxa</span><span class="p">,</span> <span class="n">maxv</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">best_action_value_from_values_batch</span><span class="p">(</span><span class="n">values</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">maxa</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">maxv</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">maxv</span><span class="p">,</span> <span class="n">maxa</span> <span class="o">=</span> <span class="nb">max</span><span class="p">((</span><span class="n">v</span><span class="p">,</span><span class="n">a</span><span class="p">)</span> <span class="k">for</span> <span class="n">a</span><span class="p">,</span><span class="n">v</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">values</span><span class="p">))</span>
+            <span class="k">return</span> <span class="n">maxa</span><span class="p">,</span> <span class="n">maxv</span>
+    
+    <span class="k">def</span> <span class="nf">best_action_value_from_values_batch</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">values_batch</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">values_batch</span><span class="p">)</span> <span class="ow">is</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+            <span class="n">m</span> <span class="o">=</span> <span class="n">values_batch</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">m</span><span class="o">.</span><span class="n">indices</span><span class="p">,</span> <span class="n">m</span><span class="o">.</span><span class="n">values</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">maxv</span> <span class="o">=</span> <span class="n">values_batch</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+            <span class="n">maxa</span> <span class="o">=</span> <span class="n">values_batch</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">maxa</span><span class="p">,</span> <span class="n">maxv</span>
+            
 
     <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">):</span>
         <span class="n">values</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">value_function</span><span class="o">.</span><span class="n">from_state</span><span class="p">(</span><span class="n">state</span><span class="p">)</span>
-        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">values</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="nb">dict</span><span class="p">:</span>
-            <span class="n">values</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span><span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span><span class="n">v</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">values</span><span class="p">)}</span>
-        <span class="n">value</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="nb">max</span><span class="p">((</span><span class="n">v</span><span class="p">,</span><span class="n">a</span><span class="p">)</span> <span class="k">for</span> <span class="n">a</span><span class="p">,</span><span class="n">v</span> <span class="ow">in</span> <span class="n">values</span><span class="o">.</span><span class="n">items</span><span class="p">())</span>
+        <span class="n">action</span><span class="p">,</span> <span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">best_action_value_from_values</span><span class="p">(</span><span class="n">values</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="ow">is</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+            <span class="n">value</span> <span class="o">=</span> <span class="n">value</span><span class="o">.</span><span class="n">clone</span><span class="p">()</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">values</span><span class="p">)</span> <span class="ow">is</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+            <span class="n">values</span> <span class="o">=</span> <span class="n">values</span><span class="o">.</span><span class="n">clone</span><span class="p">()</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span>
 
-        <span class="n">actions</span> <span class="o">=</span> <span class="p">[</span><span class="n">k</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span><span class="n">v</span> <span class="ow">in</span> <span class="n">values</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">v</span><span class="o">==</span><span class="n">value</span><span class="p">]</span>
+        <span class="n">actions</span> <span class="o">=</span> <span class="p">[</span><span class="n">k</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span><span class="n">v</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">values</span><span class="p">)</span> <span class="k">if</span> <span class="n">v</span> <span class="o">==</span> <span class="n">value</span><span class="p">]</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">stats</span><span class="p">[</span><span class="s1">&#39;predicted_value&#39;</span><span class="p">][</span><span class="s1">&#39;data&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">agent</span><span class="o">.</span><span class="n">log_data</span><span class="p">(</span><span class="s2">&quot;predicted_value&quot;</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="n">actions</span><span class="p">)</span>
+    
+    <span class="k">def</span> <span class="nf">batch_call</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state_batch</span><span class="p">):</span>
+        <span class="n">values_batch</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">value_function</span><span class="o">.</span><span class="n">from_state_batch</span><span class="p">(</span><span class="n">state_batch</span><span class="p">)</span>
+        <span class="n">action_batch</span><span class="p">,</span> <span class="n">value_batch</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">best_action_value_from_values_batch</span><span class="p">(</span><span class="n">values_batch</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">value_batch</span><span class="p">)</span> <span class="ow">is</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+            <span class="n">value_batch</span> <span class="o">=</span> <span class="n">value_batch</span><span class="o">.</span><span class="n">clone</span><span class="p">()</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">action_batch</span><span class="p">)</span> <span class="ow">is</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+            <span class="n">action_batch</span> <span class="o">=</span> <span class="n">action_batch</span><span class="o">.</span><span class="n">clone</span><span class="p">()</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">agent</span><span class="o">.</span><span class="n">log_data</span><span class="p">(</span><span class="s2">&quot;predicted_value&quot;</span><span class="p">,</span> <span class="n">value_batch</span><span class="o">.</span><span class="n">mean</span><span class="p">())</span>
+        <span class="k">return</span> <span class="n">action_batch</span>
 </pre></div>
 
         </details>
@@ -375,6 +559,85 @@ la politique définie dans <code>__call__</code></p>
     
 
                             </div>
+                            <div id="GreedyQPolicy.best_action_value_from_values" class="classattr">
+                                        <div class="attr function"><a class="headerlink" href="#GreedyQPolicy.best_action_value_from_values">#&nbsp;&nbsp</a>
+
+        
+            <span class="def">def</span>
+            <span class="name">best_action_value_from_values</span><span class="signature">(self, values)</span>:
+    </div>
+
+                <details>
+            <summary>View Source</summary>
+            <div class="codehilite"><pre><span></span>    <span class="k">def</span> <span class="nf">best_action_value_from_values</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">values</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">values</span><span class="p">)</span> <span class="ow">is</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+            <span class="n">values</span> <span class="o">=</span> <span class="n">rearrange</span><span class="p">(</span><span class="n">values</span><span class="p">,</span> <span class="s1">&#39;a -&gt; 1 a&#39;</span><span class="p">)</span>
+            <span class="n">maxa</span><span class="p">,</span> <span class="n">maxv</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">best_action_value_from_values_batch</span><span class="p">(</span><span class="n">values</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">maxa</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">maxv</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">maxv</span><span class="p">,</span> <span class="n">maxa</span> <span class="o">=</span> <span class="nb">max</span><span class="p">((</span><span class="n">v</span><span class="p">,</span><span class="n">a</span><span class="p">)</span> <span class="k">for</span> <span class="n">a</span><span class="p">,</span><span class="n">v</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">values</span><span class="p">))</span>
+            <span class="k">return</span> <span class="n">maxa</span><span class="p">,</span> <span class="n">maxv</span>
+</pre></div>
+
+        </details>
+
+    
+
+                            </div>
+                            <div id="GreedyQPolicy.best_action_value_from_values_batch" class="classattr">
+                                        <div class="attr function"><a class="headerlink" href="#GreedyQPolicy.best_action_value_from_values_batch">#&nbsp;&nbsp</a>
+
+        
+            <span class="def">def</span>
+            <span class="name">best_action_value_from_values_batch</span><span class="signature">(self, values_batch)</span>:
+    </div>
+
+                <details>
+            <summary>View Source</summary>
+            <div class="codehilite"><pre><span></span>    <span class="k">def</span> <span class="nf">best_action_value_from_values_batch</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">values_batch</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">values_batch</span><span class="p">)</span> <span class="ow">is</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+            <span class="n">m</span> <span class="o">=</span> <span class="n">values_batch</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">m</span><span class="o">.</span><span class="n">indices</span><span class="p">,</span> <span class="n">m</span><span class="o">.</span><span class="n">values</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">maxv</span> <span class="o">=</span> <span class="n">values_batch</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+            <span class="n">maxa</span> <span class="o">=</span> <span class="n">values_batch</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">maxa</span><span class="p">,</span> <span class="n">maxv</span>
+</pre></div>
+
+        </details>
+
+    
+
+                            </div>
+                            <div id="GreedyQPolicy.batch_call" class="classattr">
+                                        <div class="attr function"><a class="headerlink" href="#GreedyQPolicy.batch_call">#&nbsp;&nbsp</a>
+
+        
+            <span class="def">def</span>
+            <span class="name">batch_call</span><span class="signature">(self, state_batch)</span>:
+    </div>
+
+                <details>
+            <summary>View Source</summary>
+            <div class="codehilite"><pre><span></span>    <span class="k">def</span> <span class="nf">batch_call</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state_batch</span><span class="p">):</span>
+        <span class="n">values_batch</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">value_function</span><span class="o">.</span><span class="n">from_state_batch</span><span class="p">(</span><span class="n">state_batch</span><span class="p">)</span>
+        <span class="n">action_batch</span><span class="p">,</span> <span class="n">value_batch</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">best_action_value_from_values_batch</span><span class="p">(</span><span class="n">values_batch</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">value_batch</span><span class="p">)</span> <span class="ow">is</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+            <span class="n">value_batch</span> <span class="o">=</span> <span class="n">value_batch</span><span class="o">.</span><span class="n">clone</span><span class="p">()</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">action_batch</span><span class="p">)</span> <span class="ow">is</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+            <span class="n">action_batch</span> <span class="o">=</span> <span class="n">action_batch</span><span class="o">.</span><span class="n">clone</span><span class="p">()</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">agent</span><span class="o">.</span><span class="n">log_data</span><span class="p">(</span><span class="s2">&quot;predicted_value&quot;</span><span class="p">,</span> <span class="n">value_batch</span><span class="o">.</span><span class="n">mean</span><span class="p">())</span>
+        <span class="k">return</span> <span class="n">action_batch</span>
+</pre></div>
+
+        </details>
+
+            <div class="docstring"><p>Prend un batch d'état en argument, retourne un batch de valeurs</p>
+</div>
+
+
+                            </div>
                             <div class="inherited">
                                 <h5>Inherited Members</h5>
                                 <dl>
@@ -398,6 +661,13 @@ la politique définie dans <code>__call__</code></p>
                 <details>
             <summary>View Source</summary>
             <div class="codehilite"><pre><span></span><span class="k">class</span> <span class="nc">EGreedyPolicy</span><span class="p">(</span><span class="n">RandomPolicy</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Implémente une politique *epsilon-greedy* qui choisit une action aléatoire avec la</span>
+<span class="sd">    probabilité `epsilon` et l&#39;action définie par la politique *greedy* le reste du temps.</span>
+
+<span class="sd">    `epsilon_decay` et `epsilon_min` permettent de faire varier la valeur donnée à</span>
+<span class="sd">    `epsilon` au cours de l&#39;entrainement</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value_function</span><span class="p">,</span> <span class="n">greedy_policy_class</span><span class="o">=</span><span class="n">GreedyQPolicy</span><span class="p">,</span> <span class="n">epsilon</span><span class="o">=</span><span class="mf">0.05</span><span class="p">,</span> <span class="n">epsilon_decay</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">epsilon_min</span><span class="o">=</span><span class="mf">0.05</span><span class="p">,</span> <span class="n">epsilon_test</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">greedy_policy</span> <span class="o">=</span> <span class="n">greedy_policy_class</span><span class="p">(</span><span class="n">value_function</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">epsilon</span> <span class="o">=</span> <span class="n">epsilon</span>
@@ -417,26 +687,45 @@ la politique définie dans <code>__call__</code></p>
             <span class="n">epsilon</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">epsilon</span>
 
         <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">epsilon</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">greedy_policy</span><span class="o">.</span><span class="n">agent</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">agent</span>
             <span class="n">action</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">greedy_policy</span><span class="p">(</span><span class="n">state</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">greedy_policy</span><span class="o">.</span><span class="n">stats</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">action</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__call__</span><span class="p">(</span><span class="n">state</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">action</span>
+    
+    <span class="k">def</span> <span class="nf">batch_call</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state_batch</span><span class="p">,</span> <span class="n">epsilon</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">epsilon</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">epsilon</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">epsilon</span>
+            
+        <span class="n">greedy_action_batch</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">greedy_policy</span><span class="o">.</span><span class="n">batch_call</span><span class="p">(</span><span class="n">state_batch</span><span class="p">)</span>
+        <span class="n">random_action_batch</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">batch_call</span><span class="p">(</span><span class="n">state_batch</span><span class="p">)</span>
+        <span class="n">random_mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="p">(</span><span class="n">state_batch</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],))</span>
+        <span class="n">action_batch</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">random_mask</span> <span class="o">&gt;</span> <span class="n">epsilon</span><span class="p">,</span>
+                                <span class="n">greedy_action_batch</span><span class="p">,</span>
+                                <span class="n">random_action_batch</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">action_batch</span>
 
     <span class="k">def</span> <span class="nf">test</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="p">(</span><span class="n">state</span><span class="p">,</span> <span class="n">epsilon</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">epsilon_test</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">update_epsilon</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">epsilon</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">epsilon</span><span class="o">*</span><span class="p">(</span><span class="mi">1</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">epsilon_decay</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">epsilon_min</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">stats</span><span class="p">[</span><span class="s2">&quot;epsilon&quot;</span><span class="p">][</span><span class="s2">&quot;data&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">epsilon</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">update_epsilon</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">agent</span><span class="o">.</span><span class="n">log_data</span><span class="p">(</span><span class="s2">&quot;epsilon&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">epsilon</span><span class="p">)</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">update</span><span class="p">()</span>
 </pre></div>
 
         </details>
 
-            <div class="docstring"><p>Politique aléatoire, sert de classe de base à toutes les politiques.
-Un agent suivant cette politique est équivalent à un <code>RandomAgent</code> dans son comportement</p>
+            <div class="docstring"><p>Implémente une politique <em>epsilon-greedy</em> qui choisit une action aléatoire avec la
+probabilité <code>epsilon</code> et l'action définie par la politique <em>greedy</em> le reste du temps.</p>
+
+<p><code>epsilon_decay</code> et <code>epsilon_min</code> permettent de faire varier la valeur donnée à
+<code>epsilon</code> au cours de l'entrainement</p>
 </div>
 
 
@@ -476,6 +765,36 @@ Un agent suivant cette politique est équivalent à un <code>RandomAgent</code> 
     
 
                             </div>
+                            <div id="EGreedyPolicy.batch_call" class="classattr">
+                                        <div class="attr function"><a class="headerlink" href="#EGreedyPolicy.batch_call">#&nbsp;&nbsp</a>
+
+        
+            <span class="def">def</span>
+            <span class="name">batch_call</span><span class="signature">(self, state_batch, epsilon=None)</span>:
+    </div>
+
+                <details>
+            <summary>View Source</summary>
+            <div class="codehilite"><pre><span></span>    <span class="k">def</span> <span class="nf">batch_call</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state_batch</span><span class="p">,</span> <span class="n">epsilon</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">epsilon</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">epsilon</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">epsilon</span>
+            
+        <span class="n">greedy_action_batch</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">greedy_policy</span><span class="o">.</span><span class="n">batch_call</span><span class="p">(</span><span class="n">state_batch</span><span class="p">)</span>
+        <span class="n">random_action_batch</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">batch_call</span><span class="p">(</span><span class="n">state_batch</span><span class="p">)</span>
+        <span class="n">random_mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="p">(</span><span class="n">state_batch</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],))</span>
+        <span class="n">action_batch</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">random_mask</span> <span class="o">&gt;</span> <span class="n">epsilon</span><span class="p">,</span>
+                                <span class="n">greedy_action_batch</span><span class="p">,</span>
+                                <span class="n">random_action_batch</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">action_batch</span>
+</pre></div>
+
+        </details>
+
+            <div class="docstring"><p>Prend un batch d'état en argument, retourne un batch de valeurs</p>
+</div>
+
+
+                            </div>
                             <div id="EGreedyPolicy.test" class="classattr">
                                         <div class="attr function"><a class="headerlink" href="#EGreedyPolicy.test">#&nbsp;&nbsp</a>
 
@@ -499,6 +818,25 @@ la politique définie dans <code>__call__</code></p>
 
 
                             </div>
+                            <div id="EGreedyPolicy.update_epsilon" class="classattr">
+                                        <div class="attr function"><a class="headerlink" href="#EGreedyPolicy.update_epsilon">#&nbsp;&nbsp</a>
+
+        
+            <span class="def">def</span>
+            <span class="name">update_epsilon</span><span class="signature">(self)</span>:
+    </div>
+
+                <details>
+            <summary>View Source</summary>
+            <div class="codehilite"><pre><span></span>    <span class="k">def</span> <span class="nf">update_epsilon</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">epsilon</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">epsilon</span><span class="o">*</span><span class="p">(</span><span class="mi">1</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">epsilon_decay</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">epsilon_min</span><span class="p">)</span>
+</pre></div>
+
+        </details>
+
+    
+
+                            </div>
                             <div id="EGreedyPolicy.update" class="classattr">
                                         <div class="attr function"><a class="headerlink" href="#EGreedyPolicy.update">#&nbsp;&nbsp</a>
 
@@ -510,8 +848,8 @@ la politique définie dans <code>__call__</code></p>
                 <details>
             <summary>View Source</summary>
             <div class="codehilite"><pre><span></span>    <span class="k">def</span> <span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">epsilon</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">epsilon</span><span class="o">*</span><span class="p">(</span><span class="mi">1</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">epsilon_decay</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">epsilon_min</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">stats</span><span class="p">[</span><span class="s2">&quot;epsilon&quot;</span><span class="p">][</span><span class="s2">&quot;data&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">epsilon</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">update_epsilon</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">agent</span><span class="o">.</span><span class="n">log_data</span><span class="p">(</span><span class="s2">&quot;epsilon&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">epsilon</span><span class="p">)</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">update</span><span class="p">()</span>
 </pre></div>
 
@@ -522,6 +860,121 @@ la politique définie dans <code>__call__</code></p>
 </div>
 
 
+                            </div>
+                </section>
+                <section id="CosineEGreedyPolicy">
+                                <div class="attr class">
+        <a class="headerlink" href="#CosineEGreedyPolicy">#&nbsp;&nbsp</a>
+
+        
+        <span class="def">class</span>
+        <span class="name">CosineEGreedyPolicy</span><wbr>(<span class="base"><a href="#EGreedyPolicy">EGreedyPolicy</a></span>):
+    </div>
+
+                <details>
+            <summary>View Source</summary>
+            <div class="codehilite"><pre><span></span><span class="k">class</span> <span class="nc">CosineEGreedyPolicy</span><span class="p">(</span><span class="n">EGreedyPolicy</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Fait varier epsilon comme un cosinus du pas de temps</span>
+
+<span class="sd">    Réutilise les paramètres de `EGreedyPolicy` pour définir le cosinus :</span>
+
+<span class="sd">    * `T`: Période du cosinus (en pas de temps)</span>
+<span class="sd">    * `epsilon`: Valeur max d&#39;epsilon</span>
+<span class="sd">    * `epsilon_min`: Valeur max d&#39;epsilon</span>
+<span class="sd">    * `epsilon_decay`: Décroissance de epsilon_max</span>
+
+<span class="sd">    $\epsilon = (\epsilon_{max}-\epsilon_{min})/2 \cos(\frac{2\Pi}{\epsilon_{decay}} t) + \epsilon_{min}$</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">epsilon_max_final</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">epsilon_max</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">epsilon</span>
+        <span class="k">if</span> <span class="n">epsilon_max_final</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">epsilon_max_final</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">epsilon_max_final</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">epsilon_min</span><span class="p">,</span> <span class="n">epsilon_max_final</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">t</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="n">T</span>
+
+    <span class="k">def</span> <span class="nf">update_epsilon</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">epsilon</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">epsilon_max</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">epsilon_min</span><span class="p">)</span><span class="o">/</span><span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">t</span><span class="o">*</span><span class="mi">2</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">T</span><span class="p">)</span> <span class="o">+</span>\
+                <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">epsilon_max</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">epsilon_min</span><span class="p">)</span><span class="o">/</span><span class="mi">2</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">epsilon_max</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">epsilon_max</span><span class="o">*</span><span class="p">(</span><span class="mi">1</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">epsilon_decay</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">epsilon_max_final</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">t</span><span class="o">+=</span> <span class="mi">1</span>
+</pre></div>
+
+        </details>
+
+            <div class="docstring"><p>Fait varier epsilon comme un cosinus du pas de temps</p>
+
+<p>Réutilise les paramètres de <code><a href="#EGreedyPolicy">EGreedyPolicy</a></code> pour définir le cosinus :</p>
+
+<ul>
+<li><code>T</code>: Période du cosinus (en pas de temps)</li>
+<li><code>epsilon</code>: Valeur max d'epsilon</li>
+<li><code>epsilon_min</code>: Valeur max d'epsilon</li>
+<li><code>epsilon_decay</code>: Décroissance de epsilon_max</li>
+</ul>
+
+<p>$epsilon = (epsilon_{max}-epsilon_{min})/2 \cos(rac{2\Pi}{epsilon_{decay}} t) + epsilon_{min}$</p>
+</div>
+
+
+                            <div id="CosineEGreedyPolicy.__init__" class="classattr">
+                                        <div class="attr function"><a class="headerlink" href="#CosineEGreedyPolicy.__init__">#&nbsp;&nbsp</a>
+
+        
+            <span class="name">CosineEGreedyPolicy</span><span class="signature">(T, epsilon_max_final=None, *args, **kwargs)</span>
+    </div>
+
+                <details>
+            <summary>View Source</summary>
+            <div class="codehilite"><pre><span></span>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">epsilon_max_final</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">epsilon_max</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">epsilon</span>
+        <span class="k">if</span> <span class="n">epsilon_max_final</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">epsilon_max_final</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">epsilon_max_final</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">epsilon_min</span><span class="p">,</span> <span class="n">epsilon_max_final</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">t</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="n">T</span>
+</pre></div>
+
+        </details>
+
+    
+
+                            </div>
+                            <div id="CosineEGreedyPolicy.update_epsilon" class="classattr">
+                                        <div class="attr function"><a class="headerlink" href="#CosineEGreedyPolicy.update_epsilon">#&nbsp;&nbsp</a>
+
+        
+            <span class="def">def</span>
+            <span class="name">update_epsilon</span><span class="signature">(self)</span>:
+    </div>
+
+                <details>
+            <summary>View Source</summary>
+            <div class="codehilite"><pre><span></span>    <span class="k">def</span> <span class="nf">update_epsilon</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">epsilon</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">epsilon_max</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">epsilon_min</span><span class="p">)</span><span class="o">/</span><span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">t</span><span class="o">*</span><span class="mi">2</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">T</span><span class="p">)</span> <span class="o">+</span>\
+                <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">epsilon_max</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">epsilon_min</span><span class="p">)</span><span class="o">/</span><span class="mi">2</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">epsilon_max</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">epsilon_max</span><span class="o">*</span><span class="p">(</span><span class="mi">1</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">epsilon_decay</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">epsilon_max_final</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">t</span><span class="o">+=</span> <span class="mi">1</span>
+</pre></div>
+
+        </details>
+
+    
+
+                            </div>
+                            <div class="inherited">
+                                <h5>Inherited Members</h5>
+                                <dl>
+                                    <div><dt><a href="#EGreedyPolicy">EGreedyPolicy</a></dt>
+                                <dd id="CosineEGreedyPolicy.batch_call" class="function"><a href="#EGreedyPolicy.batch_call">batch_call</a></dd>
+                <dd id="CosineEGreedyPolicy.test" class="function"><a href="#EGreedyPolicy.test">test</a></dd>
+                <dd id="CosineEGreedyPolicy.update" class="function"><a href="#EGreedyPolicy.update">update</a></dd>
+
+            </div>
+                                </dl>
                             </div>
                 </section>
     </main>

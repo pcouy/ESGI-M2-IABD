@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="generator" content="pdoc 8.0.0" />
-    <title>code_tp.value_functions.linear API documentation</title>
+    <title>code_tp.agents.target_value API documentation</title>
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%2264%22%20height%3D%2264%22%20viewBox%3D%2244.5%202.5%2015%2015%22%3E%3Cpath%20d%3D%22M49.351%2021.041c-.233-.721-.546-2.408-.772-4.076-.042-.09-.067-.187-.046-.288-.166-1.347-.277-2.625-.241-3.351-1.378-1.008-2.271-2.586-2.271-4.362%200-.976.272-1.935.788-2.774.057-.094.122-.18.184-.268-.033-.167-.052-.339-.052-.516%200-1.477%201.202-2.679%202.679-2.679.791%200%201.496.352%201.987.9a6.3%206.3%200%200%201%201.001.029c.492-.564%201.207-.929%202.012-.929%201.477%200%202.679%201.202%202.679%202.679a2.65%202.65%200%200%201-.269%201.148c.383.747.595%201.572.595%202.41%200%202.311-1.507%204.29-3.635%205.107.037.699.147%202.27.423%203.294l.137.461c.156%202.136-4.612%205.166-5.199%203.215zm.127-4.919a4.78%204.78%200%200%200%20.775-.584c-.172-.115-.505-.254-.88-.378zm.331%202.302l.828-.502c-.202-.143-.576-.328-.984-.49zm.45%202.157l.701-.403c-.214-.115-.536-.249-.891-.376l.19.779zM49.13%204.141c0%20.152.123.276.276.276s.275-.124.275-.276-.123-.276-.276-.276-.275.124-.275.276zm.735-.389a1.15%201.15%200%200%201%20.314.783%201.16%201.16%200%200%201-1.162%201.162c-.457%200-.842-.27-1.032-.653-.026.117-.042.238-.042.362a1.68%201.68%200%200%200%201.679%201.679%201.68%201.68%200%200%200%201.679-1.679c0-.843-.626-1.535-1.436-1.654zm3.076%201.654a1.68%201.68%200%200%200%201.679%201.679%201.68%201.68%200%200%200%201.679-1.679c0-.037-.009-.072-.011-.109-.21.3-.541.508-.935.508a1.16%201.16%200%200%201-1.162-1.162%201.14%201.14%200%200%201%20.474-.912c-.015%200-.03-.005-.045-.005-.926.001-1.679.754-1.679%201.68zm1.861-1.265c0%20.152.123.276.276.276s.275-.124.275-.276-.123-.276-.276-.276-.275.124-.275.276zm1.823%204.823c0-.52-.103-1.035-.288-1.52-.466.394-1.06.64-1.717.64-1.144%200-2.116-.725-2.499-1.738-.383%201.012-1.355%201.738-2.499%201.738-.867%200-1.631-.421-2.121-1.062-.307.605-.478%201.267-.478%201.942%200%202.486%202.153%204.51%204.801%204.51s4.801-2.023%204.801-4.51zm-3.032%209.156l-.146-.492c-.276-1.02-.395-2.457-.444-3.268a6.11%206.11%200%200%201-1.18.115%206.01%206.01%200%200%201-2.536-.562l.006.175c.802.215%201.848.612%202.021%201.25.079.295-.021.601-.274.837l-.598.501c.667.304%201.243.698%201.311%201.179.02.144.022.507-.393.787l-.564.365c1.285.521%201.361.96%201.381%201.126.018.142.011.496-.427.746l-.854.489c.064-1.19%201.985-2.585%202.697-3.248zM49.34%209.925c0-.667%201-.667%201%200%200%20.653.818%201.205%201.787%201.205s1.787-.552%201.787-1.205c0-.667%201-.667%201%200%200%201.216-1.25%202.205-2.787%202.205s-2.787-.989-2.787-2.205zm-.887-7.633c-.093.077-.205.114-.317.114a.5.5%200%200%201-.318-.886L49.183.397a.5.5%200%200%201%20.703.068.5.5%200%200%201-.069.703zm7.661-.065c-.086%200-.173-.022-.253-.068l-1.523-.893c-.575-.337-.069-1.2.506-.863l1.523.892a.5.5%200%200%201%20.179.685c-.094.158-.261.247-.432.247z%22%20fill%3D%22%233bb300%22/%3E%3C/svg%3E"/>
 
 
@@ -16,11 +16,11 @@
             <label id="navtoggle" for="togglestate" class="pdoc-button"><svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'><path stroke-linecap='round' stroke="currentColor" stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/></svg></label>
             <input id="togglestate" type="checkbox">
             <div>
-                        <a class="pdoc-button module-list-button" href="../value_functions.html">
+                        <a class="pdoc-button module-list-button" href="../agents.html">
 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-box-arrow-in-left" viewBox="0 0 16 16">
   <path fill-rule="evenodd" d="M10 3.5a.5.5 0 0 0-.5-.5h-8a.5.5 0 0 0-.5.5v9a.5.5 0 0 0 .5.5h8a.5.5 0 0 0 .5-.5v-2a.5.5 0 0 1 1 0v2A1.5 1.5 0 0 1 9.5 14h-8A1.5 1.5 0 0 1 0 12.5v-9A1.5 1.5 0 0 1 1.5 2h8A1.5 1.5 0 0 1 11 3.5v2a.5.5 0 0 1-1 0v-2z"/>
   <path fill-rule="evenodd" d="M4.146 8.354a.5.5 0 0 1 0-.708l3-3a.5.5 0 1 1 .708.708L5.707 7.5H14.5a.5.5 0 0 1 0 1H5.707l2.147 2.146a.5.5 0 0 1-.708.708l-3-3z"/>
-</svg>                            &nbsp;code_tp.value_functions</a>
+</svg>                            &nbsp;code_tp.agents</a>
 
 
                         <input type="search" placeholder="Search..." role="searchbox" aria-label="search"
@@ -31,25 +31,31 @@
                     <h2>API Documentation</h2>
                         <ul class="memberlist">
             <li>
-                    <a class="class" href="#LinearQValue">LinearQValue</a>
+                    <a class="class" href="#TargetValueAgent">TargetValueAgent</a>
                             <ul class="memberlist">
                         <li>
-                                <a class="function" href="#LinearQValue.__init__">LinearQValue</a>
+                                <a class="function" href="#TargetValueAgent.__init__">TargetValueAgent</a>
                         </li>
                         <li>
-                                <a class="function" href="#LinearQValue.add_bias">add_bias</a>
+                                <a class="function" href="#TargetValueAgent.train_with_transition">train_with_transition</a>
                         </li>
                         <li>
-                                <a class="function" href="#LinearQValue.from_state">from_state</a>
+                                <a class="function" href="#TargetValueAgent.eval_state">eval_state</a>
                         </li>
                         <li>
-                                <a class="function" href="#LinearQValue.update">update</a>
+                                <a class="function" href="#TargetValueAgent.eval_state_batch">eval_state_batch</a>
+                        </li>
+                </ul>
+
+            </li>
+            <li>
+                    <a class="class" href="#DoubleQLearning">DoubleQLearning</a>
+                            <ul class="memberlist">
+                        <li>
+                                <a class="function" href="#DoubleQLearning.eval_state_batch">eval_state_batch</a>
                         </li>
                         <li>
-                                <a class="function" href="#LinearQValue.export_f">export_f</a>
-                        </li>
-                        <li>
-                                <a class="function" href="#LinearQValue.import_f">import_f</a>
+                                <a class="function" href="#DoubleQLearning.eval_state">eval_state</a>
                         </li>
                 </ul>
 
@@ -68,159 +74,178 @@
     <main class="pdoc">
             <section>
                     <h1 class="modulename">
-<a href="./../../code_tp.html">code_tp</a><wbr>.<a href="./../value_functions.html">value_functions</a><wbr>.linear    </h1>
+<a href="./../../code_tp.html">code_tp</a><wbr>.<a href="./../agents.html">agents</a><wbr>.target_value    </h1>
 
                 
                         <details>
             <summary>View Source</summary>
             <div class="codehilite"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
-<span class="kn">from</span> <span class="nn">.base</span> <span class="kn">import</span> <span class="n">DiscreteQFunction</span>
-<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">from</span> <span class="nn">.base</span> <span class="kn">import</span> <span class="n">QLearningAgent</span>
 <span class="kn">import</span> <span class="nn">copy</span>
 
-<span class="k">class</span> <span class="nc">LinearQValue</span><span class="p">(</span><span class="n">DiscreteQFunction</span><span class="p">):</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">env</span><span class="p">,</span> <span class="n">default_value</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="k">class</span> <span class="nc">TargetValueAgent</span><span class="p">(</span><span class="n">QLearningAgent</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Agent qui utilise une fonction de valeur différente pour déterminer la valeur cible</span>
+<span class="sd">    lors d&#39;un update. (http://arxiv.org/abs/1312.5602)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">env</span><span class="p">,</span> <span class="n">target_update</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        * `target_update`: Fréquence de mise à jour de la fonction de valeur cible</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">env</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">weights</span> <span class="o">=</span> <span class="n">default_value</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">action_space</span><span class="o">.</span><span class="n">n</span><span class="p">,</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">observation_space</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">+</span><span class="mi">1</span><span class="p">)))</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">init_args</span> <span class="o">=</span> <span class="nb">locals</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">target_update</span> <span class="o">=</span> <span class="n">target_update</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">target_value_function</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">value_function</span><span class="o">.</span><span class="n">clone</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">target_value_function</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">eval</span><span class="p">()</span> <span class="c1">#On économise le calcul des gradients sur la fonction cible</span>
 
-    <span class="k">def</span> <span class="nf">add_bias</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">):</span>
-<span class="c1">#        if type(state) is str:</span>
-<span class="c1">#            state = np.zeros((self.weights.shape[1],))</span>
-        <span class="k">if</span> <span class="n">state</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">weights</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span>
-            <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">(([</span><span class="mi">1</span><span class="p">],</span> <span class="n">state</span><span class="p">))</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">state</span>
+    <span class="k">def</span> <span class="nf">train_with_transition</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="c1">#print(&quot;Training from TargetValueAgent&quot;)</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">train_with_transition</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">training_steps</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">target_update</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">target_value_function</span><span class="o">.</span><span class="n">import_f</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">value_function</span><span class="o">.</span><span class="n">export_f</span><span class="p">()</span>
+            <span class="p">)</span>
 
-    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">,</span> <span class="n">action</span><span class="p">):</span>
-        <span class="n">state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">add_bias</span><span class="p">(</span><span class="n">state</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">weights</span><span class="p">[</span><span class="n">action</span><span class="p">],</span> <span class="n">state</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">eval_state</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">target_value_function</span><span class="o">.</span><span class="n">best_action_value_from_state</span><span class="p">(</span><span class="n">state</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">from_state</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">):</span>
-        <span class="n">state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">add_bias</span><span class="p">(</span><span class="n">state</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">weights</span><span class="p">,</span> <span class="n">state</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">eval_state_batch</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">states</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">target_value_function</span><span class="o">.</span><span class="n">best_action_value_from_state_batch</span><span class="p">(</span><span class="n">states</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">,</span> <span class="n">action</span><span class="p">,</span> <span class="n">target_value</span><span class="p">,</span> <span class="n">is_weight</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="k">if</span> <span class="n">is_weight</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">is_weight</span> <span class="o">=</span> <span class="mi">1</span>
-        <span class="n">state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">add_bias</span><span class="p">(</span><span class="n">state</span><span class="p">)</span>
-        <span class="n">Q</span> <span class="o">=</span> <span class="bp">self</span><span class="p">(</span><span class="n">state</span><span class="p">,</span> <span class="n">action</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">weights</span><span class="p">[</span><span class="n">action</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">weights</span><span class="p">[</span><span class="n">action</span><span class="p">]</span> <span class="o">+</span> <span class="n">is_weight</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">lr</span><span class="o">*</span><span class="p">(</span><span class="n">target_value</span><span class="o">-</span><span class="n">Q</span><span class="p">)</span><span class="o">*</span><span class="n">state</span>
-        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">state</span><span class="p">,</span> <span class="n">action</span><span class="p">,</span> <span class="n">target_value</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">target_value</span><span class="o">-</span><span class="n">Q</span><span class="p">)</span>
-
-    <span class="k">def</span> <span class="nf">export_f</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">weights</span><span class="p">)</span>
-
-    <span class="k">def</span> <span class="nf">import_f</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">d</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">weights</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">d</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">DoubleQLearning</span><span class="p">(</span><span class="n">TargetValueAgent</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Modifie `TargetValueAgent` pour utiliser la variante proposée par l&#39;article</span>
+<span class="sd">    [Deep Reinforcement Learning with Double Q-learning](http://arxiv.org/abs/1509.06461)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">eval_state_batch</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">states</span><span class="p">):</span>
+        <span class="n">selected_actions</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">value_function</span><span class="o">.</span><span class="n">best_action_value_from_state_batch</span><span class="p">(</span><span class="n">states</span><span class="p">)</span>
+        <span class="n">values</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">target_value_function</span><span class="o">.</span><span class="n">call_batch</span><span class="p">(</span><span class="n">states</span><span class="p">,</span> <span class="n">selected_actions</span><span class="p">)</span>
+        <span class="n">values</span> <span class="o">=</span> <span class="n">values</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">selected_actions</span><span class="p">,</span> <span class="n">values</span>
+    
+    <span class="k">def</span> <span class="nf">eval_state</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">):</span>
+        <span class="n">selected_action</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">value_function</span><span class="o">.</span><span class="n">best_action_value_from_state</span><span class="p">(</span><span class="n">state</span><span class="p">)</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">target_value_function</span><span class="p">(</span><span class="n">state</span><span class="p">,</span> <span class="n">selected_action</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">selected_actions</span><span class="p">,</span> <span class="n">values</span>
 </pre></div>
 
         </details>
 
             </section>
-                <section id="LinearQValue">
+                <section id="TargetValueAgent">
                                 <div class="attr class">
-        <a class="headerlink" href="#LinearQValue">#&nbsp;&nbsp</a>
+        <a class="headerlink" href="#TargetValueAgent">#&nbsp;&nbsp</a>
 
         
         <span class="def">class</span>
-        <span class="name">LinearQValue</span><wbr>(<span class="base"><a href="base.html#DiscreteQFunction">code_tp.value_functions.base.DiscreteQFunction</a></span>):
+        <span class="name">TargetValueAgent</span><wbr>(<span class="base"><a href="base.html#QLearningAgent">code_tp.agents.base.QLearningAgent</a></span>):
     </div>
 
                 <details>
             <summary>View Source</summary>
-            <div class="codehilite"><pre><span></span><span class="k">class</span> <span class="nc">LinearQValue</span><span class="p">(</span><span class="n">DiscreteQFunction</span><span class="p">):</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">env</span><span class="p">,</span> <span class="n">default_value</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+            <div class="codehilite"><pre><span></span><span class="k">class</span> <span class="nc">TargetValueAgent</span><span class="p">(</span><span class="n">QLearningAgent</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Agent qui utilise une fonction de valeur différente pour déterminer la valeur cible</span>
+<span class="sd">    lors d&#39;un update. (http://arxiv.org/abs/1312.5602)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">env</span><span class="p">,</span> <span class="n">target_update</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        * `target_update`: Fréquence de mise à jour de la fonction de valeur cible</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">env</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">weights</span> <span class="o">=</span> <span class="n">default_value</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">action_space</span><span class="o">.</span><span class="n">n</span><span class="p">,</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">observation_space</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">+</span><span class="mi">1</span><span class="p">)))</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">init_args</span> <span class="o">=</span> <span class="nb">locals</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">target_update</span> <span class="o">=</span> <span class="n">target_update</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">target_value_function</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">value_function</span><span class="o">.</span><span class="n">clone</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">target_value_function</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">eval</span><span class="p">()</span> <span class="c1">#On économise le calcul des gradients sur la fonction cible</span>
 
-    <span class="k">def</span> <span class="nf">add_bias</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">):</span>
-<span class="c1">#        if type(state) is str:</span>
-<span class="c1">#            state = np.zeros((self.weights.shape[1],))</span>
-        <span class="k">if</span> <span class="n">state</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">weights</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span>
-            <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">(([</span><span class="mi">1</span><span class="p">],</span> <span class="n">state</span><span class="p">))</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">state</span>
+    <span class="k">def</span> <span class="nf">train_with_transition</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="c1">#print(&quot;Training from TargetValueAgent&quot;)</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">train_with_transition</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">training_steps</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">target_update</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">target_value_function</span><span class="o">.</span><span class="n">import_f</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">value_function</span><span class="o">.</span><span class="n">export_f</span><span class="p">()</span>
+            <span class="p">)</span>
 
-    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">,</span> <span class="n">action</span><span class="p">):</span>
-        <span class="n">state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">add_bias</span><span class="p">(</span><span class="n">state</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">weights</span><span class="p">[</span><span class="n">action</span><span class="p">],</span> <span class="n">state</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">eval_state</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">target_value_function</span><span class="o">.</span><span class="n">best_action_value_from_state</span><span class="p">(</span><span class="n">state</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">from_state</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">):</span>
-        <span class="n">state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">add_bias</span><span class="p">(</span><span class="n">state</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">weights</span><span class="p">,</span> <span class="n">state</span><span class="p">)</span>
-
-    <span class="k">def</span> <span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">,</span> <span class="n">action</span><span class="p">,</span> <span class="n">target_value</span><span class="p">,</span> <span class="n">is_weight</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="k">if</span> <span class="n">is_weight</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">is_weight</span> <span class="o">=</span> <span class="mi">1</span>
-        <span class="n">state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">add_bias</span><span class="p">(</span><span class="n">state</span><span class="p">)</span>
-        <span class="n">Q</span> <span class="o">=</span> <span class="bp">self</span><span class="p">(</span><span class="n">state</span><span class="p">,</span> <span class="n">action</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">weights</span><span class="p">[</span><span class="n">action</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">weights</span><span class="p">[</span><span class="n">action</span><span class="p">]</span> <span class="o">+</span> <span class="n">is_weight</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">lr</span><span class="o">*</span><span class="p">(</span><span class="n">target_value</span><span class="o">-</span><span class="n">Q</span><span class="p">)</span><span class="o">*</span><span class="n">state</span>
-        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">state</span><span class="p">,</span> <span class="n">action</span><span class="p">,</span> <span class="n">target_value</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">target_value</span><span class="o">-</span><span class="n">Q</span><span class="p">)</span>
-
-    <span class="k">def</span> <span class="nf">export_f</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">weights</span><span class="p">)</span>
-
-    <span class="k">def</span> <span class="nf">import_f</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">d</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">weights</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">d</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">eval_state_batch</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">states</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">target_value_function</span><span class="o">.</span><span class="n">best_action_value_from_state_batch</span><span class="p">(</span><span class="n">states</span><span class="p">)</span>
 </pre></div>
 
         </details>
 
-            <div class="docstring"><p>Classe de base pour les fonctions de valeur de type $q(s,a)$ dans les espaces d'actions discrets</p>
+            <div class="docstring"><p>Agent qui utilise une fonction de valeur différente pour déterminer la valeur cible
+lors d'un update. (http://arxiv.org/abs/1312.5602)</p>
 </div>
 
 
-                            <div id="LinearQValue.__init__" class="classattr">
-                                        <div class="attr function"><a class="headerlink" href="#LinearQValue.__init__">#&nbsp;&nbsp</a>
+                            <div id="TargetValueAgent.__init__" class="classattr">
+                                        <div class="attr function"><a class="headerlink" href="#TargetValueAgent.__init__">#&nbsp;&nbsp</a>
 
         
-            <span class="name">LinearQValue</span><span class="signature">(env, default_value=0, *args, **kwargs)</span>
+            <span class="name">TargetValueAgent</span><span class="signature">(env, target_update, *args, **kwargs)</span>
     </div>
 
                 <details>
             <summary>View Source</summary>
-            <div class="codehilite"><pre><span></span>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">env</span><span class="p">,</span> <span class="n">default_value</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+            <div class="codehilite"><pre><span></span>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">env</span><span class="p">,</span> <span class="n">target_update</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        * `target_update`: Fréquence de mise à jour de la fonction de valeur cible</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">env</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">weights</span> <span class="o">=</span> <span class="n">default_value</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">action_space</span><span class="o">.</span><span class="n">n</span><span class="p">,</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">observation_space</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">+</span><span class="mi">1</span><span class="p">)))</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">init_args</span> <span class="o">=</span> <span class="nb">locals</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">target_update</span> <span class="o">=</span> <span class="n">target_update</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">target_value_function</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">value_function</span><span class="o">.</span><span class="n">clone</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">target_value_function</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">eval</span><span class="p">()</span> <span class="c1">#On économise le calcul des gradients sur la fonction cible</span>
 </pre></div>
 
         </details>
 
             <div class="docstring"><ul>
-<li><code>env</code>: Environnement sur lequel porte la fonction de valeur. Est utilisé uniquement pour
-     déterminer les espaces des états et des actions.</li>
-<li><code>lr</code>: Taux d'apprentissage</li>
-<li><code>lr_decay</code>: Décroissance du taux d'apprentissage : à chaque pas de temps, le taux
-          d'apprentissage est multiplié par <code>1-lr_decay</code></li>
-<li><code>lr_min</code>: Taux d'apprentissage minimum, à partir duquel celui-ci de décroit plus</li>
+<li><code>target_update</code>: Fréquence de mise à jour de la fonction de valeur cible</li>
 </ul>
 </div>
 
 
                             </div>
-                            <div id="LinearQValue.add_bias" class="classattr">
-                                        <div class="attr function"><a class="headerlink" href="#LinearQValue.add_bias">#&nbsp;&nbsp</a>
+                            <div id="TargetValueAgent.train_with_transition" class="classattr">
+                                        <div class="attr function"><a class="headerlink" href="#TargetValueAgent.train_with_transition">#&nbsp;&nbsp</a>
 
         
             <span class="def">def</span>
-            <span class="name">add_bias</span><span class="signature">(self, state)</span>:
+            <span class="name">train_with_transition</span><span class="signature">(self, *args, **kwargs)</span>:
     </div>
 
                 <details>
             <summary>View Source</summary>
-            <div class="codehilite"><pre><span></span>    <span class="k">def</span> <span class="nf">add_bias</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">):</span>
-<span class="c1">#        if type(state) is str:</span>
-<span class="c1">#            state = np.zeros((self.weights.shape[1],))</span>
-        <span class="k">if</span> <span class="n">state</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">weights</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span>
-            <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">(([</span><span class="mi">1</span><span class="p">],</span> <span class="n">state</span><span class="p">))</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">state</span>
+            <div class="codehilite"><pre><span></span>    <span class="k">def</span> <span class="nf">train_with_transition</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="c1">#print(&quot;Training from TargetValueAgent&quot;)</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">train_with_transition</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">training_steps</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">target_update</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">target_value_function</span><span class="o">.</span><span class="n">import_f</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">value_function</span><span class="o">.</span><span class="n">export_f</span><span class="p">()</span>
+            <span class="p">)</span>
+</pre></div>
+
+        </details>
+
+            <div class="docstring"><p>Met à jour l'agent suite à une transition. Les noms des paramètres sont explicites.
+Le paramètre <code>infos</code>, rarement utilisé, fait partie des réponses standardisées des
+environnements gym, et est donc inclus</p>
+</div>
+
+
+                            </div>
+                            <div id="TargetValueAgent.eval_state" class="classattr">
+                                        <div class="attr function"><a class="headerlink" href="#TargetValueAgent.eval_state">#&nbsp;&nbsp</a>
+
+        
+            <span class="def">def</span>
+            <span class="name">eval_state</span><span class="signature">(self, state)</span>:
+    </div>
+
+                <details>
+            <summary>View Source</summary>
+            <div class="codehilite"><pre><span></span>    <span class="k">def</span> <span class="nf">eval_state</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">target_value_function</span><span class="o">.</span><span class="n">best_action_value_from_state</span><span class="p">(</span><span class="n">state</span><span class="p">)</span>
 </pre></div>
 
         </details>
@@ -228,94 +253,18 @@
     
 
                             </div>
-                            <div id="LinearQValue.from_state" class="classattr">
-                                        <div class="attr function"><a class="headerlink" href="#LinearQValue.from_state">#&nbsp;&nbsp</a>
+                            <div id="TargetValueAgent.eval_state_batch" class="classattr">
+                                        <div class="attr function"><a class="headerlink" href="#TargetValueAgent.eval_state_batch">#&nbsp;&nbsp</a>
 
         
             <span class="def">def</span>
-            <span class="name">from_state</span><span class="signature">(self, state)</span>:
+            <span class="name">eval_state_batch</span><span class="signature">(self, states)</span>:
     </div>
 
                 <details>
             <summary>View Source</summary>
-            <div class="codehilite"><pre><span></span>    <span class="k">def</span> <span class="nf">from_state</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">):</span>
-        <span class="n">state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">add_bias</span><span class="p">(</span><span class="n">state</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">weights</span><span class="p">,</span> <span class="n">state</span><span class="p">)</span>
-</pre></div>
-
-        </details>
-
-            <div class="docstring"><p>Prend un état et renvoit un dictionnaire <code>action : valeur</code> pour cet état</p>
-</div>
-
-
-                            </div>
-                            <div id="LinearQValue.update" class="classattr">
-                                        <div class="attr function"><a class="headerlink" href="#LinearQValue.update">#&nbsp;&nbsp</a>
-
-        
-            <span class="def">def</span>
-            <span class="name">update</span><span class="signature">(self, state, action, target_value, is_weight=None)</span>:
-    </div>
-
-                <details>
-            <summary>View Source</summary>
-            <div class="codehilite"><pre><span></span>    <span class="k">def</span> <span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">,</span> <span class="n">action</span><span class="p">,</span> <span class="n">target_value</span><span class="p">,</span> <span class="n">is_weight</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="k">if</span> <span class="n">is_weight</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">is_weight</span> <span class="o">=</span> <span class="mi">1</span>
-        <span class="n">state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">add_bias</span><span class="p">(</span><span class="n">state</span><span class="p">)</span>
-        <span class="n">Q</span> <span class="o">=</span> <span class="bp">self</span><span class="p">(</span><span class="n">state</span><span class="p">,</span> <span class="n">action</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">weights</span><span class="p">[</span><span class="n">action</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">weights</span><span class="p">[</span><span class="n">action</span><span class="p">]</span> <span class="o">+</span> <span class="n">is_weight</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">lr</span><span class="o">*</span><span class="p">(</span><span class="n">target_value</span><span class="o">-</span><span class="n">Q</span><span class="p">)</span><span class="o">*</span><span class="n">state</span>
-        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">state</span><span class="p">,</span> <span class="n">action</span><span class="p">,</span> <span class="n">target_value</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">target_value</span><span class="o">-</span><span class="n">Q</span><span class="p">)</span>
-</pre></div>
-
-        </details>
-
-            <div class="docstring"><p>Met à jour la fonction de valeur à partir d'une transition expérimentée.
-Maintient également les paramètres de l'entrainement.
-Pour cette classe de base, s'occupe uniquement de la décroissance du taux d'apprentissage.</p>
-
-<ul>
-<li><code>state</code>: état de départ d'une transition</li>
-<li><code>action</code>: action effectuée depuis l'état <code>state</code></li>
-<li><code>target_value</code>: valeur cible, déterminée par l'agent selon son algorithme d'apprentissage</li>
-</ul>
-</div>
-
-
-                            </div>
-                            <div id="LinearQValue.export_f" class="classattr">
-                                        <div class="attr function"><a class="headerlink" href="#LinearQValue.export_f">#&nbsp;&nbsp</a>
-
-        
-            <span class="def">def</span>
-            <span class="name">export_f</span><span class="signature">(self)</span>:
-    </div>
-
-                <details>
-            <summary>View Source</summary>
-            <div class="codehilite"><pre><span></span>    <span class="k">def</span> <span class="nf">export_f</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">weights</span><span class="p">)</span>
-</pre></div>
-
-        </details>
-
-    
-
-                            </div>
-                            <div id="LinearQValue.import_f" class="classattr">
-                                        <div class="attr function"><a class="headerlink" href="#LinearQValue.import_f">#&nbsp;&nbsp</a>
-
-        
-            <span class="def">def</span>
-            <span class="name">import_f</span><span class="signature">(self, d)</span>:
-    </div>
-
-                <details>
-            <summary>View Source</summary>
-            <div class="codehilite"><pre><span></span>    <span class="k">def</span> <span class="nf">import_f</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">d</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">weights</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">d</span><span class="p">)</span>
+            <div class="codehilite"><pre><span></span>    <span class="k">def</span> <span class="nf">eval_state_batch</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">states</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">target_value_function</span><span class="o">.</span><span class="n">best_action_value_from_state_batch</span><span class="p">(</span><span class="n">states</span><span class="p">)</span>
 </pre></div>
 
         </details>
@@ -326,17 +275,125 @@ Pour cette classe de base, s'occupe uniquement de la décroissance du taux d'app
                             <div class="inherited">
                                 <h5>Inherited Members</h5>
                                 <dl>
-                                    <div><dt><a href="base.html#DiscreteQFunction">code_tp.value_functions.base.DiscreteQFunction</a></dt>
-                                <dd id="LinearQValue.enum_actions" class="function"><a href="base.html#DiscreteQFunction.enum_actions">enum_actions</a></dd>
-                <dd id="LinearQValue.from_state_batch" class="function"><a href="base.html#DiscreteQFunction.from_state_batch">from_state_batch</a></dd>
-                <dd id="LinearQValue.best_action_value_from_state" class="function"><a href="base.html#DiscreteQFunction.best_action_value_from_state">best_action_value_from_state</a></dd>
-                <dd id="LinearQValue.best_action_value_from_state_batch" class="function"><a href="base.html#DiscreteQFunction.best_action_value_from_state_batch">best_action_value_from_state_batch</a></dd>
-                <dd id="LinearQValue.call_batch" class="function"><a href="base.html#DiscreteQFunction.call_batch">call_batch</a></dd>
+                                    <div><dt><a href="base.html#QLearningAgent">code_tp.agents.base.QLearningAgent</a></dt>
+                                <dd id="TargetValueAgent.target_value_from_state" class="function"><a href="base.html#QLearningAgent.target_value_from_state">target_value_from_state</a></dd>
+                <dd id="TargetValueAgent.target_value_from_state_batch" class="function"><a href="base.html#QLearningAgent.target_value_from_state_batch">target_value_from_state_batch</a></dd>
+                <dd id="TargetValueAgent.select_action" class="function"><a href="base.html#QLearningAgent.select_action">select_action</a></dd>
+                <dd id="TargetValueAgent.plot_stats" class="function"><a href="base.html#QLearningAgent.plot_stats">plot_stats</a></dd>
 
             </div>
-            <div><dt><a href="base.html#ValueFunction">code_tp.value_functions.base.ValueFunction</a></dt>
-                                <dd id="LinearQValue.update_batch" class="function"><a href="base.html#ValueFunction.update_batch">update_batch</a></dd>
-                <dd id="LinearQValue.clone" class="function"><a href="base.html#ValueFunction.clone">clone</a></dd>
+            <div><dt><a href="base.html#Agent">code_tp.agents.base.Agent</a></dt>
+                                <dd id="TargetValueAgent.log_data" class="function"><a href="base.html#Agent.log_data">log_data</a></dd>
+                <dd id="TargetValueAgent.step" class="function"><a href="base.html#Agent.step">step</a></dd>
+                <dd id="TargetValueAgent.run_episode" class="function"><a href="base.html#Agent.run_episode">run_episode</a></dd>
+                <dd id="TargetValueAgent.run_n_episodes" class="function"><a href="base.html#Agent.run_n_episodes">run_n_episodes</a></dd>
+                <dd id="TargetValueAgent.train" class="function"><a href="base.html#Agent.train">train</a></dd>
+                <dd id="TargetValueAgent.episode_end" class="function"><a href="base.html#Agent.episode_end">episode_end</a></dd>
+
+            </div>
+                                </dl>
+                            </div>
+                </section>
+                <section id="DoubleQLearning">
+                                <div class="attr class">
+        <a class="headerlink" href="#DoubleQLearning">#&nbsp;&nbsp</a>
+
+        
+        <span class="def">class</span>
+        <span class="name">DoubleQLearning</span><wbr>(<span class="base"><a href="#TargetValueAgent">TargetValueAgent</a></span>):
+    </div>
+
+                <details>
+            <summary>View Source</summary>
+            <div class="codehilite"><pre><span></span><span class="k">class</span> <span class="nc">DoubleQLearning</span><span class="p">(</span><span class="n">TargetValueAgent</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Modifie `TargetValueAgent` pour utiliser la variante proposée par l&#39;article</span>
+<span class="sd">    [Deep Reinforcement Learning with Double Q-learning](http://arxiv.org/abs/1509.06461)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">eval_state_batch</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">states</span><span class="p">):</span>
+        <span class="n">selected_actions</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">value_function</span><span class="o">.</span><span class="n">best_action_value_from_state_batch</span><span class="p">(</span><span class="n">states</span><span class="p">)</span>
+        <span class="n">values</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">target_value_function</span><span class="o">.</span><span class="n">call_batch</span><span class="p">(</span><span class="n">states</span><span class="p">,</span> <span class="n">selected_actions</span><span class="p">)</span>
+        <span class="n">values</span> <span class="o">=</span> <span class="n">values</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">selected_actions</span><span class="p">,</span> <span class="n">values</span>
+    
+    <span class="k">def</span> <span class="nf">eval_state</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">):</span>
+        <span class="n">selected_action</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">value_function</span><span class="o">.</span><span class="n">best_action_value_from_state</span><span class="p">(</span><span class="n">state</span><span class="p">)</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">target_value_function</span><span class="p">(</span><span class="n">state</span><span class="p">,</span> <span class="n">selected_action</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">selected_actions</span><span class="p">,</span> <span class="n">values</span>
+</pre></div>
+
+        </details>
+
+            <div class="docstring"><p>Modifie <code><a href="#TargetValueAgent">TargetValueAgent</a></code> pour utiliser la variante proposée par l'article
+<a href="http://arxiv.org/abs/1509.06461">Deep Reinforcement Learning with Double Q-learning</a></p>
+</div>
+
+
+                            <div id="DoubleQLearning.eval_state_batch" class="classattr">
+                                        <div class="attr function"><a class="headerlink" href="#DoubleQLearning.eval_state_batch">#&nbsp;&nbsp</a>
+
+        
+            <span class="def">def</span>
+            <span class="name">eval_state_batch</span><span class="signature">(self, states)</span>:
+    </div>
+
+                <details>
+            <summary>View Source</summary>
+            <div class="codehilite"><pre><span></span>    <span class="k">def</span> <span class="nf">eval_state_batch</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">states</span><span class="p">):</span>
+        <span class="n">selected_actions</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">value_function</span><span class="o">.</span><span class="n">best_action_value_from_state_batch</span><span class="p">(</span><span class="n">states</span><span class="p">)</span>
+        <span class="n">values</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">target_value_function</span><span class="o">.</span><span class="n">call_batch</span><span class="p">(</span><span class="n">states</span><span class="p">,</span> <span class="n">selected_actions</span><span class="p">)</span>
+        <span class="n">values</span> <span class="o">=</span> <span class="n">values</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">selected_actions</span><span class="p">,</span> <span class="n">values</span>
+</pre></div>
+
+        </details>
+
+    
+
+                            </div>
+                            <div id="DoubleQLearning.eval_state" class="classattr">
+                                        <div class="attr function"><a class="headerlink" href="#DoubleQLearning.eval_state">#&nbsp;&nbsp</a>
+
+        
+            <span class="def">def</span>
+            <span class="name">eval_state</span><span class="signature">(self, state)</span>:
+    </div>
+
+                <details>
+            <summary>View Source</summary>
+            <div class="codehilite"><pre><span></span>    <span class="k">def</span> <span class="nf">eval_state</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">):</span>
+        <span class="n">selected_action</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">value_function</span><span class="o">.</span><span class="n">best_action_value_from_state</span><span class="p">(</span><span class="n">state</span><span class="p">)</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">target_value_function</span><span class="p">(</span><span class="n">state</span><span class="p">,</span> <span class="n">selected_action</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">selected_actions</span><span class="p">,</span> <span class="n">values</span>
+</pre></div>
+
+        </details>
+
+    
+
+                            </div>
+                            <div class="inherited">
+                                <h5>Inherited Members</h5>
+                                <dl>
+                                    <div><dt><a href="#TargetValueAgent">TargetValueAgent</a></dt>
+                                <dd id="DoubleQLearning.__init__" class="function"><a href="#TargetValueAgent.__init__">TargetValueAgent</a></dd>
+                <dd id="DoubleQLearning.train_with_transition" class="function"><a href="#TargetValueAgent.train_with_transition">train_with_transition</a></dd>
+
+            </div>
+            <div><dt><a href="base.html#QLearningAgent">code_tp.agents.base.QLearningAgent</a></dt>
+                                <dd id="DoubleQLearning.target_value_from_state" class="function"><a href="base.html#QLearningAgent.target_value_from_state">target_value_from_state</a></dd>
+                <dd id="DoubleQLearning.target_value_from_state_batch" class="function"><a href="base.html#QLearningAgent.target_value_from_state_batch">target_value_from_state_batch</a></dd>
+                <dd id="DoubleQLearning.select_action" class="function"><a href="base.html#QLearningAgent.select_action">select_action</a></dd>
+                <dd id="DoubleQLearning.plot_stats" class="function"><a href="base.html#QLearningAgent.plot_stats">plot_stats</a></dd>
+
+            </div>
+            <div><dt><a href="base.html#Agent">code_tp.agents.base.Agent</a></dt>
+                                <dd id="DoubleQLearning.log_data" class="function"><a href="base.html#Agent.log_data">log_data</a></dd>
+                <dd id="DoubleQLearning.step" class="function"><a href="base.html#Agent.step">step</a></dd>
+                <dd id="DoubleQLearning.run_episode" class="function"><a href="base.html#Agent.run_episode">run_episode</a></dd>
+                <dd id="DoubleQLearning.run_n_episodes" class="function"><a href="base.html#Agent.run_n_episodes">run_n_episodes</a></dd>
+                <dd id="DoubleQLearning.train" class="function"><a href="base.html#Agent.train">train</a></dd>
+                <dd id="DoubleQLearning.episode_end" class="function"><a href="base.html#Agent.episode_end">episode_end</a></dd>
 
             </div>
                                 </dl>

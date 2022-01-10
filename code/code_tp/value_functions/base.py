@@ -30,6 +30,7 @@ class ValueFunction:
                 "data": []
             }
         }
+        self.init_args = locals()
 
     def __call__(self, state):
         """
@@ -37,7 +38,14 @@ class ValueFunction:
         """
         raise NotImplementedError
 
-    def update(self, state, action, target_value):
+    def call_batch(self, states):
+        """
+        Permet d'évaluer un batch d'états. Simple boucle qui sera surchargée pour tirer partie
+        de l'évaluation par batch des fonctions neurales
+        """
+        return np.array([self(state) for state in states])
+
+    def update(self, state, action, target_value, is_weight=None):
         """
         Met à jour la fonction de valeur à partir d'une transition expérimentée.
         Maintient également les paramètres de l'entrainement.
@@ -48,7 +56,37 @@ class ValueFunction:
         * `target_value`: valeur cible, déterminée par l'agent selon son algorithme d'apprentissage
         """
         self.lr = max(self.lr*(1-self.lr_decay), self.lr_min)
-        self.stats["lr"]["data"].append(self.lr)
+        self.agent.log_data("lr", self.lr)
+
+    def update_batch(self, states, actions, target_values, is_weights=None):
+        """
+        Méthode mettant à jour l'agent sur un *batch* de transitions. Simple boucle pour appeler
+        `self.update` par défaut. Est utile principalement pour les agents à *replay buffer*.
+
+        Méthode qui sera surchargée avec les fonctions de valeur neurales, qui prennent en charge
+        l'évaluation par batch.
+        """
+        if is_weights is None:
+            is_weights = np.ones((states.shape[0],))
+        return np.array([self.update(state, action, target_value, is_weight) for
+                         state, action, target_value, is_weight in
+                         zip(states, actions, target_values, is_weights)])
+
+    def export_f(self):
+        pass
+
+    def import_f(self, d):
+        pass
+
+    def clone(self):
+        del self.init_args["self"]
+        del self.init_args["__class__"]
+        args = self.init_args["args"]
+        del self.init_args["args"]
+        kwargs = self.init_args["kwargs"]
+        del self.init_args["kwargs"]
+        print(self.init_args)
+        return type(self)(*args, **kwargs, **self.init_args)
 
 class DiscreteQFunction(ValueFunction):
     """
@@ -58,6 +96,7 @@ class DiscreteQFunction(ValueFunction):
         assert isinstance(env.action_space, gym.spaces.Discrete) or \
             isinstance(env.action_space, gym.spaces.MultiDiscrete)
         super().__init__(env, *args, **kwargs)
+        self.init_args = locals()
 
     def enum_actions(self):
         if isinstance(self.action_space, gym.spaces.Discrete):
@@ -67,9 +106,28 @@ class DiscreteQFunction(ValueFunction):
 
     def from_state(self, state):
         """Prend un état et renvoit un dictionnaire `action : valeur` pour cet état"""
-        return {action: self(state, action) for action in self.enum_actions()}
+        return np.array([self(state, action) for action in self.enum_actions()])
+
+    def from_state_batch(self, states):
+        action_values = []
+        for state in states:
+            action_values.append(self.from_state(state))
+        return np.array(action_values)
+
+    def best_action_value_from_state(self, state):
+        values = self.from_state(state)
+        maxv, maxa = max((v,a) for a,v in enumerate(values))
+        return maxa, maxv
+
+    def best_action_value_from_state_batch(self, states):
+        values_batch = self.from_state_batch(states)
+        maxv = values_batch.max(axis=1)
+        maxa = values_batch.argmax(axis=1)
+        return maxa, maxv
 
     def __call__(self, state, action):
         """Prend un état et une action et renvoit leur valeur"""
         raise NotImplementedError
 
+    def call_batch(self, states, actions):
+        return np.array([self(*args) for args in zip(states,actions)])

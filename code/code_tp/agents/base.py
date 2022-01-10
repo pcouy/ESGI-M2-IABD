@@ -2,14 +2,19 @@ import gym
 import numpy as np
 import os
 import json
+import multiprocessing as mp
+
+import numpy as np
 import matplotlib.pyplot as plt
+import torch
+from torch.utils.tensorboard import SummaryWriter
 
 
 class Agent:
     """
     Classe de base pour tous les agents.
     """
-    def __init__(self, env:gym.Env, save_dir="experiment", infos={}):
+    def __init__(self, env:gym.Env, save_dir="experiment", infos={}, tensorboard_layout={}):
         """
         * `env`: Environnement gym dans lequel l'agent va évoluer
         * `save_dir`: Dossier dans lequel les résultats de l'expérience seront sauvegardés
@@ -19,6 +24,7 @@ class Agent:
         self.training_steps = 0
         self.training_episodes = 0
         self.env = env
+        self.agent = self
         self.test = False
         self.save_dir = save_dir
         self.stats = {
@@ -34,6 +40,14 @@ class Agent:
         with open(os.path.join(self.save_dir, "infos.json"), "w") as f:
             print(infos)
             json.dump(infos, f, indent=2, default=lambda x: x.__name__ if type(x) is type else str(x))
+        self.tensorboard = SummaryWriter(os.path.join(self.save_dir, "tensorboard"))
+        self.tensorboard.add_custom_scalars(tensorboard_layout)
+
+    def log_data(self, key, value):
+        if key not in self.stats:
+            self.stats[key] = {'data':[]}
+        self.stats[key]["data"].append(value)
+        self.tensorboard.add_scalar(key, value, self.training_steps)
 
     def select_action(self, state: np.ndarray) -> np.ndarray:
         """
@@ -142,9 +156,9 @@ class Agent:
             score
         ))
         if not self.test:
-            self.stats["scores"]["data"].append(score)
+            self.log_data("scores", score)
         else:
-            self.stats["test_scores"]["data"].append(score)
+            self.log_data("test_scores", score)
 
     def plot_stats(self, save_dir=None):
         """
@@ -152,6 +166,10 @@ class Agent:
         affiche directement les courbes, sinon les sauvegarde.
         """
         def plot_stat(name, x_label="", data=[]):
+            if type(data) is torch.Tensor:
+                data = data.detach().cpu().numpy()
+            if len(data) and type(data[0]) is torch.Tensor:
+                data = [item.detach() for item in data]
             fig, ax = plt.subplots()
             ax.plot(data)
             plt.xlabel(x_label)
@@ -164,11 +182,21 @@ class Agent:
                 ))
             else:
                 plt.show()
-            plt.close(fig)
+            fig.clf()
             plt.clf()
-
+            plt.close(fig)
+        procs = []
+        # "Hack" utilisant `multiprocessing` pour éviter une fuite de mémoire avec
+        # matplotlib
         for stat in self.stats.keys():
-            plot_stat(stat, **self.stats[stat])
+            procs.append(mp.Process(target=plot_stat, 
+                                    args=(stat,), 
+                                    kwargs=self.stats[stat]
+                                   ))
+            procs[-1].daemon = True
+            procs[-1].start()
+        for proc in procs:
+            proc.join()
 
 class RandomAgent(Agent):
     """
@@ -184,14 +212,14 @@ class QLearningAgent(Agent):
     """
     Implémente l'algorithme du *Q-Learning*
     """
-    def __init__(self, env, value_function, policy, gamma=0.99, *args, **kwargs):
+    def __init__(self, env, value_function, policy, gamma=0.99, **kwargs):
         """
         * `env`: Environnement gym dans lequel l'agent évolue
         * `value_function`: Instance d'une fonction de valeur (voir `code_tp/value_functions`)
         * `policy`: Instance d'une politique (voir `code_tp/policies`)
         * `gamma`: Taux de discount de l'agent. Doit être compris entre 0 et 1
         """
-        super().__init__(env, *args, **kwargs)
+        super().__init__(env, **kwargs)
         self.value_function = value_function
         self.policy = policy
         self.gamma = gamma
@@ -199,16 +227,30 @@ class QLearningAgent(Agent):
         self.policy.agent = self
 
     def train_with_transition(self, state, action, next_state, reward, done, infos):
-        if not done:
-            values = self.value_function.from_state(next_state)
-            if type(values) is not dict:
-                values = {k:v for k,v in enumerate(values)}
-            next_value, _ = max((v,a) for a,v in values.items())
-        else:
-            next_value = 0
-        target_value = reward + self.gamma*next_value
+        #print("Training from QLeaningAgent")
+        target_value = self.target_value_from_state(next_state, reward, done)
         self.value_function.update(state, action, target_value)
         self.policy.update()
+
+    def eval_state(self, state):
+        return self.value_function.best_action_value_from_state(state)
+
+    def eval_state_batch(self, states):
+        return self.value_function.best_action_value_from_state_batch(states)
+
+    def target_value_from_state(self, next_state, reward, done):
+        _, next_value = self.eval_state(next_state)
+        if type(next_value) is torch.Tensor:
+            next_value = next_value.detach().cpu().numpy()
+        target = reward + self.gamma * next_value * (1-done)
+        return target
+
+    def target_value_from_state_batch(self, next_states, rewards, dones):
+        _, next_values = self.eval_state_batch(next_states)
+        if type(next_values) is torch.Tensor:
+            next_values = next_values.detach().cpu().numpy()
+        targets = rewards + self.gamma * next_values * (1-dones)
+        return targets
 
     def select_action(self, state):
         if not self.test:
