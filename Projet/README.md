@@ -1,6 +1,6 @@
 # Précisions sur le projet
 
-## À propos du `PrioritizedReplayBufferAgent` (13/01/21)
+## À propos du `PrioritizedReplayBufferAgent` (13/01/22)
 
 Nous avons rencontré, lors des tests sur le *replay buffer* priorisé, un bug aucours duquel l'agent ne semblait rien apprendre
 et où les valeurs prédites (courbe `predicted_values`) atteignaient plusieurs centaines.
