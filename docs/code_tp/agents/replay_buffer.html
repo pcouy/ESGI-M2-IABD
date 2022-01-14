@@ -85,7 +85,7 @@
                 
                         <details>
             <summary>View Source</summary>
-            <div class="codehilite"><pre><span></span><span class="kn">from</span> <span class="nn">.base</span> <span class="kn">import</span> <span class="n">Agent</span>
+            <div class="codehilite"><pre><span></span><span class="kn">from</span> <span class="nn">.base</span> <span class="kn">import</span> <span class="n">QLearningAgent</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
 <span class="k">class</span> <span class="nc">ReplayBuffer</span><span class="p">:</span>
@@ -158,7 +158,7 @@
                 <span class="bp">self</span><span class="o">.</span><span class="n">normalize</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">next_states</span><span class="p">[</span><span class="n">i</span><span class="p">]),</span>\
                 <span class="bp">self</span><span class="o">.</span><span class="n">rewards</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">dones</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="kc">None</span>
 
-<span class="k">class</span> <span class="nc">ReplayBufferAgent</span><span class="p">(</span><span class="n">Agent</span><span class="p">):</span>
+<span class="k">class</span> <span class="nc">ReplayBufferAgent</span><span class="p">(</span><span class="n">QLearningAgent</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Agent de base utilisant un *replay buffer* (http://arxiv.org/abs/1312.5602)</span>
 
@@ -471,12 +471,12 @@ le format suivant :</p>
 
         
         <span class="def">class</span>
-        <span class="name">ReplayBufferAgent</span><wbr>(<span class="base"><a href="base.html#Agent">code_tp.agents.base.Agent</a></span>):
+        <span class="name">ReplayBufferAgent</span><wbr>(<span class="base"><a href="base.html#QLearningAgent">code_tp.agents.base.QLearningAgent</a></span>):
     </div>
 
                 <details>
             <summary>View Source</summary>
-            <div class="codehilite"><pre><span></span><span class="k">class</span> <span class="nc">ReplayBufferAgent</span><span class="p">(</span><span class="n">Agent</span><span class="p">):</span>
+            <div class="codehilite"><pre><span></span><span class="k">class</span> <span class="nc">ReplayBufferAgent</span><span class="p">(</span><span class="n">QLearningAgent</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Agent de base utilisant un *replay buffer* (http://arxiv.org/abs/1312.5602)</span>
 
@@ -643,14 +643,21 @@ environnements gym, et est donc inclus</p>
                             <div class="inherited">
                                 <h5>Inherited Members</h5>
                                 <dl>
-                                    <div><dt><a href="base.html#Agent">code_tp.agents.base.Agent</a></dt>
+                                    <div><dt><a href="base.html#QLearningAgent">code_tp.agents.base.QLearningAgent</a></dt>
+                                <dd id="ReplayBufferAgent.eval_state" class="function"><a href="base.html#QLearningAgent.eval_state">eval_state</a></dd>
+                <dd id="ReplayBufferAgent.eval_state_batch" class="function"><a href="base.html#QLearningAgent.eval_state_batch">eval_state_batch</a></dd>
+                <dd id="ReplayBufferAgent.target_value_from_state" class="function"><a href="base.html#QLearningAgent.target_value_from_state">target_value_from_state</a></dd>
+                <dd id="ReplayBufferAgent.target_value_from_state_batch" class="function"><a href="base.html#QLearningAgent.target_value_from_state_batch">target_value_from_state_batch</a></dd>
+                <dd id="ReplayBufferAgent.plot_stats" class="function"><a href="base.html#QLearningAgent.plot_stats">plot_stats</a></dd>
+
+            </div>
+            <div><dt><a href="base.html#Agent">code_tp.agents.base.Agent</a></dt>
                                 <dd id="ReplayBufferAgent.log_data" class="function"><a href="base.html#Agent.log_data">log_data</a></dd>
                 <dd id="ReplayBufferAgent.step" class="function"><a href="base.html#Agent.step">step</a></dd>
                 <dd id="ReplayBufferAgent.run_episode" class="function"><a href="base.html#Agent.run_episode">run_episode</a></dd>
                 <dd id="ReplayBufferAgent.run_n_episodes" class="function"><a href="base.html#Agent.run_n_episodes">run_n_episodes</a></dd>
                 <dd id="ReplayBufferAgent.train" class="function"><a href="base.html#Agent.train">train</a></dd>
                 <dd id="ReplayBufferAgent.episode_end" class="function"><a href="base.html#Agent.episode_end">episode_end</a></dd>
-                <dd id="ReplayBufferAgent.plot_stats" class="function"><a href="base.html#Agent.plot_stats">plot_stats</a></dd>
 
             </div>
                                 </dl>

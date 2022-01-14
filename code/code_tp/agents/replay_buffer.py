@@ -1,4 +1,4 @@
-from .base import Agent
+from .base import QLearningAgent
 import numpy as np
 
 class ReplayBuffer:
@@ -71,7 +71,7 @@ class ReplayBuffer:
                 self.normalize(self.next_states[i]),\
                 self.rewards[i], self.dones[i], None
 
-class ReplayBufferAgent(Agent):
+class ReplayBufferAgent(QLearningAgent):
     """
     Agent de base utilisant un *replay buffer* (http://arxiv.org/abs/1312.5602)
 
