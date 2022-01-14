@@ -194,6 +194,19 @@
                     <span class="n">beta</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">beta_increment_per_sampling</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                     <span class="n">total_samplings</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                     <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        * `alpha`: Hyperparamètre *priority* dans l&#39;article. Une valeur de 0 correspond à donner la</span>
+<span class="sd">        même priorité à toutes les transitions, *ie* à utiliser un *replay buffer* non priorisé</span>
+<span class="sd">        * `beta`: Hyperparamètre *Importance-Sampling* dans l&#39;article. Vise à compenser le fait que</span>
+<span class="sd">        certaines transitions sont plus souvent utilisées dans l&#39;entrainement du NN en modifiant la</span>
+<span class="sd">        taille des updates (des mises à jours plus petites mais plus fréquentes correspondent à une</span>
+<span class="sd">        recherche plus fine dans l&#39;espace des paramètres du NN)</span>
+<span class="sd">        * `alpha_decrement_per_sampling`: La valeur par défaut vise à atteindre `alpha=0` après</span>
+<span class="sd">        `total_samplings` (voir ci-dessous) *batchs* échantillonés.</span>
+<span class="sd">        * `beta_increment_per_sampling`: La valeur par défaut vise à atteindre `beta=1` après</span>
+<span class="sd">        `total_samplings` (voir ci-dessous) *batchs* échantillonés.</span>
+<span class="sd">        * `total_samplings`: Vaut `5*max_size` par défaut</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">alpha</span> <span class="o">=</span> <span class="n">alpha</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">beta</span> <span class="o">=</span> <span class="n">beta</span>
 
@@ -519,6 +532,19 @@
                     <span class="n">beta</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">beta_increment_per_sampling</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                     <span class="n">total_samplings</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                     <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        * `alpha`: Hyperparamètre *priority* dans l&#39;article. Une valeur de 0 correspond à donner la</span>
+<span class="sd">        même priorité à toutes les transitions, *ie* à utiliser un *replay buffer* non priorisé</span>
+<span class="sd">        * `beta`: Hyperparamètre *Importance-Sampling* dans l&#39;article. Vise à compenser le fait que</span>
+<span class="sd">        certaines transitions sont plus souvent utilisées dans l&#39;entrainement du NN en modifiant la</span>
+<span class="sd">        taille des updates (des mises à jours plus petites mais plus fréquentes correspondent à une</span>
+<span class="sd">        recherche plus fine dans l&#39;espace des paramètres du NN)</span>
+<span class="sd">        * `alpha_decrement_per_sampling`: La valeur par défaut vise à atteindre `alpha=0` après</span>
+<span class="sd">        `total_samplings` (voir ci-dessous) *batchs* échantillonés.</span>
+<span class="sd">        * `beta_increment_per_sampling`: La valeur par défaut vise à atteindre `beta=1` après</span>
+<span class="sd">        `total_samplings` (voir ci-dessous) *batchs* échantillonés.</span>
+<span class="sd">        * `total_samplings`: Vaut `5*max_size` par défaut</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">alpha</span> <span class="o">=</span> <span class="n">alpha</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">beta</span> <span class="o">=</span> <span class="n">beta</span>
 
@@ -619,6 +645,19 @@ telle que décrit dans <a href="http://arxiv.org/abs/1511.05952">l'article <em>P
                     <span class="n">beta</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">beta_increment_per_sampling</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                     <span class="n">total_samplings</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                     <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        * `alpha`: Hyperparamètre *priority* dans l&#39;article. Une valeur de 0 correspond à donner la</span>
+<span class="sd">        même priorité à toutes les transitions, *ie* à utiliser un *replay buffer* non priorisé</span>
+<span class="sd">        * `beta`: Hyperparamètre *Importance-Sampling* dans l&#39;article. Vise à compenser le fait que</span>
+<span class="sd">        certaines transitions sont plus souvent utilisées dans l&#39;entrainement du NN en modifiant la</span>
+<span class="sd">        taille des updates (des mises à jours plus petites mais plus fréquentes correspondent à une</span>
+<span class="sd">        recherche plus fine dans l&#39;espace des paramètres du NN)</span>
+<span class="sd">        * `alpha_decrement_per_sampling`: La valeur par défaut vise à atteindre `alpha=0` après</span>
+<span class="sd">        `total_samplings` (voir ci-dessous) *batchs* échantillonés.</span>
+<span class="sd">        * `beta_increment_per_sampling`: La valeur par défaut vise à atteindre `beta=1` après</span>
+<span class="sd">        `total_samplings` (voir ci-dessous) *batchs* échantillonés.</span>
+<span class="sd">        * `total_samplings`: Vaut `5*max_size` par défaut</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">alpha</span> <span class="o">=</span> <span class="n">alpha</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">beta</span> <span class="o">=</span> <span class="n">beta</span>
 
@@ -643,9 +682,17 @@ telle que décrit dans <a href="http://arxiv.org/abs/1511.05952">l'article <em>P
         </details>
 
             <div class="docstring"><ul>
-<li><code>obs_shape</code> : Taille d'un tableau numpy contenant une observation</li>
-<li><code>max_size</code> : Nombre de transitions conservées en mémoire</li>
-<li><code>batch_size</code> : Nombre de transitions échantillonnées depuis la mémoire</li>
+<li><code>alpha</code>: Hyperparamètre <em>priority</em> dans l'article. Une valeur de 0 correspond à donner la
+même priorité à toutes les transitions, <em>ie</em> à utiliser un <em>replay buffer</em> non priorisé</li>
+<li><code>beta</code>: Hyperparamètre <em>Importance-Sampling</em> dans l'article. Vise à compenser le fait que
+certaines transitions sont plus souvent utilisées dans l'entrainement du NN en modifiant la
+taille des updates (des mises à jours plus petites mais plus fréquentes correspondent à une
+recherche plus fine dans l'espace des paramètres du NN)</li>
+<li><code>alpha_decrement_per_sampling</code>: La valeur par défaut vise à atteindre <code>alpha=0</code> après
+<code>total_samplings</code> (voir ci-dessous) <em>batchs</em> échantillonés.</li>
+<li><code>beta_increment_per_sampling</code>: La valeur par défaut vise à atteindre <code>beta=1</code> après
+<code>total_samplings</code> (voir ci-dessous) <em>batchs</em> échantillonés.</li>
+<li><code>total_samplings</code>: Vaut <code>5*max_size</code> par défaut</li>
 </ul>
 </div>
 

@@ -83,17 +83,47 @@ class PrioritizedReplayBuffer(ReplayBuffer):
     Modifie `ReplayBuffer` pour échantilloner la mémoire en tenant compte d'un critère de priorité
     """
     e = 0.01
-    a = 0.6
-    beta = 0.4
-    beta_increment_per_sampling = 0.0000002
 
-    def __init__(self, obs_shape, max_size=100000, batch_size=32, default_error=10000, **kwargs):
+    def __init__(self, obs_shape, max_size=100000, batch_size=32, default_error=10000, 
+                    alpha=0.5, alpha_decrement_per_sampling=None,
+                    beta=0, beta_increment_per_sampling=None,
+                    total_samplings=None,
+                    **kwargs):
+        """
+        * `alpha`: Hyperparamètre *priority* dans l'article. Une valeur de 0 correspond à donner la
+        même priorité à toutes les transitions, *ie* à utiliser un *replay buffer* non priorisé
+        * `beta`: Hyperparamètre *Importance-Sampling* dans l'article. Vise à compenser le fait que
+        certaines transitions sont plus souvent utilisées dans l'entrainement du NN en modifiant la
+        taille des updates (des mises à jours plus petites mais plus fréquentes correspondent à une
+        recherche plus fine dans l'espace des paramètres du NN)
+        * `alpha_decrement_per_sampling`: La valeur par défaut vise à atteindre `alpha=0` après
+        `total_samplings` (voir ci-dessous) *batchs* échantillonés.
+        * `beta_increment_per_sampling`: La valeur par défaut vise à atteindre `beta=1` après
+        `total_samplings` (voir ci-dessous) *batchs* échantillonés.
+        * `total_samplings`: Vaut `5*max_size` par défaut
+        """
+        self.alpha = alpha
+        self.beta = beta
+
+        if total_samplings is None:
+            total_samplings = 5*max_size
+
+        if alpha_decrement_per_sampling is None:
+            self.alpha_decrement_per_sampling = self.alpha/total_samplings
+        else:
+            self.alpha_decrement_per_sampling = alpha_decrement_per_sampling
+
+        if beta_increment_per_sampling is None:
+            self.beta_increment_per_sampling = (1-self.beta)/total_samplings
+        else:
+            self.beta_increment_per_sampling = beta_increment_per_sampling
+
         self.tree = SumTree(max_size)
         self.default_error = default_error
         super().__init__(obs_shape, max_size, batch_size, **kwargs)
 
     def _get_priority(self, error):
-        return (np.abs(error) + self.e) ** self.a
+        return (np.abs(error) + self.e) ** self.alpha
 
     def store(self, *args, **kwargs):
         i = super().store(*args, **kwargs)
@@ -108,6 +138,7 @@ class PrioritizedReplayBuffer(ReplayBuffer):
         priorities = []
 
         self.beta = np.min([1., self.beta + self.beta_increment_per_sampling])
+        self.alpha = np.max([0., self.alpha - self.alpha_decrement_per_sampling])
 
         for i in range(self.batch_size):
             a = segment * i
