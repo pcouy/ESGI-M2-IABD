@@ -18,7 +18,11 @@ class GridworldTabularValueAgent(QLearningAgent):
         for i in range(values.shape[0]):
             for j in range(values.shape[1]):
                 try:
-                    values[i,j], _ = max((v,a) for a,v in self.value_function.from_state([i,j]).items())
+                    this_values = self.value_function.from_state([i,j])
+                    if "items" in this_values.__dir__():
+                        values[i,j], _ = max((v,a) for a,v in this_values.items())
+                    else:
+                        values[i,j], _ = max((v,a) for a,v in enumerate(this_values))
                 except KeyError:
                     values[i,j] = 0
                 ax.text(j,i, "{:.2f}".format(values[i,j]), ha='center', va='center')
