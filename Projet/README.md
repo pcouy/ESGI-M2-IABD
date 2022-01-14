@@ -9,7 +9,9 @@ Si vous rencontrez ce bug, et que vout faites : `help(VotreClasseDAgentPriorisé
 `help(DQNAgent)`, vous constaterez que la méthode `select_action` de votre agent priorisé provient de `QLearningAgent`
 alors que le DQN simple utilisait la méthode `select_action` fournie par `ReplayBufferAgent`
 
-**Correctif :** En attendant la correction de ce problème dans le module, vous pouvez corriger ce problème en ajoutant le `ReplayBufferAgent`
+**CORRIGÉ** dans le commit a58021a5eb67731fbcfe92bc8410938ed2aff80c
+
+*Ancien Correctif :* En attendant la correction de ce problème dans le module, vous pouvez corriger ce problème en ajoutant le `ReplayBufferAgent`
 juste après le `PrioritizedReplayBufferAgent` dans la déclaration de l'héritage de votre agent.
 
 Un correctif prochain permettra d'utiliser `PrioritizedReplayBufferAgent` et `PrioritizedReplayBuffer` de manière identique à
@@ -20,7 +22,9 @@ Un correctif prochain permettra d'utiliser `PrioritizedReplayBufferAgent` et `Pr
 Par ailleurs, une autre erreur a été commise sur le module python inclus : les paramètres `alpha` et `beta` du replay buffer
 priorisé sont fixés à des valeurs ne correspondant pas à l'expérience que vous devez réaliser.
 
-**Correctif :** En attendant la modification du module Python, vous pouvez utiliser le code suivant entre l'instanciation et
+**CORRIGÉ** dans le commit 63298c3af2cd02e563adc8e3443da55b6eb4ed6f ([documentation](https://pcouy.github.io/ESGI-M2-IABD/code_tp/agents/prioritized_replay.html#PrioritizedReplayBuffer))
+
+*Ancien Correctif :* En attendant la modification du module Python, vous pouvez utiliser le code suivant entre l'instanciation et
 l'entrainement de votre agent pour définir les valeurs de votre choix pour ces hyper-paramètres (prenez les valeurs utilisées
 dans la publication comme point de départ) :
 
