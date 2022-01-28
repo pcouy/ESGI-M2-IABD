@@ -56,6 +56,26 @@ Vous pouvez enrichir la définition de cet agent pour ajouter vos propres métho
 
 Vous pouvez également écraser des méthodes existantes. Dans ce cas, veillez bien à ne pas casser de fonctionnalités pré-existantes.
 
+### Sauvegarde des agents, *checkpoints* de l'entrainement
+
+#### Sauvegarde d'agents entrainés pour évaluation ultérieure
+
+Il sera certainement utile de pouvoir sauvegarder vos agents entrainés, par exemple pour réaliser leur évaluation plus tard (dans une session Colab ultérieure) sans avoir à ré-entrainer l'agent. Le code permettant de sauvegarder et charger un agent n'est pas fourni mais vous aurez probablement besoin de suivre [ce court tutoriel sur la sauvegarde de réseaux de neurones avec PyTorch](https://pytorch.org/tutorials/beginner/saving_loading_models.html). Vous pourrez ensuite ajouter des méthodes permettant de sauvegarder le réseau de neurones d'un agent entrainé, et de charger ce réseau de neurones dans un nouvel agent fraichement instancié.
+
+L'agent dans lequel vous chargerez le réseau de neurones devra être une instance de la même classe que l'agent dont provient la sauvegarde.
+
+Par ailleurs, il est parfois nécessaire d'inclure dans votre processus sauvegarde des paramètres supplémentaires. Par exemple, vous devrez mémoriser et restaurer les attributs `max_obs_val` et `min_obs_val` de votre *replay buffer* pour que la méthode `normalize` du *replay buffer* effectue la bonne mise à l'échelle des observations. 
+
+De manière générale, pour sauvegarder un agent pour évaluation ultérieure (sans reprise de l'entrainement), vous avez uniquement besoin de mémoriser les paramètres utilisés lorsque le paramètre `test` de `run_episode` vaut `True`.
+
+Vous pouvez par exemple effectuer des sauvegardes régulières de votre agent au cours de son entrainement, pour ensuite constater l'évolution du comportement de l'agent au cours de l'entrainement
+
+#### Reprise de l'entrainement (*checkpoints*)
+
+Il est possible, bien que plus difficile, de sauvegarder l'intégralité d'un agent en cours d'entrainement, pour reprendre l'entrainement plus tard. On parle alors de *checkpoint*. Le jeu Snake a été choisi pour que les durées d'entrainement restent inférieures à quelques heures, vous n'avez donc *a priori* pas besoin d'implémenter un système de *checkpoints*.
+
+Si vous souhaitez tout de même sauvegarder et reprendre les entrainements, lisez dans un premier temps [cet article qui traite du sujet pour les modèles *deep learning* simple](https://pytorch.org/tutorials/recipes/recipes/saving_and_loading_a_general_checkpoint.html?highlight=checkpoint). Vous devrez ensuite adapter ce qui y est exposé pour inclure dans votre sauvegarde tout ce que l'agent utilise pour son entrainement (notamment l'intégralité du *replay buffer*)
+
 ------------
 
 ## À propos du `PrioritizedReplayBufferAgent` (13/01/22)
