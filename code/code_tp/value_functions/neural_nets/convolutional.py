@@ -57,7 +57,7 @@ class ConvolutionalNN(nn.Module):
         elif type(kernel_size) is list:
             kernel_sizes = kernel_size
 
-        if type(pooling) is int or pooling is None:
+        if type(pooling) is str or pooling is None:
             poolings = [pooling for _ in n_filters]
         elif type(pooling) is list:
             poolings = pooling
