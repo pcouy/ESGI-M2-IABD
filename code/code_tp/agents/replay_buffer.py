@@ -16,7 +16,7 @@ class ReplayBuffer:
         self.actions = np.zeros((max_size,), dtype=np.int8)
         self.next_states = np.zeros((max_size, *obs_shape), dtype=np.uint8)
         self.rewards = np.zeros((max_size,), dtype=np.float16)
-        self.dones = np.zeros((max_size,), dtype=np.bool)
+        self.dones = np.zeros((max_size,), dtype=bool)
 
         self.max_size = max_size
         self.batch_size = batch_size
