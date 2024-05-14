@@ -172,17 +172,17 @@ class Renderer:
         self.painter.drawLine(x0, y0, x1, y1)
 
     def drawCircle(self, x, y, r):
-        center = QPoint(x, y)
+        center = QPoint(int(x), int(y))
         self.painter.drawEllipse(center, r, r)
 
     def drawPolygon(self, points):
         """Takes a list of points (tuples) as input"""
-        points = map(lambda p: QPoint(p[0], p[1]), points)
+        points = map(lambda p: QPoint(int(p[0]), int(p[1])), points)
         self.painter.drawPolygon(QPolygon(points))
 
     def drawPolyline(self, points):
         """Takes a list of points (tuples) as input"""
-        points = map(lambda p: QPoint(p[0], p[1]), points)
+        points = map(lambda p: QPoint(int(p[0]), int(p[1])), points)
         self.painter.drawPolyline(QPolygon(points))
 
     def fillRect(self, x, y, width, height, r, g, b, a=255):
