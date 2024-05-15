@@ -2,7 +2,7 @@ from .base import QLearningAgent
 import numpy as np
 
 import time
-import torch.multiprocessing as mp
+import threading
 
 class ReplayBuffer:
     """
@@ -126,11 +126,11 @@ class ReplayBufferAgent(QLearningAgent):
     def train(self, *args, **kwargs):
         if self.update_interval > 0:
             return super().train(*args, **kwargs)
-        n_episodes = kwargs.get("n_episodes", 1000)
+        n_episodes = kwargs.get("n_episodes", 1000 if len(args) == 0 else args[0])
 
-        experience_process = mp.Process(target=super().train, args=args, kwargs=kwargs)
+        experience_process = threading.Thread(target=super().train, args=args, kwargs=kwargs)
         experience_process.start()
-        neural_process = mp.Process(target=self.parallel_neural_training, args=(n_episodes,))
+        neural_process = threading.Thread(target=self.parallel_neural_training, args=(n_episodes,))
         neural_process.start()
 
         experience_process.join()
