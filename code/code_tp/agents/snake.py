@@ -1,5 +1,5 @@
 from ..wrappers.utils import TabularObservation, BoredomWrapper, LogScaleObs
-import gym
+import gymnasium as gym
 import numpy as np
 
 class AddDirectionToSnakeState(gym.ObservationWrapper):
@@ -125,7 +125,7 @@ def manual_control(env):
     Permet de controler manuellement le serpent.
     """
     import sys
-    import gym
+    import gymnasium as gym
     import time
     from optparse import OptionParser
 

@@ -2,8 +2,8 @@ from abc import ABC
 from abc import abstractmethod
 
 import numpy as np
-import gym
-from gym.utils import seeding
+import gymnasium as gym
+from gymnasium.utils import seeding
 from PIL import Image
 import matplotlib.pyplot as plt
 
@@ -45,7 +45,7 @@ class BaseEnv(gym.Env, ABC):
             img = Image.fromarray(img).resize([int(ratio*img_width), int(ratio*img_height)])
             img = np.asarray(img).astype(np.uint8)
             img = np.asarray(img)
-            from gym.envs.classic_control.rendering import SimpleImageViewer
+            from gymnasium.envs.classic_control.rendering import SimpleImageViewer
             if self.viewer is None:
                 self.viewer = SimpleImageViewer()
             self.viewer.imshow(img)

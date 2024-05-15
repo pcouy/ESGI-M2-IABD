@@ -1,5 +1,5 @@
 import numpy as np
-import gym
+import gymnasium as gym
 
 def enum_discrete(space):
     """Fonction utilitaire pour obtenir un itérateur sur les actions d'un espace `gym.spaces.Discrete`"""

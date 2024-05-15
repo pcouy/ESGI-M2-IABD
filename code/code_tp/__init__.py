@@ -20,7 +20,7 @@ def create_agent_and_env(
     """
     A priori non utilisée
     """
-    import gym
+    import gymnasium as gym
 
     if "save_dir" not in agent_args.keys():
         agent_args["save_dir"] = ""

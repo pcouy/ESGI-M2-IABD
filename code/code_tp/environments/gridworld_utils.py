@@ -6,9 +6,9 @@ from ..mazelab import DeepMindColor as color
 from ..mazelab import BaseEnv
 from ..mazelab import VonNeumannMotion
 
-import gym
-from gym.spaces import Box
-from gym.spaces import Discrete
+import gymnasium as gym
+from gymnasium.spaces import Box
+from gymnasium.spaces import Discrete
 
 class Maze(BaseMaze):
     x = np.array([[1, 1, 1, 1, 1, 1], 
