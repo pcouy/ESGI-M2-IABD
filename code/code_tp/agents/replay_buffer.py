@@ -130,7 +130,7 @@ class ReplayBufferAgent(QLearningAgent):
 
         experience_process = mp.Process(target=super().train, args=args, kwargs=kwargs)
         experience_process.start()
-        neural_process = mp.Process(target=self.parallel_neural_training, args=(n_episodes))
+        neural_process = mp.Process(target=self.parallel_neural_training, args=(n_episodes,))
         neural_process.start()
 
         experience_process.join()
