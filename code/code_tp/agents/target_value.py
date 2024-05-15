@@ -14,6 +14,10 @@ class TargetValueAgent(QLearningAgent):
         super().__init__(env, *args, **kwargs)
         self.target_update = target_update
         self.target_value_function = self.value_function.clone()
+        try:
+            self.target_value_function.share_memory()
+        except AttributeError:
+            print("No `share_memory()` method on `self.target_value_function`")
         self.target_value_function.nn.eval() #On économise le calcul des gradients sur la fonction cible
 
     def train_with_transition(self, *args, **kwargs):

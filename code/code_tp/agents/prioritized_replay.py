@@ -173,21 +173,11 @@ class PrioritizedReplayBufferAgent(ReplayBufferAgent):
     (càd l'erreur entre la prédiction de la fonction de valeur et la valeur cible) comme
     critère de priorité
     """
-    def train_with_transition(self, state, action, next_state, reward, done, infos):
-        #print("Training from PrioritizedReplayBufferAgent")
-        self.replay_buffer.store(state, action, next_state, reward, done, infos)
-        if self.replay_buffer.ready():
-            n_stored = min(self.replay_buffer.n_inserted, self.replay_buffer.max_size)
-            #update_interval = self.replay_buffer.max_size/n_stored
-            update_interval = self.update_interval
-            if self.training_steps-self.last_update >= update_interval:
-                (states, actions, next_states, rewards, dones, infos), idxs, is_weights =\
-                    self.replay_buffer.sample()
+    def train_one_batch(self):
+        (states, actions, next_states, rewards, dones, infos), idxs, is_weights = self.replay_buffer.sample()
 
-                #print(actions.shape)
-                target_values = self.target_value_from_state_batch(next_states, rewards, dones)
-                errors = self.value_function.update_batch(states, actions, target_values, is_weights)
-                for idx, err in zip(idxs, errors):
-                    self.replay_buffer.update(idx, err)
-                self.last_update = self.training_steps
-            self.policy.update()
+        #print(actions.shape)
+        target_values = self.target_value_from_state_batch(next_states, rewards, dones)
+        errors = self.value_function.update_batch(states, actions, target_values, is_weights)
+        for idx, err in zip(idxs, errors):
+            self.replay_buffer.update(idx, err)

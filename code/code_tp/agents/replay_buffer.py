@@ -1,6 +1,9 @@
 from .base import QLearningAgent
 import numpy as np
 
+import time
+import torch.multiprocessing as mp
+
 class ReplayBuffer:
     """
     Implémentation d'une mémoire des expériences passées, telle que décrit dans
@@ -103,16 +106,39 @@ class ReplayBufferAgent(QLearningAgent):
         #print("Training from ReplayBufferAgent")
         self.replay_buffer.store(state, action, next_state, reward, done, infos)
         if self.replay_buffer.ready():
-            n_stored = min(self.replay_buffer.n_inserted, self.replay_buffer.max_size)
-            #update_interval = self.replay_buffer.max_size/n_stored
+            # n_stored = min(self.replay_buffer.n_inserted, self.replay_buffer.max_size)
+            # update_interval = self.replay_buffer.max_size/n_stored
             update_interval = self.update_interval
-            if self.training_steps-self.last_update >= update_interval:
-                states, actions, next_states, rewards, dones, infos = self.replay_buffer.sample()
-                #print(actions.shape)
-                target_values = self.target_value_from_state_batch(next_states, rewards, dones)
-                self.value_function.update_batch(states, actions, target_values)
+            if update_interval > 0 and self.training_steps-self.last_update >= update_interval:
+                self.train_one_batch()
                 self.last_update = self.training_steps
             self.policy.update()
 
     def select_action(self, state):
         return super().select_action(self.replay_buffer.normalize(state))
+
+    def train_one_batch(self):
+        states, actions, next_states, rewards, dones, infos = self.replay_buffer.sample()
+        #print(actions.shape)
+        target_values = self.target_value_from_state_batch(next_states, rewards, dones)
+        self.value_function.update_batch(states, actions, target_values)
+
+    def train(self, *args, **kwargs):
+        if self.update_interval > 0:
+            return super().train(*args, **kwargs)
+        n_episodes = kwargs.get("n_episodes", 1000)
+
+        experience_process = mp.Process(target=super().train, args=args, kwargs=kwargs)
+        experience_process.start()
+        neural_process = mp.Process(target=self.parallel_neural_training, args=(n_episodes))
+        neural_process.start()
+
+        experience_process.join()
+        neural_process.join()
+
+    def parallel_neural_training(self, max_episodes):
+        while not self.replay_buffer.ready():
+            time.sleep(0.2)
+
+        while self.training_episodes < max_episodes:
+            self.train_one_batch()
