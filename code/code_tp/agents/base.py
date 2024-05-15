@@ -88,7 +88,7 @@ class Agent:
                 "{:05d}".format(self.training_episodes)
             ), episode_trigger=lambda _: True)
 
-        state = env.reset()
+        state, _ = env.reset()
         done = False
         score = 0
 
@@ -96,7 +96,8 @@ class Agent:
         while not done:
             #frames.append(env.render('rgb_array'))
             action = self.select_action(state)
-            next_state, reward, done, infos = self.step(action, env=env)
+            next_state, reward, terminated, truncated, infos = self.step(action, env=env)
+            done = terminated or truncated
             if not test:
                 self.train_with_transition(state, action, next_state, reward, done, infos)
                 self.training_steps+= 1

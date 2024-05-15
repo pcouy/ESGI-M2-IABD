@@ -87,7 +87,7 @@ class Env(BaseEnv):
 
         reward, done = self.get_reward_and_done(new_position)
 
-        return self.maze.objects.agent.positions[0], reward, done, {}
+        return self.maze.objects.agent.positions[0], reward, done, False, {}
 
     def get_reward_and_done(self, new_position):
         valid = self._is_valid(new_position)
@@ -112,7 +112,7 @@ class Env(BaseEnv):
     def reset(self):
         self.maze.objects.agent.positions = np.stack(np.where(self.maze.orig_x == 2), axis =1)
         self.maze.objects.goal.positions = np.stack(np.where(self.maze.orig_x == 3), axis =1)
-        return self.maze.objects.agent.positions[0]
+        return self.maze.objects.agent.positions[0], {}
 
     def _is_valid(self, position):
         nonnegative = position[0] >= 0 and position[1] >= 0

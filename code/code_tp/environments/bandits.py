@@ -23,14 +23,14 @@ class Bandits(gym.Env):
         self.last_render = 0
         self.last_image = []
         self.curr_step = 0
-        return 0
+        return 0, {}
 
     def step(self, action):
         slot = self.slots[action]
         r = np.random.normal(*slot)
         self.reward_history.append(r)
         self.curr_step+= 1
-        return 1, r, False, {}
+        return 1, r, False, False, {}
 
     def render(self, mode='rgb_array'):
         if self.last_render == 0 or self.last_render < self.curr_step - 100:

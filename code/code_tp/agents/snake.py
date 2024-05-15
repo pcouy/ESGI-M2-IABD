@@ -191,7 +191,8 @@ def manual_control(env):
         if action is None:
             return
 
-        obs, reward, done, info = env.step(action)
+        obs, reward, terminated, truncated, info = env.step(action)
+        done = terminated or truncated
 
         print('step=%s, reward=%.2f' % (env.step_count, reward))
 
