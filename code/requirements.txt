@@ -6,3 +6,4 @@ pillow
 pyqt5==5.12
 torch
 einops
+shimmy[gym-v21]
