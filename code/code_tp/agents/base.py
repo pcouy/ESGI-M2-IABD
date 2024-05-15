@@ -242,11 +242,6 @@ class QLearningAgent(Agent):
         self.value_function.agent = self
         self.policy.agent = self
 
-        try:
-            self.value_function.share_memory()
-        except AttributeError:
-            print("No `share_memory()` method on `self.value_function`")
-
     def train_with_transition(self, state, action, next_state, reward, done, infos):
         #print("Training from QLeaningAgent")
         target_value = self.target_value_from_state(next_state, reward, done)

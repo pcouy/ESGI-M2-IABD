@@ -20,6 +20,7 @@ class ConvolutionalQFunction(DiscreteQFunction):
             n_actions=env.action_space.n,
             **nn_args
         ).to(self.device)
+        self.nn.share_memory()
         print(self.nn)
         self.optim = torch.optim.Adam(self.nn.parameters(), lr=self.lr)
 
