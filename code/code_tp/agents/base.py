@@ -119,7 +119,7 @@ class Agent:
         for i in range(n):
             self.run_episode(test=test)
 
-    def train(self, n_episodes=1000, test_interval=50, train_callbacks=[], test_callbacks=[]):
+    def train(self, n_episodes=1000, test_interval=50, train_callbacks=[], test_callbacks=[], test_interval_type="episode"):
         """
         Boucle d'entrainement.
 
@@ -137,14 +137,29 @@ class Agent:
             test_callbacks = []
         if self.plot_stats not in test_callbacks:
             test_callbacks+= [self.plot_stats]
+
         for i in range(n_episodes):
             self.run_episode(test=False)
             for cb in train_callbacks:
                 cb(self.save_dir)
-            if (i+1)%test_interval == 0:
+            if self.test_condition(i, test_interval, test_interval_type):
                 self.run_episode(test=True)
                 for cb in test_callbacks:
                     cb(self.save_dir)
+
+    def test_condition(self, i, test_interval, test_interval_type="episode"):
+        if test_interval_type == "step":
+            try:
+                last_test_step = self.last_test_step
+            except AttributeError:
+                last_test_step = 0
+            result = self.training_steps - last_test_step > test_interval
+            if result:
+                self.last_test_step = self.training_steps
+            return result
+        else:
+            return (i+1)%test_interval == 0
+
 
     def episode_end(self, score):
         """
