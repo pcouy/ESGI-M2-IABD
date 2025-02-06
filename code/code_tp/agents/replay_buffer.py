@@ -133,8 +133,16 @@ class ReplayBufferAgent(QLearningAgent):
         neural_process = threading.Thread(target=self.parallel_neural_training, args=(n_episodes,))
         neural_process.start()
 
-        experience_process.join()
-        neural_process.join()
+        try:
+            experience_process.join()
+            neural_process.join()
+        except KeyboardInterrupt:
+            old_training_episodes = self.training_episodes
+            self.training_episodes = n_episodes + 1
+            experience_process.join()
+            neural_process.join()
+            self.training_episodes = old_training_episodes
+
 
     def parallel_neural_training(self, max_episodes):
         while not self.replay_buffer.ready():

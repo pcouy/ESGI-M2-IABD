@@ -138,11 +138,11 @@ class Agent:
         if self.plot_stats not in test_callbacks:
             test_callbacks+= [self.plot_stats]
 
-        for i in range(n_episodes):
+        while self.training_episodes < n_episodes:
             self.run_episode(test=False)
             for cb in train_callbacks:
                 cb(self.save_dir)
-            if self.test_condition(i, test_interval, test_interval_type):
+            if self.test_condition(self.training_episodes, test_interval, test_interval_type):
                 self.run_episode(test=True)
                 for cb in test_callbacks:
                     cb(self.save_dir)
