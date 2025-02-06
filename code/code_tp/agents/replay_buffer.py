@@ -128,19 +128,19 @@ class ReplayBufferAgent(QLearningAgent):
             return super().train(*args, **kwargs)
         n_episodes = kwargs.get("n_episodes", 1000 if len(args) == 0 else args[0])
 
-        experience_process = threading.Thread(target=super().train, args=args, kwargs=kwargs)
-        experience_process.start()
-        neural_process = threading.Thread(target=self.parallel_neural_training, args=(n_episodes,))
-        neural_process.start()
+        self.experience_process = threading.Thread(target=super().train, args=args, kwargs=kwargs)
+        self.experience_process.start()
+        self.neural_process = threading.Thread(target=self.parallel_neural_training, args=(n_episodes,))
+        self.neural_process.start()
 
         try:
-            experience_process.join()
-            neural_process.join()
+            self.experience_process.join()
+            self.neural_process.join()
         except KeyboardInterrupt:
             old_training_episodes = self.training_episodes
             self.training_episodes = n_episodes + 1
-            experience_process.join()
-            neural_process.join()
+            self.experience_process.join()
+            self.neural_process.join()
             self.training_episodes = old_training_episodes
 
 
