@@ -12,7 +12,14 @@ class SoftmaxSamplingPolicy(EGreedyPolicy):
     epsilon=0 <=> Politique greedy
     """
     def __init__(self, *args, **kwargs):
+        biases = kwargs.pop("biases", None)
+        self.biases_decay = kwargs.pop("biases_decay", 0.9999)
         super().__init__(*args, **kwargs)
+        if biases is None:
+            self.biases = np.array([0.0 for action in range(self.value_function.action_space.n)])
+        else:
+            self.biases = np.array(biases)
+
         self.stats.update({
             'picked_proba':{
                 'x_label': 'step',
@@ -30,7 +37,8 @@ class SoftmaxSamplingPolicy(EGreedyPolicy):
 
         if epsilon > 0.0015:
             try:
-                aux = np.exp((1/epsilon - 1) * (values-np.max(values)))
+                aux = np.exp((1/epsilon - 1) * (values+self.biases-np.max(values+self.biases)))
+                self.biases = self.biases * self.biases_decay
                 if np.max(aux) == np.inf:
                     aux[aux != np.inf] = 0
                     aux[aux == np.inf] = 1
