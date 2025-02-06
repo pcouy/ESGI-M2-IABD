@@ -26,6 +26,7 @@ class Agent:
         self.env = env
         self.agent = self
         self.test = False
+        self.should_stop = False
         self.save_dir = save_dir
         self.stats = {
             'scores': {
@@ -137,8 +138,9 @@ class Agent:
             test_callbacks = []
         if self.plot_stats not in test_callbacks:
             test_callbacks+= [self.plot_stats]
+        self.should_stop = False
 
-        while self.training_episodes < n_episodes:
+        while self.training_episodes < n_episodes and not self.should_stop:
             self.run_episode(test=False)
             for cb in train_callbacks:
                 cb(self.save_dir)
