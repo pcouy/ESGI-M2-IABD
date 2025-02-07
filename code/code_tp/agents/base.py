@@ -170,7 +170,7 @@ class Agent:
         Méthode appelée par `run_episode` à la fin de chaque épisode, reçoit le
         score de l'épisode achevé comme argument.
         """
-        print("{} episode ({}) done with score = {}".format(
+        print("{} episode ({}) done with score = {:.2f}".format(
             "Testing" if self.test else "Training",
             self.training_episodes,
             score
