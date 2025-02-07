@@ -1,6 +1,7 @@
 import gymnasium as gym
 import numpy as np
 import os
+import gc
 import json
 import multiprocessing as mp
 
@@ -148,6 +149,7 @@ class Agent:
                 self.run_episode(test=True)
                 for cb in test_callbacks:
                     cb(self.save_dir)
+                gc.collect()
 
     def test_condition(self, i, test_interval, test_interval_type="episode"):
         if test_interval_type == "step":
