@@ -112,7 +112,7 @@ class Agent:
         self.episode_end(score)
 
         if test:
-            env.close()
+            env.stop_recording()
         self.test = False
 
         return score
