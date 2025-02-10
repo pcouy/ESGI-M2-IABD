@@ -10,10 +10,10 @@ class DuelingOutputStack(nn.Module):
     Implémente les couches de sorties du réseau de neurones telles que décrites
     dans [Dueling Network Architectures for Deep Reinforcement Learning](http://arxiv.org/abs/1511.06581)
     """
-    def __init__(self, layers, in_dim, n_actions, activation=nn.ReLU):
+    def __init__(self, layers, in_dim, n_actions, activation=nn.ReLU, initial_biases=None):
         super().__init__()
         # set advantage layer
-        self.advantage_layer = LinearNeuralStack(layers, in_dim, n_actions, activation)
+        self.advantage_layer = LinearNeuralStack(layers, in_dim, n_actions, activation, initial_biases)
 
         # set value layer
         self.value_layer = LinearNeuralStack(layers, in_dim, 1, activation)
