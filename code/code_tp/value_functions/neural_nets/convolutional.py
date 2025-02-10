@@ -2,6 +2,7 @@ import torch
 from torch import nn
 from einops import rearrange
 from .linear import LinearNeuralStack
+from .conv_with_time import SpacioTemporalConv
 
 class ConvolutionalNN(nn.Module):
     """
@@ -78,15 +79,22 @@ class ConvolutionalNN(nn.Module):
             n_filters[:-1], n_filters[1:], kernel_sizes, paddings, strides, poolings
         ):
             i_layer = 0
+            if len(layers) == 0 and len(img_shape) == 4:
+                conv_class = SpacioTemporalConv
+                additional_args = {"time_size": img_shape[-2]}
+            else:
+                conv_class = nn.Conv2d
+                additional_args = {}
             
             if pooling is not None:
-                layers.append(nn.Conv2d(
+                layers.append(conv_class(
                     n_in,
                     n_out,
                     kernel_size,
                     1,
                     padding,
-                    dilation
+                    dilation,
+                    **additional_args,
                 ))
                 
                 if pooling == "max":
@@ -96,13 +104,14 @@ class ConvolutionalNN(nn.Module):
                 else:
                     print("Pooling type {} unkwown :  no pooling used")
             else:
-                layers.append(nn.Conv2d(
+                layers.append(conv_class(
                     n_in,
                     n_out,
                     kernel_size,
                     stride,
                     padding,
-                    dilation
+                    dilation,
+                    **additional_args,
                 ))
             
             layers.append(activation())
@@ -111,7 +120,10 @@ class ConvolutionalNN(nn.Module):
         conv_stack = nn.Sequential(*layers)
 
         x = torch.rand(img_shape)
-        y=conv_stack(rearrange([x], 'b w h c -> b c w h'))
+        if len(img_shape) == 3:
+            y=conv_stack(rearrange([x], 'b w h c -> b c w h'))
+        else:
+            y=conv_stack(rearrange([x], 'b w h t c -> b c w h t'))
 
         in_size = y.shape[-1]
         last_layers = output_stack_class(
@@ -129,5 +141,7 @@ class ConvolutionalNN(nn.Module):
     def forward(self, x):
         if len(x.shape) == 4:
             return self.layers(rearrange(x, "b w h c -> b c w h"))
+        elif len(x.shape) == 5:
+            return self.layers(rearrange(x, "b w h t c -> b c w h t"))
         elif len(x.shape) == 3:
             return self.layers(rearrange([x], "b w h c -> b c w h"))[0]

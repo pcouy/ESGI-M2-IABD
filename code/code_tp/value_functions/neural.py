@@ -24,6 +24,8 @@ class ConvolutionalQFunction(DiscreteQFunction):
         print(self.nn)
         self.optim = torch.optim.Adam(self.nn.parameters(), lr=self.lr)
 
+        self.has_time_dim = len(env.observation_space.shape) == 4
+
         if gradient_clipping is not None:
             nn.utils.clip_grad_norm_(self.nn.parameters(), gradient_clipping)
 
@@ -36,14 +38,20 @@ class ConvolutionalQFunction(DiscreteQFunction):
         self.init_args = locals()
         print(self.device)
 
+    def add_batch_dim(self, tensor):
+        if not self.has_time_dim:
+            return rearrange(tensor, "a b c -> 1 a b c")
+        else:
+            return rearrange(tensor, "a b c d -> 1 a b c d")
+
     def from_state(self, state):
-        return self.from_state_batch(rearrange(state,"a b c -> 1 a b c"))[0]
+        return self.from_state_batch(self.add_batch_dim(state))[0]
 
     def from_state_batch(self, states):
         return self.nn(torch.tensor(states, dtype=torch.float32, device=self.device))
 
     def __call__(self, state, action):
-        return self.call_batch([state], rearrange(action, "a b c -> 1 a b c"))[0]
+        return self.call_batch([state], self.add_batch_dim(action))[0]
 
     def call_batch(self, states, actions):
         values = self.nn(torch.tensor(states, dtype=torch.float32, device=self.device))\
