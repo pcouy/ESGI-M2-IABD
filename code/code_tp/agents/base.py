@@ -5,11 +5,13 @@ import gc
 import json
 import multiprocessing as mp
 
-import numpy as np
+# Set matplotlib backend before importing pyplot
+import matplotlib
+matplotlib.use('Agg')  # Use non-interactive backend
 import matplotlib.pyplot as plt
+
 import torch
 from torch.utils.tensorboard import SummaryWriter
-
 
 class Agent:
     """
