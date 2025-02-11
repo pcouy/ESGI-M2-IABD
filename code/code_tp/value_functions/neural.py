@@ -108,13 +108,14 @@ class ConvolutionalQFunction(DiscreteQFunction):
             is_weights = torch.tensor(is_weights, dtype=torch.float32, device=self.device)
         target_values = torch.tensor(target_values,dtype=torch.float32, device=self.device).detach()
         
+        self.optim.zero_grad(set_to_none=True)
+        
         pred_values = self.call_batch(states, actions, prev_actions)
         pred_error_indiv = torch.abs(pred_values[:,0] - target_values)
         pred_error = (
             is_weights * nn.functional.mse_loss(pred_values[:,0], target_values, reduction='none')
         ).mean()
 
-        self.optim.zero_grad()
         pred_error.backward()
         self.optim.step()
         self.agent.log_data("nn_loss", pred_error.clone().cpu().item())
