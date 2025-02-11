@@ -154,7 +154,8 @@ class Agent:
             for cb in train_callbacks:
                 cb(self.save_dir)
             if self.test_condition(self.training_episodes, test_interval, test_interval_type):
-                self.run_episode(test=True)
+                with torch.no_grad():
+                    self.run_episode(test=True)
                 for cb in test_callbacks:
                     cb(self.save_dir)
                 gc.collect()
