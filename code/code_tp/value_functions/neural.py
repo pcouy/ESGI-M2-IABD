@@ -15,6 +15,8 @@ class ConvolutionalQFunction(DiscreteQFunction):
     def to_tensor(self, x, dtype=torch.float32):
         """Convert input to tensor and move to correct device"""
         if isinstance(x, torch.Tensor):
+            if x.device == self.device:
+                return x.clone()
             return x.clone().detach().to(self.device)
         return torch.tensor(x, dtype=dtype, device=self.device)
 
@@ -105,11 +107,11 @@ class ConvolutionalQFunction(DiscreteQFunction):
         if is_weights is None:
             is_weights = torch.ones((states.shape[0],), dtype=torch.float32, device=self.device)
         else:
-            is_weights = torch.tensor(is_weights, dtype=torch.float32, device=self.device)
-        target_values = torch.tensor(target_values,dtype=torch.float32, device=self.device).detach()
+            is_weights = self.to_tensor(is_weights)
+        target_values = self.to_tensor(target_values).detach()
         
         self.optim.zero_grad(set_to_none=True)
-        
+
         pred_values = self.call_batch(states, actions, prev_actions)
         pred_error_indiv = torch.abs(pred_values[:,0] - target_values)
         pred_error = (
