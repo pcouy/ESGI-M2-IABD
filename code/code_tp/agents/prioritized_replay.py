@@ -1,5 +1,6 @@
 import random
 import numpy as np
+import torch
 from .replay_buffer import ReplayBufferAgent, ReplayBuffer
 
 """
@@ -102,6 +103,8 @@ class PrioritizedReplayBuffer(ReplayBuffer):
         `total_samplings` (voir ci-dessous) *batchs* échantillonés.
         * `total_samplings`: Vaut `5*max_size` par défaut
         """
+        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        
         self.alpha = alpha
         self.beta = beta
 
@@ -154,11 +157,15 @@ class PrioritizedReplayBuffer(ReplayBuffer):
         is_weight = np.power(self.tree.n_entries * sampling_probabilities, -self.beta)
         is_weight /= is_weight.max()
 
+        # Move is_weight to same device as the data
+        is_weight = torch.tensor(is_weight, dtype=torch.float32, device=self.device)
+
         batch = (
             self.normalize(self.states[js]),
             self.actions[js],
             self.normalize(self.next_states[js]),
-            self.rewards[js], self.dones[js],
+            self.rewards[js],
+            self.dones[js],
             self.prev_actions[js]
         )
 

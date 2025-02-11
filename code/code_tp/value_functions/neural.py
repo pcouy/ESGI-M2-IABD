@@ -12,6 +12,12 @@ class ConvolutionalQFunction(DiscreteQFunction):
     convolutionnel en PyTorch (voir `code_tp.value_functions.neural_nets` pour plus
     de détails)
     """
+    def to_tensor(self, x, dtype=torch.float32):
+        """Convert input to tensor and move to correct device"""
+        if isinstance(x, torch.Tensor):
+            return x.clone().detach().to(self.device)
+        return torch.tensor(x, dtype=dtype, device=self.device)
+
     def __init__(
         self,
         env,
@@ -65,25 +71,30 @@ class ConvolutionalQFunction(DiscreteQFunction):
                                    None if prev_action is None else [prev_action])[0]
 
     def from_state_batch(self, states, prev_actions=None):
+        states = self.to_tensor(states)
+        
         if self.use_prev_action and prev_actions is not None:
-            prev_actions = torch.tensor(prev_actions, dtype=torch.int64, device=self.device)
+            # Ensure prev_actions are long (int64) for embedding layer
+            prev_actions = self.to_tensor(prev_actions, dtype=torch.long)
         else:
             prev_actions = None
-        return self.nn(torch.tensor(states, dtype=torch.float32, device=self.device), 
-                      prev_actions)
+        
+        return self.nn(states, prev_actions)
 
     def __call__(self, state, action, prev_action=None):
         return self.call_batch([state], [action], 
                              None if prev_action is None else [prev_action])[0]
 
     def call_batch(self, states, actions, prev_actions=None):
-        values = self.nn(
-            torch.tensor(states, dtype=torch.float32, device=self.device),
-            torch.tensor(prev_actions, dtype=torch.int64, device=self.device) if prev_actions is not None else None
-        ).gather(-1,
-            torch.tensor(actions, dtype=torch.int64, device=self.device)\
-                .reshape((len(actions),1))
-        )
+        states = self.to_tensor(states)
+        # Use long for action indices
+        actions = self.to_tensor(actions, dtype=torch.long)
+        
+        if prev_actions is not None:
+            # Ensure prev_actions are long for embedding layer
+            prev_actions = self.to_tensor(prev_actions, dtype=torch.long)
+        
+        values = self.nn(states, prev_actions).gather(-1, actions.reshape((len(actions),1)))
         return values
 
     def update(self, state, action, target_value, prev_action=None, is_weight=None):

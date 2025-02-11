@@ -1,5 +1,6 @@
 from .base import QLearningAgent
 import numpy as np
+import torch
 
 import time
 import threading
@@ -15,12 +16,14 @@ class ReplayBuffer:
         * `max_size` : Nombre de transitions conservées en mémoire
         * `batch_size` : Nombre de transitions échantillonnées depuis la mémoire
         """
-        self.states = np.zeros((max_size, *obs_shape), dtype=np.uint8)
-        self.actions = np.zeros((max_size,), dtype=np.int8)
-        self.next_states = np.zeros((max_size, *obs_shape), dtype=np.uint8)
-        self.rewards = np.zeros((max_size,), dtype=np.float32)
-        self.dones = np.zeros((max_size,), dtype=bool)
-        self.prev_actions = np.zeros((max_size,), dtype=np.int8)
+        # Pre-allocate memory on GPU if using CUDA
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        self.states = torch.zeros((max_size, *obs_shape), dtype=torch.uint8, device=device)
+        self.actions = torch.zeros((max_size,), dtype=torch.long, device=device)
+        self.next_states = torch.zeros((max_size, *obs_shape), dtype=torch.uint8, device=device)
+        self.rewards = torch.zeros((max_size,), dtype=torch.float32, device=device)
+        self.dones = torch.zeros((max_size,), dtype=torch.bool, device=device)
+        self.prev_actions = torch.zeros((max_size,), dtype=torch.long, device=device)
 
         self.max_size = max_size
         self.batch_size = batch_size
@@ -43,10 +46,14 @@ class ReplayBuffer:
 
         Les paramètres représentent la transition à stocker
         """
+        # Convert numpy arrays to torch tensors and move to correct device
+        state = torch.from_numpy(state).to(self.states.device)
+        next_state = torch.from_numpy(next_state).to(self.states.device)
+        
         old_max = self.max_obs_val
         old_min = self.min_obs_val
-        self.max_obs_val = max(self.max_obs_val, state.max())
-        self.min_obs_val = min(self.min_obs_val, state.min())
+        self.max_obs_val = max(self.max_obs_val, state.max().item())
+        self.min_obs_val = min(self.min_obs_val, state.min().item())
         
         # Update normalization constants only if min/max changed
         if old_max != self.max_obs_val or old_min != self.min_obs_val:
@@ -57,8 +64,8 @@ class ReplayBuffer:
         self.states[i] = state
         self.actions[i] = action
         self.next_states[i] = next_state
-        self.rewards[i] = reward
-        self.dones[i] = done
+        self.rewards[i] = float(reward)  # Convert reward to float
+        self.dones[i] = bool(done)  # Ensure done is boolean
         self.prev_actions[i] = prev_action if prev_action is not None else 0
 
         self.n_inserted += 1
@@ -68,7 +75,10 @@ class ReplayBuffer:
         """
         Recadre les valeurs d'entrées entre -1 et 1
         """
-        return (state.astype(np.float32) - self.norm_offset) / self.norm_scale
+        # Handle both numpy arrays and torch tensors
+        if isinstance(state, np.ndarray):
+            state = torch.from_numpy(state).to(self.states.device)
+        return (state.float() - self.norm_offset) / self.norm_scale
 
     def sample(self):
         """
@@ -78,14 +88,16 @@ class ReplayBuffer:
         * Les éléments du tuple renvoyé sont dans le même ordre que les paramètres de `self.store(...)`
         * Pour chaque élément du tuple, la première dimension du tableau correspond aux différents éléments d'un batch
         """
+        # Sample directly on GPU
         n_stored = min(self.n_inserted, self.max_size)
-        i = np.random.randint(0, n_stored, size=(self.batch_size,))
-
-        return self.normalize(self.states[i]),\
-                self.actions[i],\
-                self.normalize(self.next_states[i]),\
-                self.rewards[i], self.dones[i],\
-                self.prev_actions[i]
+        i = torch.randint(0, n_stored, size=(self.batch_size,), device=self.states.device)
+        
+        return (self.normalize(self.states[i]),
+                self.actions[i],
+                self.normalize(self.next_states[i]),
+                self.rewards[i], 
+                self.dones[i],
+                self.prev_actions[i])
 
 class ReplayBufferAgent(QLearningAgent):
     """
