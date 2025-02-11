@@ -15,9 +15,10 @@ class Agent:
     """
     Classe de base pour tous les agents.
     """
-    def __init__(self, env:gym.Env, save_dir="experiment", infos={}, tensorboard_layout={}):
+    def __init__(self, env:gym.Env, use_prev_action=False, save_dir="experiment", infos={}, tensorboard_layout={}):
         """
         * `env`: Environnement gym dans lequel l'agent va évoluer
+        * `use_prev_action`: Si True, l'action précédente est utilisée comme entrée additionnelle
         * `save_dir`: Dossier dans lequel les résultats de l'expérience seront sauvegardés
         * `infos`: Dictionnaire qui sera sauvegardé au format JSON dans le dossier de
                     l'expérience, utile pour y écrire les paramètres.
@@ -28,6 +29,7 @@ class Agent:
         self.agent = self
         self.test = False
         self.should_stop = False
+        self.use_prev_action = use_prev_action
         self.save_dir = save_dir
         self.stats = {
             'scores': {
@@ -51,13 +53,14 @@ class Agent:
         self.stats[key]["data"].append(value)
         self.tensorboard.add_scalar(key, value, self.training_steps)
 
-    def select_action(self, state: np.ndarray) -> np.ndarray:
+    def select_action(self, state: np.ndarray, prev_action=None) -> np.ndarray:
         """
         Prend un état en entrée, renvoie une action
+        * `prev_action`: Action précédente (optionnel)
         """
         raise NotImplementedError
 
-    def train_with_transition(self, state, action, next_state, reward, done, infos):
+    def train_with_transition(self, state, action, next_state, reward, done, infos, prev_action=None):
         """
         Met à jour l'agent suite à une transition. Les noms des paramètres sont explicites.
         Le paramètre `infos`, rarement utilisé, fait partie des réponses standardisées des
@@ -92,19 +95,22 @@ class Agent:
 
         state, _ = env.reset()
         done = False
+        # Initialize prev_action with a random action if the feature is enabled
+        prev_action = self.env.action_space.sample() if self.use_prev_action else None
         score = 0
 
         frames = []
         while not done:
             #frames.append(env.render('rgb_array'))
-            action = self.select_action(state)
+            action = self.select_action(state, prev_action)
             next_state, reward, terminated, truncated, infos = self.step(action, env=env)
             done = terminated or truncated
             if not test:
-                self.train_with_transition(state, action, next_state, reward, done, infos)
+                self.train_with_transition(state, action, next_state, reward, done, infos, prev_action)
                 self.training_steps+= 1
             score+= reward
             state = next_state
+            prev_action = action if self.use_prev_action else None  # Update prev_action if feature is enabled
 
         if not test:
             self.training_episodes+= 1
@@ -232,51 +238,50 @@ class QLearningAgent(Agent):
     """
     Implémente l'algorithme du *Q-Learning*
     """
-    def __init__(self, env, value_function, policy, gamma=0.99, **kwargs):
+    def __init__(self, env, value_function, policy, gamma=0.99, use_prev_action=False, **kwargs):
         """
         * `env`: Environnement gym dans lequel l'agent évolue
         * `value_function`: Instance d'une fonction de valeur (voir `code_tp/value_functions`)
         * `policy`: Instance d'une politique (voir `code_tp/policies`)
         * `gamma`: Taux de discount de l'agent. Doit être compris entre 0 et 1
         """
-        super().__init__(env, **kwargs)
+        super().__init__(env, use_prev_action=use_prev_action, **kwargs)
         self.value_function = value_function
         self.policy = policy
         self.gamma = gamma
         self.value_function.agent = self
         self.policy.agent = self
 
-    def train_with_transition(self, state, action, next_state, reward, done, infos):
-        #print("Training from QLeaningAgent")
-        target_value = self.target_value_from_state(next_state, reward, done)
-        self.value_function.update(state, action, target_value)
+    def train_with_transition(self, state, action, next_state, reward, done, infos, prev_action=None):
+        target_value = self.target_value_from_state(next_state, reward, done, action)  # Pass current action as next prev_action
+        self.value_function.update(state, action, target_value, prev_action)
         self.policy.update()
 
-    def eval_state(self, state):
-        return self.value_function.best_action_value_from_state(state)
+    def eval_state(self, state, prev_action=None):
+        return self.value_function.best_action_value_from_state(state, prev_action)
 
-    def eval_state_batch(self, states):
-        return self.value_function.best_action_value_from_state_batch(states)
+    def eval_state_batch(self, states, prev_actions=None):
+        return self.value_function.best_action_value_from_state_batch(states, prev_actions)
 
-    def target_value_from_state(self, next_state, reward, done):
-        _, next_value = self.eval_state(next_state)
+    def target_value_from_state(self, next_state, reward, done, prev_action=None):
+        _, next_value = self.eval_state(next_state, prev_action)
         if type(next_value) is torch.Tensor:
             next_value = next_value.detach().cpu().numpy()
         target = reward + self.gamma * next_value * (1-done)
         return target
 
-    def target_value_from_state_batch(self, next_states, rewards, dones):
-        _, next_values = self.eval_state_batch(next_states)
+    def target_value_from_state_batch(self, next_states, rewards, dones, prev_actions=None):
+        _, next_values = self.eval_state_batch(next_states, prev_actions)
         if type(next_values) is torch.Tensor:
             next_values = next_values.detach().cpu().numpy()
         targets = rewards + self.gamma * next_values * (1-dones)
         return targets
 
-    def select_action(self, state):
+    def select_action(self, state, prev_action=None):
         if not self.test:
-            return self.policy(state)
+            return self.policy(state, prev_action)
         else:
-            return self.policy.test(state)
+            return self.policy.test(state, prev_action)
 
     def plot_stats(self, save_dir):
         self.stats.update(self.value_function.stats)
@@ -284,12 +289,12 @@ class QLearningAgent(Agent):
         super().plot_stats(save_dir)
 
 class SARSAAgent(QLearningAgent):
-    def train_with_transition(self, state, action, next_state, reward, done, infos):
+    def train_with_transition(self, state, action, next_state, reward, done, infos, prev_action=None):
         if not done:
-            next_value = self.value_function(next_state, self.policy(next_state))
+            next_value = self.value_function(next_state, self.policy(next_state, prev_action))
         else:
             next_value = 0
         target_value = reward + self.gamma*next_value
-        self.value_function.update(state, action, target_value)
+        self.value_function.update(state, action, target_value, prev_action)
         self.policy.update()
     

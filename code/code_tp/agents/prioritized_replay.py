@@ -6,12 +6,12 @@ from .replay_buffer import ReplayBufferAgent, ReplayBuffer
 CREDITS TO https://github.com/rlcode/per
 
 SumTree
-a binary tree data structure where the parent’s value is the sum of its children
+a binary tree data structure where the parent's value is the sum of its children
 """
 
 class SumTree:
     """
-    A binary tree data structure where the parent’s value is the sum of its children
+    A binary tree data structure where the parent's value is the sum of its children
     """
     write = 0
 
@@ -155,11 +155,12 @@ class PrioritizedReplayBuffer(ReplayBuffer):
         is_weight /= is_weight.max()
 
         batch = (
-                    self.normalize(self.states[js]),
-                    self.actions[js],
-                    self.normalize(self.next_states[js]),
-                    self.rewards[js], self.dones[js], None
-                )
+            self.normalize(self.states[js]),
+            self.actions[js],
+            self.normalize(self.next_states[js]),
+            self.rewards[js], self.dones[js],
+            self.prev_actions[js]
+        )
 
         return batch, idxs, is_weight
 
@@ -174,10 +175,9 @@ class PrioritizedReplayBufferAgent(ReplayBufferAgent):
     critère de priorité
     """
     def train_one_batch(self):
-        (states, actions, next_states, rewards, dones, infos), idxs, is_weights = self.replay_buffer.sample()
+        (states, actions, next_states, rewards, dones, prev_actions), idxs, is_weights = self.replay_buffer.sample()
 
-        #print(actions.shape)
-        target_values = self.target_value_from_state_batch(next_states, rewards, dones)
-        errors = self.value_function.update_batch(states, actions, target_values, is_weights)
+        target_values = self.target_value_from_state_batch(next_states, rewards, dones, actions)
+        errors = self.value_function.update_batch(states, actions, target_values, prev_actions, is_weights)
         for idx, err in zip(idxs, errors):
             self.replay_buffer.update(idx, err)

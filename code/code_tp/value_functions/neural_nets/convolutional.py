@@ -19,7 +19,9 @@ class ConvolutionalNN(nn.Module):
                  activation=nn.Tanh,
                  pooling=None,
                  output_stack_class=LinearNeuralStack,
-                 output_stack_args={ 'layers': [256] }
+                 output_stack_args={ 'layers': [256] },
+                 embedding_dim=None,
+                 embedding_size=None
             ):
         """
         * `img_shape` est un tuple représentant la forme d'une image passée en entrée du réseau
@@ -41,6 +43,10 @@ class ConvolutionalNN(nn.Module):
         * `output_stack_class` et `output_stack_args` sont utilisés pour instancier le module Torch
         qui fera le lien entre la sortie des couches convolutionnelles et la sortie à `n_actions`
         éléments du DQN
+        * `embedding_dim` est la dimension du vecteur d'embedding pour l'entrée secondaire. Si None,
+        aucun embedding n'est utilisé
+        * `embedding_size` est la taille du vocabulaire pour l'embedding (nombre de valeurs discrètes
+        possibles). Doit être spécifié si embedding_dim est utilisé
 
         Si vous ne comprenez pas la signification d'un argument, la documentation de PyTorch
         et/ou un tutoriel sur les réseaux de neurones convolutionnels devrait éclaircir le
@@ -126,6 +132,13 @@ class ConvolutionalNN(nn.Module):
             y=conv_stack(rearrange([x], 'b w h t c -> b c w h t'))
 
         in_size = y.shape[-1]
+        
+        # Add embedding layer if specified
+        self.embedding = None
+        if embedding_dim is not None and embedding_size is not None:
+            self.embedding = nn.Embedding(embedding_size, embedding_dim)
+            in_size += embedding_dim  # Increase input size for the linear stack
+
         last_layers = output_stack_class(
             in_dim=in_size,
             n_actions=n_actions,
@@ -133,15 +146,23 @@ class ConvolutionalNN(nn.Module):
             **output_stack_args
         )
         
-        self.layers = nn.Sequential(
-            conv_stack,
-            last_layers
-        )
+        self.conv_stack = conv_stack
+        self.last_layers = last_layers
 
-    def forward(self, x):
+    def forward(self, x, secondary_input=None):
         if len(x.shape) == 4:
-            return self.layers(rearrange(x, "b w h c -> b c w h"))
+            conv_out = self.conv_stack(rearrange(x, "b w h c -> b c w h"))
         elif len(x.shape) == 5:
-            return self.layers(rearrange(x, "b w h t c -> b c w h t"))
+            conv_out = self.conv_stack(rearrange(x, "b w h t c -> b c w h t"))
         elif len(x.shape) == 3:
-            return self.layers(rearrange([x], "b w h c -> b c w h"))[0]
+            conv_out = self.conv_stack(rearrange([x], "b w h c -> b c w h"))[0]
+            
+        # Handle secondary input if provided
+        if secondary_input is not None and self.embedding is not None:
+            embedded = self.embedding(secondary_input)
+            if len(conv_out.shape) == 1:  # Single sample case
+                conv_out = torch.cat([conv_out, embedded.squeeze(0)], dim=0)
+            else:  # Batch case
+                conv_out = torch.cat([conv_out, embedded], dim=1)
+                
+        return self.last_layers(conv_out)

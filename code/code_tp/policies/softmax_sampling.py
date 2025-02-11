@@ -27,11 +27,11 @@ class SoftmaxSamplingPolicy(EGreedyPolicy):
             }
         })
 
-    def __call__(self, state, epsilon=None):
+    def __call__(self, state, prev_action=None, epsilon=None):
         if epsilon is None:
             epsilon = self.epsilon
 
-        values = self.value_function.from_state(state)
+        values = self.value_function.from_state(state, prev_action)
         if type(values) is torch.Tensor:
             values = values.clone().detach().cpu().numpy()
 
@@ -48,11 +48,11 @@ class SoftmaxSamplingPolicy(EGreedyPolicy):
             except:
                 print(epsilon, values, aux, probas)
                 self.greedy_policy.agent = self.agent
-                action = self.greedy_policy(state)
+                action = self.greedy_policy(state, prev_action)
                 self.agent.log_data("picked_proba", 1)
         else:
             self.greedy_policy.agent = self.agent
-            action = self.greedy_policy(state)
+            action = self.greedy_policy(state, prev_action)
             self.agent.log_data("picked_proba", 1)
 
         self.agent.log_data("predicted_value", values[action])

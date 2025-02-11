@@ -20,6 +20,7 @@ class ReplayBuffer:
         self.next_states = np.zeros((max_size, *obs_shape), dtype=np.uint8)
         self.rewards = np.zeros((max_size,), dtype=np.float16)
         self.dones = np.zeros((max_size,), dtype=bool)
+        self.prev_actions = np.zeros((max_size,), dtype=np.int8)
 
         self.max_size = max_size
         self.batch_size = batch_size
@@ -33,7 +34,7 @@ class ReplayBuffer:
         """
         return self.n_inserted > self.batch_size*10
 
-    def store(self, state, action, next_state, reward, done, infos):
+    def store(self, state, action, next_state, reward, done, infos, prev_action=None):
         """
         Enregistre  une transition en mémoire (écrase les anciennes si la taille
         maximum est atteinte)
@@ -48,8 +49,9 @@ class ReplayBuffer:
         self.next_states[i] = next_state
         self.rewards[i] = reward
         self.dones[i] = done
+        self.prev_actions[i] = prev_action if prev_action is not None else 0
 
-        self.n_inserted+= 1
+        self.n_inserted += 1
         return i
 
     def normalize(self, state):
@@ -72,7 +74,8 @@ class ReplayBuffer:
         return self.normalize(self.states[i]),\
                 self.actions[i],\
                 self.normalize(self.next_states[i]),\
-                self.rewards[i], self.dones[i], None
+                self.rewards[i], self.dones[i],\
+                self.prev_actions[i]
 
 class ReplayBufferAgent(QLearningAgent):
     """
@@ -102,9 +105,9 @@ class ReplayBufferAgent(QLearningAgent):
         self.update_interval = update_interval
         self.last_update = 0
 
-    def train_with_transition(self, state, action, next_state, reward, done, infos):
+    def train_with_transition(self, state, action, next_state, reward, done, infos, prev_action=None):
         #print("Training from ReplayBufferAgent")
-        self.replay_buffer.store(state, action, next_state, reward, done, infos)
+        self.replay_buffer.store(state, action, next_state, reward, done, infos, prev_action)
         if self.replay_buffer.ready():
             # n_stored = min(self.replay_buffer.n_inserted, self.replay_buffer.max_size)
             # update_interval = self.replay_buffer.max_size/n_stored
@@ -114,14 +117,14 @@ class ReplayBufferAgent(QLearningAgent):
                 self.last_update = self.training_steps
             self.policy.update()
 
-    def select_action(self, state):
-        return super().select_action(self.replay_buffer.normalize(state))
+    def select_action(self, state, prev_action=None):
+        return super().select_action(self.replay_buffer.normalize(state), prev_action)
 
     def train_one_batch(self):
-        states, actions, next_states, rewards, dones, infos = self.replay_buffer.sample()
+        states, actions, next_states, rewards, dones, prev_actions = self.replay_buffer.sample()
         #print(actions.shape)
-        target_values = self.target_value_from_state_batch(next_states, rewards, dones)
-        self.value_function.update_batch(states, actions, target_values)
+        target_values = self.target_value_from_state_batch(next_states, rewards, dones, actions)
+        self.value_function.update_batch(states, actions, target_values, prev_actions)
 
     def train(self, *args, **kwargs):
         if self.update_interval > 0:

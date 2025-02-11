@@ -71,8 +71,8 @@ class GreedyQPolicy(RandomPolicy):
             return maxa, maxv
             
 
-    def __call__(self, state):
-        values = self.value_function.from_state(state)
+    def __call__(self, state, prev_action=None):
+        values = self.value_function.from_state(state, prev_action)
         action, value = self.best_action_value_from_values(values)
         if type(value) is torch.Tensor:
             value = value.clone().detach().item()
@@ -84,8 +84,8 @@ class GreedyQPolicy(RandomPolicy):
         self.agent.log_data("predicted_value", value)
         return np.random.choice(actions)
     
-    def batch_call(self, state_batch):
-        values_batch = self.value_function.from_state_batch(state_batch)
+    def batch_call(self, state_batch, prev_actions=None):
+        values_batch = self.value_function.from_state_batch(state_batch, prev_actions)
         action_batch, value_batch = self.best_action_value_from_values_batch(values_batch)
         if type(value_batch) is torch.Tensor:
             value_batch = value_batch.clone().detach().item()
@@ -118,24 +118,24 @@ class EGreedyPolicy(RandomPolicy):
             }
         })
 
-    def __call__(self, state, epsilon=None):
+    def __call__(self, state, prev_action=None, epsilon=None):
         if epsilon is None:
             epsilon = self.epsilon
 
         if np.random.uniform(0,1) > epsilon:
             self.greedy_policy.agent = self.agent
-            action = self.greedy_policy(state)
+            action = self.greedy_policy(state, prev_action)
             self.stats.update(self.greedy_policy.stats)
         else:
             action = super().__call__(state)
 
         return action
     
-    def batch_call(self, state_batch, epsilon=None):
+    def batch_call(self, state_batch, prev_actions=None, epsilon=None):
         if epsilon is None:
             epsilon = self.epsilon
             
-        greedy_action_batch = self.greedy_policy.batch_call(state_batch)
+        greedy_action_batch = self.greedy_policy.batch_call(state_batch, prev_actions)
         random_action_batch = super().batch_call(state_batch)
         random_mask = np.random.uniform(0, 1, (state_batch.shape[0],))
         action_batch = np.where(random_mask > epsilon,
@@ -143,8 +143,8 @@ class EGreedyPolicy(RandomPolicy):
                                 random_action_batch)
         return action_batch
 
-    def test(self, state):
-        return self(state, epsilon=self.epsilon_test)
+    def test(self, state, prev_action=None):
+        return self(state, prev_action, epsilon=self.epsilon_test)
 
     def update_epsilon(self):
         self.epsilon = max(self.epsilon*(1-self.epsilon_decay), self.epsilon_min)
