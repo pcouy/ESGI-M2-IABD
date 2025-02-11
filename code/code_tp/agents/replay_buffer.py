@@ -18,7 +18,7 @@ class ReplayBuffer:
         self.states = np.zeros((max_size, *obs_shape), dtype=np.uint8)
         self.actions = np.zeros((max_size,), dtype=np.int8)
         self.next_states = np.zeros((max_size, *obs_shape), dtype=np.uint8)
-        self.rewards = np.zeros((max_size,), dtype=np.float16)
+        self.rewards = np.zeros((max_size,), dtype=np.float32)
         self.dones = np.zeros((max_size,), dtype=bool)
         self.prev_actions = np.zeros((max_size,), dtype=np.int8)
 
@@ -27,6 +27,8 @@ class ReplayBuffer:
         self.n_inserted = 0
         self.max_obs_val = -99999
         self.min_obs_val = 99999
+        self.norm_offset = 0
+        self.norm_scale = 1
 
     def ready(self):
         """
@@ -41,8 +43,16 @@ class ReplayBuffer:
 
         Les paramètres représentent la transition à stocker
         """
+        old_max = self.max_obs_val
+        old_min = self.min_obs_val
         self.max_obs_val = max(self.max_obs_val, state.max())
         self.min_obs_val = min(self.min_obs_val, state.min())
+        
+        # Update normalization constants only if min/max changed
+        if old_max != self.max_obs_val or old_min != self.min_obs_val:
+            self.norm_offset = (self.max_obs_val + self.min_obs_val) / 2
+            self.norm_scale = (self.max_obs_val - self.min_obs_val) / 2
+        
         i = self.n_inserted % self.max_size
         self.states[i] = state
         self.actions[i] = action
@@ -58,7 +68,7 @@ class ReplayBuffer:
         """
         Recadre les valeurs d'entrées entre -1 et 1
         """
-        return (2*state.astype(np.int16) - (self.max_obs_val + self.min_obs_val)) / (self.max_obs_val - self.min_obs_val)
+        return (state.astype(np.float32) - self.norm_offset) / self.norm_scale
 
     def sample(self):
         """
