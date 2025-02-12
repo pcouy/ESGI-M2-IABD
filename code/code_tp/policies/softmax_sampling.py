@@ -39,6 +39,13 @@ class SoftmaxSamplingPolicy(EGreedyPolicy):
             try:
                 aux = np.exp((1/epsilon - 1) * (values+self.biases-np.max(values+self.biases)))
                 self.biases = self.biases * self.biases_decay
+                if np.any(np.isnan(aux)):
+                    print("Warning: NaN values detected in softmax sampling probabilities")
+                    print(f"Values: {values}")
+                    print(f"Biases: {self.biases}")
+                    print(f"Max values: {np.max(values)}")
+                    print(f"Max biases: {np.max(self.biases)}")
+                    aux[np.isnan(aux)] = 0  # Replace NaN values with 0
                 if np.max(aux) == np.inf:
                     aux[aux != np.inf] = 0
                     aux[aux == np.inf] = 1
