@@ -80,7 +80,7 @@ class ReplayBuffer:
             state = torch.from_numpy(state).to(self.states.device)
         return (state.float() - self.norm_offset) / self.norm_scale
 
-    def sample(self):
+    def sample(self, i=None):
         """
         Renvoit un tuple de tableaux numpy contenant `batch_size` transitions dans
         le format suivant :
@@ -90,7 +90,12 @@ class ReplayBuffer:
         """
         # Sample directly on GPU
         n_stored = min(self.n_inserted, self.max_size)
-        i = torch.randint(0, n_stored, size=(self.batch_size,), device=self.states.device)
+        if i is None:
+            i = torch.randint(0, n_stored, size=(self.batch_size,), device=self.states.device)
+        elif isinstance(i, np.ndarray):
+            i = torch.from_numpy(i).to(self.states.device)
+        elif isinstance(i, torch.Tensor):
+            i = i.to(self.states.device)
         
         return (self.normalize(self.states[i]),
                 self.actions[i],
@@ -163,6 +168,10 @@ class ReplayBufferAgent(QLearningAgent):
             self.neural_process.join()
         except KeyboardInterrupt:
             self.should_stop = True
+            try:
+                self.replay_buffer.close()
+            except (AttributeError, RuntimeError):
+                pass
             self.experience_process.join()
             self.neural_process.join()
 

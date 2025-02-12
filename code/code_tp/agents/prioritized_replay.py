@@ -160,14 +160,7 @@ class PrioritizedReplayBuffer(ReplayBuffer):
         # Move is_weight to same device as the data
         is_weight = torch.tensor(is_weight, dtype=torch.float32, device=self.device)
 
-        batch = (
-            self.normalize(self.states[js]),
-            self.actions[js],
-            self.normalize(self.next_states[js]),
-            self.rewards[js],
-            self.dones[js],
-            self.prev_actions[js]
-        )
+        batch = super().sample(i=js)
 
         return batch, idxs, is_weight
 
