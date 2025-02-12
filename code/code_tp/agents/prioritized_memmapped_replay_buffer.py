@@ -144,7 +144,7 @@ class PrioritizedMemmappedReplayBuffer(MemmappedReplayBuffer):
                 time.sleep(0.1)
                 continue
 
-            # Sample indices based on priorities
+            # Sample indices based on priorities, but avoid episode endings
             batch_indices = []
             priorities = []
             segment = self.tree.total() / self.batch_size
@@ -152,11 +152,15 @@ class PrioritizedMemmappedReplayBuffer(MemmappedReplayBuffer):
             self.beta = np.min([1., self.beta + self.beta_increment_per_sampling])
             self.alpha = np.max([0., self.alpha - self.alpha_decrement_per_sampling])
 
-            for i in range(self.batch_size):
-                a = segment * i
-                b = segment * (i + 1)
+            # Keep sampling until we have enough valid transitions
+            while len(batch_indices) < self.batch_size:
+                a = segment * len(batch_indices)
+                b = segment * (len(batch_indices) + 1)
                 s = random.uniform(a, b)
                 idx, p, data_idx = self.tree.get(s)
+                # Skip if it's the last state of an episode
+                if data_idx >= n_stored - 1 or self.dones[data_idx]:
+                    continue
                 priorities.append(p)
                 batch_indices.append(data_idx)
 
@@ -175,7 +179,8 @@ class PrioritizedMemmappedReplayBuffer(MemmappedReplayBuffer):
             # Load and normalize the data
             batch_states = self.normalize(torch.from_numpy(self.states[batch_indices]).to(self.device, non_blocking=True))
             batch_actions = torch.from_numpy(self.actions[batch_indices]).to(self.device, non_blocking=True)
-            batch_next_states = self.normalize(torch.from_numpy(self.next_states[batch_indices]).to(self.device, non_blocking=True))
+            next_indices = [(idx + 1) % self.max_size for idx in batch_indices]
+            batch_next_states = self.normalize(torch.from_numpy(self.states[next_indices]).to(self.device, non_blocking=True))
             batch_rewards = torch.from_numpy(self.rewards[batch_indices]).to(self.device, non_blocking=True)
             batch_dones = torch.from_numpy(self.dones[batch_indices]).to(self.device, non_blocking=True)
             batch_prev_actions = torch.from_numpy(self.prev_actions[batch_indices]).to(self.device, non_blocking=True)
@@ -211,11 +216,16 @@ class PrioritizedMemmappedReplayBuffer(MemmappedReplayBuffer):
         self.beta = np.min([1., self.beta + self.beta_increment_per_sampling])
         self.alpha = np.max([0., self.alpha - self.alpha_decrement_per_sampling])
 
-        for i in range(self.batch_size):
-            a = segment * i
-            b = segment * (i + 1)
+        # Keep sampling until we have enough valid transitions
+        n_stored = self.n_inserted if self.n_inserted < self.max_size else self.max_size
+        while len(batch_indices) < self.batch_size:
+            a = segment * len(batch_indices)
+            b = segment * (len(batch_indices) + 1)
             s = random.uniform(a, b)
             idx, p, data_idx = self.tree.get(s)
+            # Skip if it's the last state of an episode
+            if data_idx >= n_stored - 1 or self.dones[data_idx]:
+                continue
             priorities.append(p)
             batch_indices.append(data_idx)
 
@@ -229,6 +239,7 @@ class PrioritizedMemmappedReplayBuffer(MemmappedReplayBuffer):
             else:
                 is_weights = torch.tensor(is_weights, dtype=torch.float32, device=self.device)
 
+        # Get the batch using parent class's sample method
         batch = super().sample(i=batch_indices)
         tree_idxs = [idx + self.tree.capacity - 1 for idx in batch_indices]
 
