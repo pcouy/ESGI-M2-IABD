@@ -8,7 +8,7 @@ setup(
     install_requires=[
         'gym>=0.21.0',
         # 'gym[atari]', 'gym[accept-rom-license]',
-        'opencv-python','numpy','matplotlib','pillow','pyqt5==5.15', 'torch', 'einops', 'tensorboard',
+        'opencv-python','numpy','matplotlib','pillow','pyqt5==5.15', 'torch>=2.6.0', 'einops', 'tensorboard',
         'gymnasium', 'shimmy[gym-v21]', 'shimmy',
     ]
 )
