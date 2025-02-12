@@ -45,7 +45,7 @@ class SoftmaxSamplingPolicy(EGreedyPolicy):
                     print(f"Biases: {self.biases}")
                     print(f"Max values: {np.max(values)}")
                     print(f"Max biases: {np.max(self.biases)}")
-                    aux[np.isnan(aux)] = 0  # Replace NaN values with 0
+                    aux[np.isnan(aux)] = 1  # Replace NaN values with 0
                 if np.max(aux) == np.inf:
                     aux[aux != np.inf] = 0
                     aux[aux == np.inf] = 1

@@ -158,12 +158,14 @@ class PrioritizedMemmappedReplayBuffer(MemmappedReplayBuffer):
                 idx, p, data_idx = self.tree.get(s)
                 priorities.append(p)
                 batch_indices.append(data_idx)
-
-            # Calculate importance sampling weights
-            sampling_probabilities = priorities / self.tree.total()
-            is_weights = np.power(self.tree.n_entries * sampling_probabilities, -self.beta)
-            is_weights /= is_weights.max()
-            is_weights = torch.tensor(is_weights, dtype=torch.float32, device=self.device)
+            if not all(priority == 0 for priority in priorities):
+                # Calculate importance sampling weights
+                sampling_probabilities = priorities / self.tree.total()
+                is_weights = np.power(self.tree.n_entries * sampling_probabilities, -self.beta)
+                is_weights /= (is_weights.max() + 1e-6)
+                is_weights = torch.tensor(is_weights, dtype=torch.float32, device=self.device)
+            else:
+                is_weights = torch.tensor([1.0] * self.batch_size, dtype=torch.float32, device=self.device)
             tree_idxs = [idx + self.tree.capacity - 1 for idx in batch_indices]
 
             # Load and normalize the data

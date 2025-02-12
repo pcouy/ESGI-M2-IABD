@@ -153,12 +153,15 @@ class PrioritizedReplayBuffer(ReplayBuffer):
             js.append(j)
             idxs.append(idx)
 
-        sampling_probabilities = priorities / self.tree.total()
-        is_weight = np.power(self.tree.n_entries * sampling_probabilities, -self.beta)
-        is_weight /= is_weight.max()
+        if not all(priority == 0 for priority in priorities):
+            sampling_probabilities = priorities / self.tree.total()
+            is_weight = np.power(self.tree.n_entries * sampling_probabilities, -self.beta)
+            is_weight /= (is_weight.max() + 1e-6)
 
-        # Move is_weight to same device as the data
-        is_weight = torch.tensor(is_weight, dtype=torch.float32, device=self.device)
+            # Move is_weight to same device as the data
+            is_weight = torch.tensor(is_weight, dtype=torch.float32, device=self.device)
+        else:
+            is_weight = torch.tensor([1.0] * self.batch_size, dtype=torch.float32, device=self.device)
 
         batch = super().sample(i=js)
 
