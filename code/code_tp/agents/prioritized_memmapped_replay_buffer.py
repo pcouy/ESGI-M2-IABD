@@ -6,6 +6,7 @@ import torch
 import random
 import time
 import queue
+import warnings
 
 
 class MemmappedSumTree:
@@ -158,14 +159,17 @@ class PrioritizedMemmappedReplayBuffer(MemmappedReplayBuffer):
                 idx, p, data_idx = self.tree.get(s)
                 priorities.append(p)
                 batch_indices.append(data_idx)
-            if not all(priority == 0 for priority in priorities):
-                # Calculate importance sampling weights
-                sampling_probabilities = priorities / self.tree.total()
+
+            # Calculate importance sampling weights
+            sampling_probabilities = priorities / self.tree.total()
+            with warnings.catch_warnings(record=True) as w:
+                warnings.simplefilter("always")
                 is_weights = np.power(self.tree.n_entries * sampling_probabilities, -self.beta)
-                is_weights /= (is_weights.max() + 1e-6)
-                is_weights = torch.tensor(is_weights, dtype=torch.float32, device=self.device)
-            else:
-                is_weights = torch.tensor([1.0] * self.batch_size, dtype=torch.float32, device=self.device)
+                is_weights /= is_weights.max()
+                if len(w) > 0 and issubclass(w[-1].category, RuntimeWarning):
+                    is_weights = None
+                else:
+                    is_weights = torch.tensor(is_weights, dtype=torch.float32, device=self.device)
             tree_idxs = [idx + self.tree.capacity - 1 for idx in batch_indices]
 
             # Load and normalize the data
@@ -216,9 +220,14 @@ class PrioritizedMemmappedReplayBuffer(MemmappedReplayBuffer):
             batch_indices.append(data_idx)
 
         sampling_probabilities = priorities / self.tree.total()
-        is_weights = np.power(self.tree.n_entries * sampling_probabilities, -self.beta)
-        is_weights /= is_weights.max()
-        is_weights = torch.tensor(is_weights, dtype=torch.float32, device=self.device)
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter("always")
+            is_weights = np.power(self.tree.n_entries * sampling_probabilities, -self.beta)
+            is_weights /= is_weights.max()
+            if len(w) > 0 and issubclass(w[-1].category, RuntimeWarning):
+                is_weights = None
+            else:
+                is_weights = torch.tensor(is_weights, dtype=torch.float32, device=self.device)
 
         batch = super().sample(i=batch_indices)
         tree_idxs = [idx + self.tree.capacity - 1 for idx in batch_indices]
