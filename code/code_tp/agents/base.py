@@ -17,7 +17,7 @@ class Agent:
     """
     Classe de base pour tous les agents.
     """
-    def __init__(self, env:gym.Env, use_prev_action=False, save_dir="experiment", infos={}, tensorboard_layout={}):
+    def __init__(self, env:gym.Env, use_prev_action=False, save_dir="experiment", infos={}, tensorboard_layout={}, initial_prev_action=None):
         """
         * `env`: Environnement gym dans lequel l'agent va évoluer
         * `use_prev_action`: Si True, l'action précédente est utilisée comme entrée additionnelle
@@ -32,6 +32,7 @@ class Agent:
         self.test = False
         self.should_stop = False
         self.use_prev_action = use_prev_action
+        self.initial_prev_action = initial_prev_action
         self.save_dir = save_dir
         self.stats = {
             'scores': {
@@ -98,7 +99,9 @@ class Agent:
         state, _ = env.reset()
         done = False
         # Initialize prev_action with a random action if the feature is enabled
-        prev_action = self.env.action_space.sample() if self.use_prev_action else None
+        prev_action = (self.initial_prev_action if self.initial_prev_action is not None 
+                      else self.env.action_space.sample() if self.use_prev_action 
+                      else None)
         score = 0
 
         frames = []
