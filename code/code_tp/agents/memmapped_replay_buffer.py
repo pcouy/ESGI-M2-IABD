@@ -9,14 +9,13 @@ import time
 def _preloader_func(storage_path, max_size, batch_size, obs_shape, n_inserted_val, preload_queue, stop_event):
     # Open memmapped arrays for reading
     states_path = os.path.join(storage_path, "states.dat")
-    next_states_path = os.path.join(storage_path, "next_states.dat")
     actions_path = os.path.join(storage_path, "actions.dat")
     rewards_path = os.path.join(storage_path, "rewards.dat")
     dones_path = os.path.join(storage_path, "dones.dat")
     prev_actions_path = os.path.join(storage_path, "prev_actions.dat")
 
-    states = np.memmap(states_path, mode="r", shape=(max_size, *obs_shape), dtype=np.uint8)
-    next_states = np.memmap(next_states_path, mode="r", shape=(max_size, *obs_shape), dtype=np.uint8)
+    # Now states array contains both current and next states sequentially
+    states = np.memmap(states_path, mode="r", shape=(max_size + 1, *obs_shape), dtype=np.uint8)
     actions = np.memmap(actions_path, mode="r", shape=(max_size,), dtype=np.int64)
     rewards = np.memmap(rewards_path, mode="r", shape=(max_size,), dtype=np.float32)
     dones = np.memmap(dones_path, mode="r", shape=(max_size,), dtype=bool)
@@ -29,11 +28,19 @@ def _preloader_func(storage_path, max_size, batch_size, obs_shape, n_inserted_va
         if n_stored < batch_size:
             time.sleep(0.1)
             continue
-        idx = np.random.randint(0, n_stored, size=batch_size)
-        # Copy the slices into memory
+        
+        # Sample indices that don't end an episode (done=False)
+        valid_indices = np.where(~dones[:n_stored-1])[0]  # -1 to avoid last transition
+        if len(valid_indices) < batch_size:
+            time.sleep(0.1)
+            continue
+        idx = np.random.choice(valid_indices, size=batch_size, replace=True)
+        
+        # Copy the slices into memory - note we get next states from idx + 1
         batch_states = states[idx].copy()
         batch_actions = actions[idx].copy()
-        batch_next_states = next_states[idx].copy()
+        next_idx = (idx + 1) % max_size
+        batch_next_states = states[next_idx].copy()
         batch_rewards = rewards[idx].copy()
         batch_dones = dones[idx].copy()
         batch_prev_actions = prev_actions[idx].copy()
@@ -63,14 +70,13 @@ class MemmappedReplayBuffer(ReplayBuffer):
         
         # Create memmapped arrays for disk storage
         states_path = os.path.join(self.storage_path, "states.dat")
-        next_states_path = os.path.join(self.storage_path, "next_states.dat")
         actions_path = os.path.join(self.storage_path, "actions.dat")
         rewards_path = os.path.join(self.storage_path, "rewards.dat")
         dones_path = os.path.join(self.storage_path, "dones.dat")
         prev_actions_path = os.path.join(self.storage_path, "prev_actions.dat")
         
-        self.states = np.memmap(states_path, mode="w+", shape=(max_size, *obs_shape), dtype=np.uint8)
-        self.next_states = np.memmap(next_states_path, mode="w+", shape=(max_size, *obs_shape), dtype=np.uint8)
+        # Single states array with one extra slot for the last next_state
+        self.states = np.memmap(states_path, mode="w+", shape=(max_size + 1, *obs_shape), dtype=np.uint8)
         self.actions = np.memmap(actions_path, mode="w+", shape=(max_size,), dtype=np.int64)
         self.rewards = np.memmap(rewards_path, mode="w+", shape=(max_size,), dtype=np.float32)
         self.dones = np.memmap(dones_path, mode="w+", shape=(max_size,), dtype=bool)
@@ -116,11 +122,18 @@ class MemmappedReplayBuffer(ReplayBuffer):
                 time.sleep(0.1)
                 continue
 
-            idx = np.random.randint(0, n_stored, size=self.batch_size)
-            # Load and normalize states
+            # Sample indices that don't end an episode (done=False)
+            valid_indices = np.where(~self.dones[:n_stored-1])[0]  # -1 to avoid last transition
+            if len(valid_indices) < self.batch_size:
+                time.sleep(0.1)
+                continue
+            idx = np.random.choice(valid_indices, size=self.batch_size, replace=True)
+
+            # Load and normalize states - note we get next states from idx + 1
             batch_states = self.normalize(torch.from_numpy(self.states[idx]).to(self.device, non_blocking=True))
             batch_actions = torch.from_numpy(self.actions[idx]).to(self.device, non_blocking=True)
-            batch_next_states = self.normalize(torch.from_numpy(self.next_states[idx]).to(self.device, non_blocking=True))
+            next_idx = (idx + 1) % self.max_size
+            batch_next_states = self.normalize(torch.from_numpy(self.states[next_idx]).to(self.device, non_blocking=True))
             batch_rewards = torch.from_numpy(self.rewards[idx]).to(self.device, non_blocking=True)
             batch_dones = torch.from_numpy(self.dones[idx]).to(self.device, non_blocking=True)
             batch_prev_actions = torch.from_numpy(self.prev_actions[idx]).to(self.device, non_blocking=True)
@@ -148,8 +161,8 @@ class MemmappedReplayBuffer(ReplayBuffer):
         # Update normalization statistics
         old_max = self.max_obs_val
         old_min = self.min_obs_val
-        self.max_obs_val = max(self.max_obs_val, state_np.max())
-        self.min_obs_val = min(self.min_obs_val, state_np.min())
+        self.max_obs_val = max(self.max_obs_val, state_np.max(), next_state_np.max())
+        self.min_obs_val = min(self.min_obs_val, state_np.min(), next_state_np.min())
         if old_max != self.max_obs_val or old_min != self.min_obs_val:
             self.norm_offset = (self.max_obs_val + self.min_obs_val) / 2
             self.norm_scale = (self.max_obs_val - self.min_obs_val) / 2
@@ -158,14 +171,22 @@ class MemmappedReplayBuffer(ReplayBuffer):
             with self.n_inserted_lock:
                 idx = self.n_inserted % self.max_size
                 self.n_inserted += 1
+                # If this is the end of an episode, increment again to protect the final state
+                if done:
+                    self.n_inserted += 1
         else:
             with self.n_inserted_val.get_lock():
                 idx = self.n_inserted_val.value % self.max_size
                 self.n_inserted_val.value += 1
+                # If this is the end of an episode, increment again to protect the final state
+                if done:
+                    self.n_inserted_val.value += 1
         
+        # Store current state and next state sequentially
         self.states[idx] = state_np
+        next_idx = (idx + 1) % self.max_size
+        self.states[next_idx] = next_state_np
         self.actions[idx] = int(action)
-        self.next_states[idx] = next_state_np
         self.rewards[idx] = float(reward)
         self.dones[idx] = bool(done)
         self.prev_actions[idx] = int(prev_action) if prev_action is not None else 0
@@ -179,7 +200,6 @@ class MemmappedReplayBuffer(ReplayBuffer):
     def flush(self):
         self.states.flush()
         self.actions.flush()
-        self.next_states.flush()
         self.rewards.flush()
         self.dones.flush()
         self.prev_actions.flush()
@@ -194,17 +214,24 @@ class MemmappedReplayBuffer(ReplayBuffer):
     
     def sample(self, i=None):
         if i is not None:
+            # For direct index sampling, verify indices are not from episode endings
+            i = np.asarray(i)
+            if np.any(i >= self.max_size - 1) or np.any(self.dones[i]):
+                raise ValueError("Cannot sample from the last state of an episode or beyond buffer size")
+                
             if self.preload_on_gpu:
                 batch_states = torch.from_numpy(self.states[i]).to(self.device, non_blocking=True)
                 batch_actions = torch.from_numpy(self.actions[i]).to(self.device, non_blocking=True)
-                batch_next_states = torch.from_numpy(self.next_states[i]).to(self.device, non_blocking=True)
+                next_i = (i + 1) % self.max_size
+                batch_next_states = torch.from_numpy(self.states[next_i]).to(self.device, non_blocking=True)
                 batch_rewards = torch.from_numpy(self.rewards[i]).to(self.device, non_blocking=True)
                 batch_dones = torch.from_numpy(self.dones[i]).to(self.device, non_blocking=True)
                 batch_prev_actions = torch.from_numpy(self.prev_actions[i]).to(self.device, non_blocking=True)
             else:
                 batch_states = self.states[i]
                 batch_actions = self.actions[i]
-                batch_next_states = self.next_states[i]
+                next_i = (i + 1) % self.max_size
+                batch_next_states = self.states[next_i]
                 batch_rewards = self.rewards[i]
                 batch_dones = self.dones[i]
                 batch_prev_actions = self.prev_actions[i]
@@ -230,20 +257,35 @@ class MemmappedReplayBuffer(ReplayBuffer):
                     if self.preload_on_gpu:
                         with self.n_inserted_lock:
                             current_n = self.n_inserted
-                        idx = np.random.randint(0, current_n if current_n < self.max_size else self.max_size, size=self.batch_size)
+                        n_stored = current_n if current_n < self.max_size else self.max_size
+                        
+                        # Sample indices that don't end an episode (done=False)
+                        valid_indices = np.where(~self.dones[:n_stored-1])[0]  # -1 to avoid last transition
+                        if len(valid_indices) < self.batch_size:
+                            raise RuntimeError("Not enough valid transitions in buffer")
+                        idx = np.random.choice(valid_indices, size=self.batch_size, replace=True)
+                        
                         batch_states = self.normalize(torch.from_numpy(self.states[idx]).to(self.device, non_blocking=True))
                         batch_actions = torch.from_numpy(self.actions[idx]).to(self.device, non_blocking=True)
-                        batch_next_states = self.normalize(torch.from_numpy(self.next_states[idx]).to(self.device, non_blocking=True))
+                        next_idx = (idx + 1) % self.max_size
+                        batch_next_states = self.normalize(torch.from_numpy(self.states[next_idx]).to(self.device, non_blocking=True))
                         batch_rewards = torch.from_numpy(self.rewards[idx]).to(self.device, non_blocking=True)
                         batch_dones = torch.from_numpy(self.dones[idx]).to(self.device, non_blocking=True)
                         batch_prev_actions = torch.from_numpy(self.prev_actions[idx]).to(self.device, non_blocking=True)
                         return (batch_states, batch_actions, batch_next_states, batch_rewards, batch_dones, batch_prev_actions)
                     else:
                         current_n = self.n_inserted_val.value if self.n_inserted_val.value < self.max_size else self.max_size
-                        idx = np.random.randint(0, current_n, size=self.batch_size)
+                        
+                        # Sample indices that don't end an episode (done=False)
+                        valid_indices = np.where(~self.dones[:current_n-1])[0]  # -1 to avoid last transition
+                        if len(valid_indices) < self.batch_size:
+                            raise RuntimeError("Not enough valid transitions in buffer")
+                        idx = np.random.choice(valid_indices, size=self.batch_size, replace=True)
+                        
                         batch_states = self.states[idx]
                         batch_actions = self.actions[idx]
-                        batch_next_states = self.next_states[idx]
+                        next_idx = (idx + 1) % self.max_size
+                        batch_next_states = self.states[next_idx]
                         batch_rewards = self.rewards[idx]
                         batch_dones = self.dones[idx]
                         batch_prev_actions = self.prev_actions[idx]
