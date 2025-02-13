@@ -133,6 +133,7 @@ class PrioritizedReplayBuffer(ReplayBuffer):
         i = super().store(*args, **kwargs)
         p = self._get_priority(self.default_error)
         self.tree.add(p, i)
+        return i
 
     def sample(self):
         batch = []

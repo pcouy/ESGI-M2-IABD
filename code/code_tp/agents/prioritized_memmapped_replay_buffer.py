@@ -159,7 +159,7 @@ class PrioritizedMemmappedReplayBuffer(MemmappedReplayBuffer):
                 s = random.uniform(a, b)
                 idx, p, data_idx = self.tree.get(s)
                 # Skip if it's the last state of an episode
-                if data_idx >= n_stored - 1 or self.dones[data_idx]:
+                if data_idx >= n_stored - 1 or self.dones[(data_idx) % self.max_size]:
                     continue
                 priorities.append(p)
                 batch_indices.append(data_idx)
@@ -179,7 +179,7 @@ class PrioritizedMemmappedReplayBuffer(MemmappedReplayBuffer):
             # Load and normalize the data
             batch_states = self.normalize(torch.from_numpy(self.states[batch_indices]).to(self.device, non_blocking=True))
             batch_actions = torch.from_numpy(self.actions[batch_indices]).to(self.device, non_blocking=True)
-            next_indices = [(idx + 1) % self.max_size for idx in batch_indices]
+            next_indices = [(idx + 1) % (self.max_size + 1) for idx in batch_indices]
             batch_next_states = self.normalize(torch.from_numpy(self.states[next_indices]).to(self.device, non_blocking=True))
             batch_rewards = torch.from_numpy(self.rewards[batch_indices]).to(self.device, non_blocking=True)
             batch_dones = torch.from_numpy(self.dones[batch_indices]).to(self.device, non_blocking=True)
@@ -198,7 +198,7 @@ class PrioritizedMemmappedReplayBuffer(MemmappedReplayBuffer):
 
     def sample(self, i=None):
         if i is not None:
-            return super().sample(i)
+            return super().sample(i=i, skip_episode_check=True)
             
         if self.preload_queue is not None:
             try:
@@ -223,8 +223,8 @@ class PrioritizedMemmappedReplayBuffer(MemmappedReplayBuffer):
             b = segment * (len(batch_indices) + 1)
             s = random.uniform(a, b)
             idx, p, data_idx = self.tree.get(s)
-            # Skip if it's the last state of an episode
-            if data_idx >= n_stored - 1 or self.dones[data_idx]:
+            # Skip if it's the last state of an episode or beyond buffer size
+            if data_idx >= n_stored - 1 or self.dones[(data_idx) % self.max_size]:
                 continue
             priorities.append(p)
             batch_indices.append(data_idx)
@@ -239,8 +239,8 @@ class PrioritizedMemmappedReplayBuffer(MemmappedReplayBuffer):
             else:
                 is_weights = torch.tensor(is_weights, dtype=torch.float32, device=self.device)
 
-        # Get the batch using parent class's sample method
-        batch = super().sample(i=batch_indices)
+        # Get the batch using parent class's sample method with skip_episode_check=True
+        batch = super().sample(i=batch_indices, skip_episode_check=True)
         tree_idxs = [idx + self.tree.capacity - 1 for idx in batch_indices]
 
         return batch, tree_idxs, is_weights

@@ -4,6 +4,8 @@ import os
 import torch
 import multiprocessing
 import time
+import queue
+import threading
 
 
 def _preloader_func(storage_path, max_size, batch_size, obs_shape, n_inserted_val, preload_queue, stop_event):
@@ -30,7 +32,8 @@ def _preloader_func(storage_path, max_size, batch_size, obs_shape, n_inserted_va
             continue
         
         # Sample indices that don't end an episode (done=False)
-        valid_indices = np.where(~dones[:n_stored-1])[0]  # -1 to avoid last transition
+        # Check dones at current index since we store done flags at next_idx
+        valid_indices = np.where(~dones[:n_stored])[0]  # No need for -1 since dones are at next index
         if len(valid_indices) < batch_size:
             time.sleep(0.1)
             continue
@@ -39,10 +42,10 @@ def _preloader_func(storage_path, max_size, batch_size, obs_shape, n_inserted_va
         # Copy the slices into memory - note we get next states from idx + 1
         batch_states = states[idx].copy()
         batch_actions = actions[idx].copy()
-        next_idx = (idx + 1) % max_size
+        next_idx = (idx + 1) % (max_size + 1)
         batch_next_states = states[next_idx].copy()
         batch_rewards = rewards[idx].copy()
-        batch_dones = dones[idx].copy()
+        batch_dones = dones[(idx + 1) % max_size].copy()  # Get dones from next index
         batch_prev_actions = prev_actions[idx].copy()
         
         try:
@@ -88,7 +91,6 @@ class MemmappedReplayBuffer(ReplayBuffer):
         self.preload_on_gpu = preload_on_gpu
         if self.preload_on_gpu:
             # Use a threading based preloader that loads directly to GPU
-            import threading, queue
             self.n_inserted = 0
             self.n_inserted_lock = threading.Lock()
             self.preload_queue = queue.Queue(maxsize=self.preload_batches)
@@ -123,7 +125,8 @@ class MemmappedReplayBuffer(ReplayBuffer):
                 continue
 
             # Sample indices that don't end an episode (done=False)
-            valid_indices = np.where(~self.dones[:n_stored-1])[0]  # -1 to avoid last transition
+            # Check dones at current index since we store done flags at next_idx
+            valid_indices = np.where(~self.dones[:n_stored])[0]  # No need for -1 since dones are at next index
             if len(valid_indices) < self.batch_size:
                 time.sleep(0.1)
                 continue
@@ -132,10 +135,10 @@ class MemmappedReplayBuffer(ReplayBuffer):
             # Load and normalize states - note we get next states from idx + 1
             batch_states = self.normalize(torch.from_numpy(self.states[idx]).to(self.device, non_blocking=True))
             batch_actions = torch.from_numpy(self.actions[idx]).to(self.device, non_blocking=True)
-            next_idx = (idx + 1) % self.max_size
+            next_idx = (idx + 1) % (self.max_size + 1)
             batch_next_states = self.normalize(torch.from_numpy(self.states[next_idx]).to(self.device, non_blocking=True))
             batch_rewards = torch.from_numpy(self.rewards[idx]).to(self.device, non_blocking=True)
-            batch_dones = torch.from_numpy(self.dones[idx]).to(self.device, non_blocking=True)
+            batch_dones = torch.from_numpy(self.dones[(idx + 1) % self.max_size]).to(self.device, non_blocking=True)  # Get dones from next index
             batch_prev_actions = torch.from_numpy(self.prev_actions[idx]).to(self.device, non_blocking=True)
             try:
                 self.preload_queue.put((batch_states, batch_actions, batch_next_states, batch_rewards, batch_dones, batch_prev_actions), block=False)
@@ -184,11 +187,13 @@ class MemmappedReplayBuffer(ReplayBuffer):
         
         # Store current state and next state sequentially
         self.states[idx] = state_np
-        next_idx = (idx + 1) % self.max_size
+        next_idx = (idx + 1) % (self.max_size + 1)
         self.states[next_idx] = next_state_np
+        
+        # Store other transition data, with done at next_idx % max_size since dones array is max_size long
         self.actions[idx] = int(action)
         self.rewards[idx] = float(reward)
-        self.dones[idx] = bool(done)
+        self.dones[(idx + 1) % self.max_size] = bool(done)  # Store done at next index
         self.prev_actions[idx] = int(prev_action) if prev_action is not None else 0
         
         # Optionally flush every 100 insertions
@@ -212,28 +217,27 @@ class MemmappedReplayBuffer(ReplayBuffer):
         else:
             return self.n_inserted_val.value > self.batch_size * 10
     
-    def sample(self, i=None):
+    def sample(self, i=None, skip_episode_check=False):
         if i is not None:
             # For direct index sampling, verify indices are not from episode endings
             i = np.asarray(i)
-            if np.any(i >= self.max_size - 1) or np.any(self.dones[i]):
+            next_i = (i + 1) % (self.max_size + 1)
+            if not skip_episode_check and (np.any(i >= self.max_size - 1) or np.any(self.dones[next_i % self.max_size])):  # Check dones at next index
                 raise ValueError("Cannot sample from the last state of an episode or beyond buffer size")
                 
             if self.preload_on_gpu:
                 batch_states = torch.from_numpy(self.states[i]).to(self.device, non_blocking=True)
                 batch_actions = torch.from_numpy(self.actions[i]).to(self.device, non_blocking=True)
-                next_i = (i + 1) % self.max_size
                 batch_next_states = torch.from_numpy(self.states[next_i]).to(self.device, non_blocking=True)
                 batch_rewards = torch.from_numpy(self.rewards[i]).to(self.device, non_blocking=True)
-                batch_dones = torch.from_numpy(self.dones[i]).to(self.device, non_blocking=True)
+                batch_dones = torch.from_numpy(self.dones[(i + 1) % self.max_size]).to(self.device, non_blocking=True)  # Get dones from next index
                 batch_prev_actions = torch.from_numpy(self.prev_actions[i]).to(self.device, non_blocking=True)
             else:
                 batch_states = self.states[i]
                 batch_actions = self.actions[i]
-                next_i = (i + 1) % self.max_size
                 batch_next_states = self.states[next_i]
                 batch_rewards = self.rewards[i]
-                batch_dones = self.dones[i]
+                batch_dones = self.dones[(i + 1) % self.max_size]  # Get dones from next index
                 batch_prev_actions = self.prev_actions[i]
             
             # Normalize states for direct index sampling
@@ -260,34 +264,34 @@ class MemmappedReplayBuffer(ReplayBuffer):
                         n_stored = current_n if current_n < self.max_size else self.max_size
                         
                         # Sample indices that don't end an episode (done=False)
-                        valid_indices = np.where(~self.dones[:n_stored-1])[0]  # -1 to avoid last transition
+                        valid_indices = np.where(~self.dones[:n_stored])[0]  # No need for -1 since dones are at next index
                         if len(valid_indices) < self.batch_size:
                             raise RuntimeError("Not enough valid transitions in buffer")
                         idx = np.random.choice(valid_indices, size=self.batch_size, replace=True)
                         
                         batch_states = self.normalize(torch.from_numpy(self.states[idx]).to(self.device, non_blocking=True))
                         batch_actions = torch.from_numpy(self.actions[idx]).to(self.device, non_blocking=True)
-                        next_idx = (idx + 1) % self.max_size
+                        next_idx = (idx + 1) % (self.max_size + 1)
                         batch_next_states = self.normalize(torch.from_numpy(self.states[next_idx]).to(self.device, non_blocking=True))
                         batch_rewards = torch.from_numpy(self.rewards[idx]).to(self.device, non_blocking=True)
-                        batch_dones = torch.from_numpy(self.dones[idx]).to(self.device, non_blocking=True)
+                        batch_dones = torch.from_numpy(self.dones[(idx + 1) % self.max_size]).to(self.device, non_blocking=True)  # Get dones from next index
                         batch_prev_actions = torch.from_numpy(self.prev_actions[idx]).to(self.device, non_blocking=True)
                         return (batch_states, batch_actions, batch_next_states, batch_rewards, batch_dones, batch_prev_actions)
                     else:
                         current_n = self.n_inserted_val.value if self.n_inserted_val.value < self.max_size else self.max_size
                         
                         # Sample indices that don't end an episode (done=False)
-                        valid_indices = np.where(~self.dones[:current_n-1])[0]  # -1 to avoid last transition
+                        valid_indices = np.where(~self.dones[:current_n])[0]  # No need for -1 since dones are at next index
                         if len(valid_indices) < self.batch_size:
                             raise RuntimeError("Not enough valid transitions in buffer")
                         idx = np.random.choice(valid_indices, size=self.batch_size, replace=True)
                         
                         batch_states = self.states[idx]
                         batch_actions = self.actions[idx]
-                        next_idx = (idx + 1) % self.max_size
+                        next_idx = (idx + 1) % (self.max_size + 1)
                         batch_next_states = self.states[next_idx]
                         batch_rewards = self.rewards[idx]
-                        batch_dones = self.dones[idx]
+                        batch_dones = self.dones[(idx + 1) % self.max_size]  # Get dones from next index
                         batch_prev_actions = self.prev_actions[idx]
             
             # Normalize states for non-preloaded batches
@@ -301,11 +305,6 @@ class MemmappedReplayBuffer(ReplayBuffer):
                         batch_next_states, torch.from_numpy(batch_rewards).to(self.device),
                         torch.from_numpy(batch_dones).to(self.device),
                         torch.from_numpy(batch_prev_actions).to(self.device))
-    
-    def normalize(self, state):
-        if not torch.is_tensor(state):
-            state = torch.from_numpy(state).to(self.device)
-        return (state.float() - self.norm_offset) / self.norm_scale
     
     def close(self):
         if self.preload_on_gpu:

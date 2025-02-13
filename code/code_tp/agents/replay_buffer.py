@@ -80,6 +80,15 @@ class ReplayBuffer:
             state = torch.from_numpy(state).to(self.states.device)
         return (state.float() - self.norm_offset) / self.norm_scale
 
+    def denormalize(self, state):
+        """
+        Recadre les valeurs d'entrées entre -1 et 1
+        """
+        # Handle both numpy arrays and torch tensors
+        if isinstance(state, np.ndarray):
+            state = torch.from_numpy(state).to(self.states.device)
+        return state * self.norm_scale + self.norm_offset
+
     def sample(self, i=None):
         """
         Renvoit un tuple de tableaux numpy contenant `batch_size` transitions dans
