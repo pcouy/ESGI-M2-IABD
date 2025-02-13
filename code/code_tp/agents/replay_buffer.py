@@ -126,7 +126,7 @@ class ReplayBufferAgent(QLearningAgent):
     * Si le *buffer* est prêt, on échantillonne périodiquement une *batch* de transitions qu'on utilise  ensuite
     pour mettre à jour l'approximation de la fonction de valeur
     """
-    def __init__(self, env, replay_buffer_class, replay_buffer_args={}, update_interval=1, **kwargs):
+    def __init__(self, env, replay_buffer_class, replay_buffer_args={}, update_interval=1, batches_per_update=1, **kwargs):
         """
         * `env`: Environnement gym dans lequel l'agent va évoluer
         * `replay_buffer_class`: Classe implémentant le *replay buffer*
@@ -141,6 +141,7 @@ class ReplayBufferAgent(QLearningAgent):
             **replay_buffer_args
         )
         self.update_interval = update_interval
+        self.batches_per_update = batches_per_update
         self.last_update = 0
 
     def train_with_transition(self, state, action, next_state, reward, done, infos, prev_action=None):
@@ -151,7 +152,8 @@ class ReplayBufferAgent(QLearningAgent):
             # update_interval = self.replay_buffer.max_size/n_stored
             update_interval = self.update_interval
             if update_interval > 0 and self.training_steps-self.last_update >= update_interval:
-                self.train_one_batch()
+                for _ in range(self.batches_per_update):
+                    self.train_one_batch()
                 self.last_update = self.training_steps
             self.policy.update()
 

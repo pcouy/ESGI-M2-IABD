@@ -244,14 +244,14 @@ class QLearningAgent(Agent):
     """
     Implémente l'algorithme du *Q-Learning*
     """
-    def __init__(self, env, value_function, policy, gamma=0.99, use_prev_action=False, **kwargs):
+    def __init__(self, env, value_function, policy, gamma=0.99, **kwargs):
         """
         * `env`: Environnement gym dans lequel l'agent évolue
         * `value_function`: Instance d'une fonction de valeur (voir `code_tp/value_functions`)
         * `policy`: Instance d'une politique (voir `code_tp/policies`)
         * `gamma`: Taux de discount de l'agent. Doit être compris entre 0 et 1
         """
-        super().__init__(env, use_prev_action=use_prev_action, **kwargs)
+        super().__init__(env, **kwargs)
         self.value_function = value_function
         self.policy = policy
         self.gamma = gamma
