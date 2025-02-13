@@ -217,6 +217,22 @@ class MemmappedReplayBuffer(ReplayBuffer):
         else:
             return self.n_inserted_val.value > self.batch_size * 10
     
+    def wait_for_queue(self, timeout=10):
+        """Wait until the preload queue is full or timeout is reached.
+        
+        Args:
+            timeout: Maximum time to wait in seconds (default=10)
+            
+        Returns:
+            bool: True if queue is full, False if timeout was reached
+        """
+        start_time = time.time()
+        while time.time() - start_time < timeout:
+            if self.preload_queue.full():
+                return True
+            time.sleep(0.1)
+        return False
+
     def sample(self, i=None, skip_episode_check=False):
         if i is not None:
             # For direct index sampling, verify indices are not from episode endings

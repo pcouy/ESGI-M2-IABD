@@ -182,7 +182,8 @@ class PrioritizedMemmappedReplayBuffer(MemmappedReplayBuffer):
             next_indices = [(idx + 1) % (self.max_size + 1) for idx in batch_indices]
             batch_next_states = self.normalize(torch.from_numpy(self.states[next_indices]).to(self.device, non_blocking=True))
             batch_rewards = torch.from_numpy(self.rewards[batch_indices]).to(self.device, non_blocking=True)
-            batch_dones = torch.from_numpy(self.dones[batch_indices]).to(self.device, non_blocking=True)
+            next_done_indices = [(idx + 1) % self.max_size for idx in batch_indices]
+            batch_dones = torch.from_numpy(self.dones[next_done_indices]).to(self.device, non_blocking=True)
             batch_prev_actions = torch.from_numpy(self.prev_actions[batch_indices]).to(self.device, non_blocking=True)
 
             try:

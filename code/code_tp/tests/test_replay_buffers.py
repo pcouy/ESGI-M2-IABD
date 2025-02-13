@@ -201,8 +201,8 @@ class TestReplayBuffers(unittest.TestCase):
                 else:
                     print(f"  Sample {i}: episode={current_episode}, step={current_step} -> "
                           f"next_episode={next_episode}, next_step={next_step}, done={dones[i]}")
-                print(f"Expected episode length: {episode_lengths[current_episode]}")
-                print(f"Expected done: {next_step == episode_lengths[current_episode]}")
+                print(f"  Expected episode length: {episode_lengths[current_episode]}")
+                print(f"  Expected done: {next_step == episode_lengths[current_episode]}")
                 
                 # Track if we found a terminal transition
                 if dones[i]:
@@ -216,6 +216,52 @@ class TestReplayBuffers(unittest.TestCase):
                        "No terminal transitions (done=True) were sampled across all attempts. "
                        "The sampling may be biased against terminal states.")
 
+    def verify_batch_dimensions(self, buffer, is_prioritized=False, wait_for_queue=False):
+        """Helper method to verify dimensions of sampled batch elements.
+        
+        Args:
+            buffer: The replay buffer to sample from
+            is_prioritized: Whether the buffer is prioritized (affects return tuple)
+            wait_for_queue: Whether to wait for queue to be full for memmapped buffers
+        """
+        # Fill buffer with enough transitions
+        states, _ = self.fill_buffer(buffer, n_transitions=int(0.8*self.max_size))
+        
+        # For memmapped buffers, wait for queue
+        if hasattr(buffer, 'wait_for_queue') and wait_for_queue:
+            self.assertTrue(buffer.wait_for_queue(), "Timed out waiting for queue to be full")
+        
+        # Sample a batch
+        if is_prioritized:
+            batch, indices, weights = buffer.sample()
+            # Convert indices and weights to numpy arrays if they're lists
+            indices = np.asarray(indices)
+            weights = np.asarray(weights)
+            self.assertEqual(indices.shape, (self.batch_size,), 
+                           f"Indices shape mismatch: expected ({self.batch_size},), got {indices.shape}")
+            self.assertEqual(weights.shape, (self.batch_size,),
+                           f"Weights shape mismatch: expected ({self.batch_size},), got {weights.shape}")
+        else:
+            batch = buffer.sample()
+        
+        states_batch, actions, next_states_batch, rewards, dones, prev_actions = batch
+        
+        # Check states dimensions
+        self.assertEqual(states_batch.shape, (self.batch_size, *self.obs_shape),
+                        f"States shape mismatch: expected ({self.batch_size}, {self.obs_shape}), got {states_batch.shape}")
+        self.assertEqual(next_states_batch.shape, (self.batch_size, *self.obs_shape),
+                        f"Next states shape mismatch: expected ({self.batch_size}, {self.obs_shape}), got {next_states_batch.shape}")
+        
+        # Check other elements dimensions
+        self.assertEqual(actions.shape, (self.batch_size,),
+                        f"Actions shape mismatch: expected ({self.batch_size},), got {actions.shape}")
+        self.assertEqual(rewards.shape, (self.batch_size,),
+                        f"Rewards shape mismatch: expected ({self.batch_size},), got {rewards.shape}")
+        self.assertEqual(dones.shape, (self.batch_size,),
+                        f"Dones shape mismatch: expected ({self.batch_size},), got {dones.shape}")
+        self.assertEqual(prev_actions.shape, (self.batch_size,),
+                        f"Previous actions shape mismatch: expected ({self.batch_size},), got {prev_actions.shape}")
+
     def test_memmapped_episode_boundaries(self):
         buffer = MemmappedReplayBuffer(
             obs_shape=self.obs_shape,
@@ -226,6 +272,24 @@ class TestReplayBuffers(unittest.TestCase):
 
         # Store a sequence with episode boundaries
         states, _ = self.fill_buffer(buffer, n_transitions=int(0.8*self.max_size))
+        
+        # Test that sampling never crosses episode boundaries
+        self.verify_episode_boundaries(buffer, n_attempts=20)
+
+    def test_memmapped_episode_boundaries_wait_queue(self):
+        """Same as test_memmapped_episode_boundaries but waits for queue to be full."""
+        buffer = MemmappedReplayBuffer(
+            obs_shape=self.obs_shape,
+            max_size=self.max_size,
+            batch_size=self.batch_size,
+            storage_path=self.test_dir / "memmapped_episode_boundary_handling_wait"
+        )
+
+        # Store a sequence with episode boundaries
+        states, _ = self.fill_buffer(buffer, n_transitions=int(0.8*self.max_size))
+        
+        # Wait for queue to be full
+        self.assertTrue(buffer.wait_for_queue(), "Timed out waiting for queue to be full")
         
         # Test that sampling never crosses episode boundaries
         self.verify_episode_boundaries(buffer, n_attempts=20)
@@ -244,6 +308,24 @@ class TestReplayBuffers(unittest.TestCase):
         # Test sampling after wrapping
         self.verify_episode_boundaries(small_buffer, n_attempts=20)
 
+    def test_memmapped_wrapping_wait_queue(self):
+        """Same as test_memmapped_wrapping but waits for queue to be full."""
+        small_buffer = MemmappedReplayBuffer(
+            obs_shape=self.obs_shape,
+            max_size=self.max_size,  # Small size to force wrapping
+            batch_size=self.batch_size,
+            storage_path=self.test_dir / "memmapped_wrapping_behavior_wait"
+        )
+
+        # Store more transitions than buffer size
+        states, _ = self.fill_buffer(small_buffer, n_transitions=int(1.5*self.max_size))
+        
+        # Wait for queue to be full
+        self.assertTrue(small_buffer.wait_for_queue(), "Timed out waiting for queue to be full")
+        
+        # Test sampling after wrapping
+        self.verify_episode_boundaries(small_buffer, n_attempts=20)
+
     def test_prioritized_memmapped_episode_boundaries(self):
         buffer = PrioritizedMemmappedReplayBuffer(
             obs_shape=self.obs_shape,
@@ -252,12 +334,29 @@ class TestReplayBuffers(unittest.TestCase):
             storage_path=self.test_dir / "prioritized_episode_boundary_handling"
         )
 
-        # Store a sequence with episode boundaries and set priorities
+        # Store a sequence with episode boundaries
         states, _ = self.fill_buffer(buffer, n_transitions=int(0.8*self.max_size))
         
         # Test that prioritized sampling never crosses episode boundaries
         self.verify_episode_boundaries(buffer, is_prioritized=True, n_attempts=20)
 
+    def test_prioritized_memmapped_episode_boundaries_wait_queue(self):
+        """Same as test_prioritized_memmapped_episode_boundaries but waits for queue to be full."""
+        buffer = PrioritizedMemmappedReplayBuffer(
+            obs_shape=self.obs_shape,
+            max_size=self.max_size,
+            batch_size=self.batch_size,
+            storage_path=self.test_dir / "prioritized_episode_boundary_handling_wait"
+        )
+
+        # Store a sequence with episode boundaries
+        states, _ = self.fill_buffer(buffer, n_transitions=int(0.8*self.max_size))
+        
+        # Wait for queue to be full
+        self.assertTrue(buffer.wait_for_queue(), "Timed out waiting for queue to be full")
+        
+        # Test that prioritized sampling never crosses episode boundaries
+        self.verify_episode_boundaries(buffer, is_prioritized=True, n_attempts=20)
 
     def test_standard_episode_boundaries(self):
         buffer = ReplayBuffer(
@@ -272,7 +371,7 @@ class TestReplayBuffers(unittest.TestCase):
         small_buffer = ReplayBuffer(
             obs_shape=self.obs_shape,
             max_size=self.max_size,
-            batch_size=2
+            batch_size=self.batch_size,
         )
         states, _ = self.fill_buffer(small_buffer, n_transitions=int(1.5*self.max_size))
         self.verify_episode_boundaries(small_buffer, n_attempts=20)
@@ -315,6 +414,24 @@ class TestReplayBuffers(unittest.TestCase):
         # Test sampling after wrapping
         self.verify_episode_boundaries(small_buffer, is_prioritized=True, n_attempts=20)
 
+    def test_prioritized_memmapped_wrapping_wait_queue(self):
+        """Same as test_prioritized_memmapped_wrapping but waits for queue to be full."""
+        small_buffer = PrioritizedMemmappedReplayBuffer(
+            obs_shape=self.obs_shape,
+            max_size=self.max_size,
+            batch_size=self.batch_size,
+            storage_path=self.test_dir / "prioritized_memmapped_wrapping_wait"
+        )
+
+        # Fill buffer beyond capacity
+        states, indices = self.fill_buffer(small_buffer, n_transitions=int(1.5*self.max_size))
+        
+        # Wait for queue to be full
+        self.assertTrue(small_buffer.wait_for_queue(), "Timed out waiting for queue to be full")
+        
+        # Test sampling after wrapping
+        self.verify_episode_boundaries(small_buffer, is_prioritized=True, n_attempts=20)
+
     def test_memmapped_done_flags(self):
         """Test that done flags are correctly set in MemmappedReplayBuffer."""
         buffer = MemmappedReplayBuffer(
@@ -331,6 +448,25 @@ class TestReplayBuffers(unittest.TestCase):
         # Verify done flags
         self.verify_done_flags(buffer, states, indices, episode_lengths)
 
+    def test_memmapped_done_flags_wait_queue(self):
+        """Same as test_memmapped_done_flags but waits for queue to be full."""
+        buffer = MemmappedReplayBuffer(
+            obs_shape=self.obs_shape,
+            max_size=self.max_size,
+            batch_size=self.batch_size,
+            storage_path=self.test_dir / "memmapped_done_flags_wait" 
+        )
+        
+        # Use fixed episode lengths for predictable testing
+        episode_lengths = [4, 3, 2]  # Three episodes of different lengths
+        states, indices = self.fill_buffer(buffer, n_transitions=9, episode_lengths=episode_lengths)  # Sum of episode lengths
+        
+        # Wait for queue to be full
+        self.assertTrue(buffer.wait_for_queue(), "Timed out waiting for queue to be full")
+        
+        # Verify done flags
+        self.verify_done_flags(buffer, states, indices, episode_lengths)
+
     def test_prioritized_memmapped_done_flags(self):
         """Test that done flags are correctly set in PrioritizedMemmappedReplayBuffer."""
         buffer = PrioritizedMemmappedReplayBuffer(
@@ -343,6 +479,25 @@ class TestReplayBuffers(unittest.TestCase):
         # Use fixed episode lengths for predictable testing
         episode_lengths = [4, 3, 2]  # Three episodes of different lengths
         states, indices = self.fill_buffer(buffer, n_transitions=9, episode_lengths=episode_lengths)  # Sum of episode lengths
+        
+        # Verify done flags
+        self.verify_done_flags(buffer, states, indices, episode_lengths, is_prioritized=True)
+
+    def test_prioritized_memmapped_done_flags_wait_queue(self):
+        """Same as test_prioritized_memmapped_done_flags but waits for queue to be full."""
+        buffer = PrioritizedMemmappedReplayBuffer(
+            obs_shape=self.obs_shape,
+            max_size=self.max_size,
+            batch_size=self.batch_size,
+            storage_path=self.test_dir / "prioritized_memmapped_done_flags_wait"
+        )
+        
+        # Use fixed episode lengths for predictable testing
+        episode_lengths = [4, 3, 2]  # Three episodes of different lengths
+        states, indices = self.fill_buffer(buffer, n_transitions=9, episode_lengths=episode_lengths)  # Sum of episode lengths
+        
+        # Wait for queue to be full
+        self.assertTrue(buffer.wait_for_queue(), "Timed out waiting for queue to be full")
         
         # Verify done flags
         self.verify_done_flags(buffer, states, indices, episode_lengths, is_prioritized=True)
@@ -376,7 +531,65 @@ class TestReplayBuffers(unittest.TestCase):
         
         # Verify done flags
         self.verify_done_flags(buffer, states, indices, episode_lengths, is_prioritized=True)
-        
+
+    def test_standard_batch_dimensions(self):
+        """Test batch dimensions for standard ReplayBuffer."""
+        buffer = ReplayBuffer(
+            obs_shape=self.obs_shape,
+            max_size=self.max_size,
+            batch_size=self.batch_size
+        )
+        self.verify_batch_dimensions(buffer)
+
+    def test_prioritized_standard_batch_dimensions(self):
+        """Test batch dimensions for PrioritizedReplayBuffer."""
+        buffer = PrioritizedReplayBuffer(
+            obs_shape=self.obs_shape,
+            max_size=self.max_size,
+            batch_size=self.batch_size
+        )
+        self.verify_batch_dimensions(buffer, is_prioritized=True)
+
+    def test_memmapped_batch_dimensions(self):
+        """Test batch dimensions for MemmappedReplayBuffer."""
+        buffer = MemmappedReplayBuffer(
+            obs_shape=self.obs_shape,
+            max_size=self.max_size,
+            batch_size=self.batch_size,
+            storage_path=self.test_dir / "memmapped_batch_dimensions"
+        )
+        self.verify_batch_dimensions(buffer)
+
+    def test_prioritized_memmapped_batch_dimensions(self):
+        """Test batch dimensions for PrioritizedMemmappedReplayBuffer."""
+        buffer = PrioritizedMemmappedReplayBuffer(
+            obs_shape=self.obs_shape,
+            max_size=self.max_size,
+            batch_size=self.batch_size,
+            storage_path=self.test_dir / "prioritized_memmapped_batch_dimensions"
+        )
+        self.verify_batch_dimensions(buffer, is_prioritized=True)
+
+    def test_memmapped_batch_dimensions_wait_queue(self):
+        """Test batch dimensions for MemmappedReplayBuffer with wait queue."""
+        buffer = MemmappedReplayBuffer(
+            obs_shape=self.obs_shape,
+            max_size=self.max_size,
+            batch_size=self.batch_size,
+            storage_path=self.test_dir / "memmapped_batch_dimensions_wait_queue"
+        )
+        self.verify_batch_dimensions(buffer, wait_for_queue=True)
+
+    def test_prioritized_memmapped_batch_dimensions_wait_queue(self):
+        """Test batch dimensions for PrioritizedMemmappedReplayBuffer with wait queue."""
+        buffer = PrioritizedMemmappedReplayBuffer(
+            obs_shape=self.obs_shape,
+            max_size=self.max_size,
+            batch_size=self.batch_size,
+            storage_path=self.test_dir / "prioritized_memmapped_batch_dimensions_wait_queue"
+        )
+        self.verify_batch_dimensions(buffer, is_prioritized=True, wait_for_queue=True)
+    
 
 
 if __name__ == '__main__':
