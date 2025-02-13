@@ -3,10 +3,10 @@ import numpy as np
 import torch
 import os
 import shutil
-from code_tp.agents.memmapped_replay_buffer import MemmappedReplayBuffer
-from code_tp.agents.prioritized_memmapped_replay_buffer import PrioritizedMemmappedReplayBuffer
-from code_tp.agents.replay_buffer import ReplayBuffer
-from code_tp.agents.prioritized_replay import PrioritizedReplayBuffer
+from ..agents.memmapped_replay_buffer import MemmappedReplayBuffer
+from ..agents.prioritized_memmapped_replay_buffer import PrioritizedMemmappedReplayBuffer
+from ..agents.replay_buffer import ReplayBuffer
+from ..agents.prioritized_replay import PrioritizedReplayBuffer
 import pathlib
 
 class TestReplayBuffers(unittest.TestCase):

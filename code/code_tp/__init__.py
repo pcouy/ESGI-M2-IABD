@@ -1,4 +1,4 @@
-from . import agents, environments, policies, value_functions, utils, tests
+from . import agents, environments, policies, value_functions, utils
 import datetime
 import os
 
