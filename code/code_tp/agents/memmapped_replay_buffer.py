@@ -57,7 +57,7 @@ def _preloader_func(storage_path, max_size, batch_size, obs_shape, n_inserted_va
 
 
 class MemmappedReplayBuffer(ReplayBuffer):
-    def __init__(self, obs_shape, max_size=100000, batch_size=32, storage_path='./replay_buffer', preload_batches=5, preload_on_gpu=True, flush_every=None):
+    def __init__(self, obs_shape, max_size=100000, batch_size=32, storage_path='./replay_buffer', preload_batches=5, preload_on_gpu=True, flush_every=None, warmup_size=None):
         # Initialize parameters manually to avoid GPU allocation in parent's __init__
         self.flush_every = flush_every
         self.obs_shape = obs_shape
@@ -67,9 +67,10 @@ class MemmappedReplayBuffer(ReplayBuffer):
         self.min_obs_val = 99999
         self.norm_offset = 0
         self.norm_scale = 1
-        
+        self.warmup_size = warmup_size if warmup_size is not None else 2*self.batch_size*preload_batches
         self.storage_path = storage_path
         os.makedirs(self.storage_path, exist_ok=True)
+        print(f"MemmappedReplayBuffer initialized with warmup_size={self.warmup_size}")
         
         # Create memmapped arrays for disk storage
         states_path = os.path.join(self.storage_path, "states.dat")
@@ -115,7 +116,7 @@ class MemmappedReplayBuffer(ReplayBuffer):
             with self.n_inserted_lock:
                 current_n = self.n_inserted
             n_stored = current_n if current_n < self.max_size else self.max_size
-            if n_stored < self.batch_size:
+            if self.n_inserted < self.warmup_size * 0.8:
                 time.sleep(0.1)
                 continue
 
@@ -213,9 +214,9 @@ class MemmappedReplayBuffer(ReplayBuffer):
         if self.preload_on_gpu:
             with self.n_inserted_lock:
                 count = self.n_inserted
-            return count > self.batch_size * 10
+            return count > self.warmup_size
         else:
-            return self.n_inserted_val.value > self.batch_size * 10
+            return self.n_inserted_val.value > self.warmup_size
     
     def wait_for_queue(self, timeout=10):
         """Wait until the preload queue is full or timeout is reached.
@@ -233,7 +234,7 @@ class MemmappedReplayBuffer(ReplayBuffer):
             time.sleep(0.1)
         return False
 
-    def sample(self, i=None, skip_episode_check=False):
+    def sample(self, i=None, skip_episode_check=False, timeout=0):
         if i is not None:
             # For direct index sampling, verify indices are not from episode endings
             i = np.asarray(i)
@@ -271,7 +272,7 @@ class MemmappedReplayBuffer(ReplayBuffer):
             if self.preload_queue is not None:
                 try:
                     # Preloaded batches are already normalized and on GPU
-                    return self.preload_queue.get_nowait()
+                    return self.preload_queue.get(timeout=timeout)
                 except queue.Empty:
                     print("Queue is empty")
                     if self.preload_on_gpu:

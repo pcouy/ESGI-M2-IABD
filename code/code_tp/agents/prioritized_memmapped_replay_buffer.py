@@ -94,21 +94,17 @@ class PrioritizedMemmappedReplayBuffer(MemmappedReplayBuffer):
     """
     e = 0.01
     
-    def __init__(self, obs_shape, max_size=100000, batch_size=32, storage_path='./replay_buffer',
-                 preload_batches=5, preload_on_gpu=True, default_error=10000, alpha=0.5,
-                 alpha_decrement_per_sampling=None, beta=0, beta_increment_per_sampling=None,
-                 total_samplings=None, flush_every=100):
+    def __init__(self, default_error=10000, alpha=0.5, alpha_decrement_per_sampling=None, 
+                 beta=0, beta_increment_per_sampling=None, total_samplings=None, **kwargs):
         
         # Initialize the base memory-mapped buffer
-        super().__init__(obs_shape=obs_shape, max_size=max_size, batch_size=batch_size,
-                        storage_path=storage_path, preload_batches=preload_batches,
-                        preload_on_gpu=preload_on_gpu, flush_every=flush_every)
+        super().__init__(**kwargs)
         
         # Priority-related parameters
         self.alpha = alpha
         self.beta = beta
         if total_samplings is None:
-            total_samplings = 5 * max_size
+            total_samplings = 5 * self.max_size
         
         self.alpha_decrement_per_sampling = (alpha_decrement_per_sampling if alpha_decrement_per_sampling is not None 
                                            else self.alpha / total_samplings)
@@ -116,8 +112,8 @@ class PrioritizedMemmappedReplayBuffer(MemmappedReplayBuffer):
                                           else (1 - self.beta) / total_samplings)
         
         # Create memory-mapped sum tree in a subdirectory
-        tree_storage_path = os.path.join(storage_path, 'sum_tree')
-        self.tree = MemmappedSumTree(max_size, tree_storage_path)
+        tree_storage_path = os.path.join(self.storage_path, 'sum_tree')
+        self.tree = MemmappedSumTree(self.max_size, tree_storage_path)
         self.default_error = default_error
 
     def _get_priority(self, error):
@@ -135,7 +131,7 @@ class PrioritizedMemmappedReplayBuffer(MemmappedReplayBuffer):
             with self.n_inserted_lock:
                 current_n = self.n_inserted
             n_stored = current_n if current_n < self.max_size else self.max_size
-            if n_stored < self.batch_size:
+            if not self.ready():
                 time.sleep(0.1)
                 continue
 
@@ -197,13 +193,13 @@ class PrioritizedMemmappedReplayBuffer(MemmappedReplayBuffer):
                 continue
             time.sleep(0.01)  # slight pause
 
-    def sample(self, i=None):
+    def sample(self, i=None, timeout=0):
         if i is not None:
             return super().sample(i=i, skip_episode_check=True)
             
         if self.preload_queue is not None:
             try:
-                return self.preload_queue.get_nowait()
+                return self.preload_queue.get(timeout=timeout)
             except queue.Empty:
                 print("Queue is empty")
                 # If queue is empty, sample directly

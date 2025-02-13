@@ -267,7 +267,8 @@ class TestReplayBuffers(unittest.TestCase):
             obs_shape=self.obs_shape,
             max_size=self.max_size,
             batch_size=self.batch_size,
-            storage_path=self.test_dir / "memmapped_episode_boundary_handling"
+            storage_path=self.test_dir / "memmapped_episode_boundary_handling",
+            warmup_size=1,
         )
 
         # Store a sequence with episode boundaries
@@ -282,7 +283,8 @@ class TestReplayBuffers(unittest.TestCase):
             obs_shape=self.obs_shape,
             max_size=self.max_size,
             batch_size=self.batch_size,
-            storage_path=self.test_dir / "memmapped_episode_boundary_handling_wait"
+            storage_path=self.test_dir / "memmapped_episode_boundary_handling_wait",
+            warmup_size=1,
         )
 
         # Store a sequence with episode boundaries
@@ -299,7 +301,8 @@ class TestReplayBuffers(unittest.TestCase):
             obs_shape=self.obs_shape,
             max_size=self.max_size,  # Small size to force wrapping
             batch_size=self.batch_size,
-            storage_path=self.test_dir / "memmapped_wrapping_behavior"
+            storage_path=self.test_dir / "memmapped_wrapping_behavior",
+            warmup_size=1,
         )
 
         # Store more transitions than buffer size
@@ -314,7 +317,8 @@ class TestReplayBuffers(unittest.TestCase):
             obs_shape=self.obs_shape,
             max_size=self.max_size,  # Small size to force wrapping
             batch_size=self.batch_size,
-            storage_path=self.test_dir / "memmapped_wrapping_behavior_wait"
+            storage_path=self.test_dir / "memmapped_wrapping_behavior_wait",
+            warmup_size=1,
         )
 
         # Store more transitions than buffer size
@@ -331,7 +335,8 @@ class TestReplayBuffers(unittest.TestCase):
             obs_shape=self.obs_shape,
             max_size=self.max_size,
             batch_size=self.batch_size,
-            storage_path=self.test_dir / "prioritized_episode_boundary_handling"
+            storage_path=self.test_dir / "prioritized_episode_boundary_handling",
+            warmup_size=1,
         )
 
         # Store a sequence with episode boundaries
@@ -346,7 +351,8 @@ class TestReplayBuffers(unittest.TestCase):
             obs_shape=self.obs_shape,
             max_size=self.max_size,
             batch_size=self.batch_size,
-            storage_path=self.test_dir / "prioritized_episode_boundary_handling_wait"
+            storage_path=self.test_dir / "prioritized_episode_boundary_handling_wait",
+            warmup_size=1,
         )
 
         # Store a sequence with episode boundaries
@@ -362,7 +368,8 @@ class TestReplayBuffers(unittest.TestCase):
         buffer = ReplayBuffer(
             obs_shape=self.obs_shape,
             max_size=self.max_size,
-            batch_size=self.batch_size
+            batch_size=self.batch_size,
+            warmup_size=1,
         )
         states, _ = self.fill_buffer(buffer, n_transitions=int(0.8*self.max_size))
         self.verify_episode_boundaries(buffer, n_attempts=20)
@@ -372,6 +379,7 @@ class TestReplayBuffers(unittest.TestCase):
             obs_shape=self.obs_shape,
             max_size=self.max_size,
             batch_size=self.batch_size,
+            warmup_size=1,
         )
         states, _ = self.fill_buffer(small_buffer, n_transitions=int(1.5*self.max_size))
         self.verify_episode_boundaries(small_buffer, n_attempts=20)
@@ -380,7 +388,8 @@ class TestReplayBuffers(unittest.TestCase):
         buffer = PrioritizedReplayBuffer(
             obs_shape=self.obs_shape,
             max_size=self.max_size,
-            batch_size=self.batch_size
+            batch_size=self.batch_size,
+            warmup_size=1,
         )
         states, _ = self.fill_buffer(buffer, n_transitions=int(0.8*self.max_size))
         self.verify_episode_boundaries(buffer, is_prioritized=True, n_attempts=20)
@@ -390,7 +399,8 @@ class TestReplayBuffers(unittest.TestCase):
         small_buffer = PrioritizedReplayBuffer(
             obs_shape=self.obs_shape,
             max_size=self.max_size,
-            batch_size=self.batch_size
+            batch_size=self.batch_size,
+            warmup_size=1,
         )
 
         # Fill buffer beyond capacity
@@ -405,7 +415,8 @@ class TestReplayBuffers(unittest.TestCase):
             obs_shape=self.obs_shape,
             max_size=self.max_size,
             batch_size=self.batch_size,
-            storage_path=self.test_dir / "prioritized_memmapped_wrapping"
+            storage_path=self.test_dir / "prioritized_memmapped_wrapping",
+            warmup_size=1,
         )
 
         # Fill buffer beyond capacity
@@ -420,7 +431,8 @@ class TestReplayBuffers(unittest.TestCase):
             obs_shape=self.obs_shape,
             max_size=self.max_size,
             batch_size=self.batch_size,
-            storage_path=self.test_dir / "prioritized_memmapped_wrapping_wait"
+            storage_path=self.test_dir / "prioritized_memmapped_wrapping_wait",
+            warmup_size=1,
         )
 
         # Fill buffer beyond capacity
@@ -438,7 +450,8 @@ class TestReplayBuffers(unittest.TestCase):
             obs_shape=self.obs_shape,
             max_size=self.max_size,
             batch_size=self.batch_size,
-            storage_path=self.test_dir / "memmapped_done_flags" 
+            storage_path=self.test_dir / "memmapped_done_flags",
+            warmup_size=1,
         )
         
         # Use fixed episode lengths for predictable testing
@@ -454,7 +467,8 @@ class TestReplayBuffers(unittest.TestCase):
             obs_shape=self.obs_shape,
             max_size=self.max_size,
             batch_size=self.batch_size,
-            storage_path=self.test_dir / "memmapped_done_flags_wait" 
+            storage_path=self.test_dir / "memmapped_done_flags_wait",
+            warmup_size=1,
         )
         
         # Use fixed episode lengths for predictable testing
@@ -473,7 +487,8 @@ class TestReplayBuffers(unittest.TestCase):
             obs_shape=self.obs_shape,
             max_size=self.max_size,
             batch_size=self.batch_size,
-            storage_path=self.test_dir / "prioritized_memmapped_done_flags"
+            storage_path=self.test_dir / "prioritized_memmapped_done_flags",
+            warmup_size=1,
         )
         
         # Use fixed episode lengths for predictable testing
@@ -489,7 +504,8 @@ class TestReplayBuffers(unittest.TestCase):
             obs_shape=self.obs_shape,
             max_size=self.max_size,
             batch_size=self.batch_size,
-            storage_path=self.test_dir / "prioritized_memmapped_done_flags_wait"
+            storage_path=self.test_dir / "prioritized_memmapped_done_flags_wait",
+            warmup_size=1,
         )
         
         # Use fixed episode lengths for predictable testing
@@ -507,7 +523,8 @@ class TestReplayBuffers(unittest.TestCase):
         buffer = ReplayBuffer(
             obs_shape=self.obs_shape,
             max_size=self.max_size,
-            batch_size=self.batch_size
+            batch_size=self.batch_size,
+            warmup_size=1,
         )
         
         # Use fixed episode lengths for predictable testing
@@ -522,7 +539,8 @@ class TestReplayBuffers(unittest.TestCase):
         buffer = PrioritizedReplayBuffer(
             obs_shape=self.obs_shape,
             max_size=self.max_size,
-            batch_size=self.batch_size
+            batch_size=self.batch_size,
+            warmup_size=1,
         )
         
         # Use fixed episode lengths for predictable testing
@@ -537,7 +555,8 @@ class TestReplayBuffers(unittest.TestCase):
         buffer = ReplayBuffer(
             obs_shape=self.obs_shape,
             max_size=self.max_size,
-            batch_size=self.batch_size
+            batch_size=self.batch_size,
+            warmup_size=1,
         )
         self.verify_batch_dimensions(buffer)
 
@@ -546,7 +565,8 @@ class TestReplayBuffers(unittest.TestCase):
         buffer = PrioritizedReplayBuffer(
             obs_shape=self.obs_shape,
             max_size=self.max_size,
-            batch_size=self.batch_size
+            batch_size=self.batch_size,
+            warmup_size=1,
         )
         self.verify_batch_dimensions(buffer, is_prioritized=True)
 
@@ -556,7 +576,8 @@ class TestReplayBuffers(unittest.TestCase):
             obs_shape=self.obs_shape,
             max_size=self.max_size,
             batch_size=self.batch_size,
-            storage_path=self.test_dir / "memmapped_batch_dimensions"
+            storage_path=self.test_dir / "memmapped_batch_dimensions",
+            warmup_size=1,
         )
         self.verify_batch_dimensions(buffer)
 
@@ -566,7 +587,8 @@ class TestReplayBuffers(unittest.TestCase):
             obs_shape=self.obs_shape,
             max_size=self.max_size,
             batch_size=self.batch_size,
-            storage_path=self.test_dir / "prioritized_memmapped_batch_dimensions"
+            storage_path=self.test_dir / "prioritized_memmapped_batch_dimensions",
+            warmup_size=1,
         )
         self.verify_batch_dimensions(buffer, is_prioritized=True)
 
@@ -576,7 +598,8 @@ class TestReplayBuffers(unittest.TestCase):
             obs_shape=self.obs_shape,
             max_size=self.max_size,
             batch_size=self.batch_size,
-            storage_path=self.test_dir / "memmapped_batch_dimensions_wait_queue"
+            storage_path=self.test_dir / "memmapped_batch_dimensions_wait_queue",
+            warmup_size=1,
         )
         self.verify_batch_dimensions(buffer, wait_for_queue=True)
 
@@ -586,7 +609,8 @@ class TestReplayBuffers(unittest.TestCase):
             obs_shape=self.obs_shape,
             max_size=self.max_size,
             batch_size=self.batch_size,
-            storage_path=self.test_dir / "prioritized_memmapped_batch_dimensions_wait_queue"
+            storage_path=self.test_dir / "prioritized_memmapped_batch_dimensions_wait_queue",
+            warmup_size=1,
         )
         self.verify_batch_dimensions(buffer, is_prioritized=True, wait_for_queue=True)
     

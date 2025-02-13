@@ -10,11 +10,12 @@ class ReplayBuffer:
     Implémentation d'une mémoire des expériences passées, telle que décrit dans
     [l'article sur le DQN](http://arxiv.org/abs/1312.5602)
     """
-    def __init__(self, obs_shape, max_size=100000, batch_size=32):
+    def __init__(self, obs_shape, max_size=100000, batch_size=32, warmup_size=None):
         """
         * `obs_shape` : Taille d'un tableau numpy contenant une observation
         * `max_size` : Nombre de transitions conservées en mémoire
         * `batch_size` : Nombre de transitions échantillonnées depuis la mémoire
+        * `warmup_size` : Nombre de transitions à stocker avant de commencer à échantillonner
         """
         # Pre-allocate memory on GPU if using CUDA
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -32,13 +33,14 @@ class ReplayBuffer:
         self.min_obs_val = 99999
         self.norm_offset = 0
         self.norm_scale = 1
-
+        self.warmup_size = warmup_size if warmup_size is not None else self.batch_size*10
+        print(f"ReplayBuffer initialized with warmup_size={self.warmup_size}")
     def ready(self):
         """
         Indique si la mémoire contient au minimum 10 *batchs* de transitions
         """
-        return self.n_inserted > self.batch_size*10
-
+        return self.n_inserted > self.warmup_size
+    
     def store(self, state, action, next_state, reward, done, infos, prev_action=None):
         """
         Enregistre  une transition en mémoire (écrase les anciennes si la taille
