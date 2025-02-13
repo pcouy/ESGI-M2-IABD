@@ -191,5 +191,12 @@ class ReplayBufferAgent(QLearningAgent):
         while not self.replay_buffer.ready():
             time.sleep(0.2)
 
+        trained_batches = 0
         while self.training_episodes < max_episodes and not self.should_stop:
+            if trained_batches > self.training_steps//abs(self.update_interval):
+                time.sleep(0.02)
+                continue
             self.train_one_batch()
+            trained_batches += 1
+            
+        
