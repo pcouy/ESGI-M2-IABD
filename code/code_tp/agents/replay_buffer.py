@@ -25,6 +25,7 @@ class ReplayBuffer:
         self.rewards = torch.zeros((max_size,), dtype=torch.float32, device=device)
         self.dones = torch.zeros((max_size,), dtype=torch.bool, device=device)
         self.prev_actions = torch.zeros((max_size,), dtype=torch.long, device=device)
+        self.device = device
 
         self.max_size = max_size
         self.batch_size = batch_size
@@ -49,8 +50,8 @@ class ReplayBuffer:
         Les paramètres représentent la transition à stocker
         """
         # Convert numpy arrays to torch tensors and move to correct device
-        state = torch.from_numpy(state).to(self.states.device)
-        next_state = torch.from_numpy(next_state).to(self.states.device)
+        state = torch.from_numpy(state).to(self.device)
+        next_state = torch.from_numpy(next_state).to(self.device)
         
         old_max = self.max_obs_val
         old_min = self.min_obs_val
@@ -79,7 +80,7 @@ class ReplayBuffer:
         """
         # Handle both numpy arrays and torch tensors
         if isinstance(state, np.ndarray):
-            state = torch.from_numpy(state).to(self.states.device)
+            state = torch.from_numpy(state).to(self.device)
         return (state.float() - self.norm_offset) / self.norm_scale
 
     def denormalize(self, state):
@@ -88,7 +89,7 @@ class ReplayBuffer:
         """
         # Handle both numpy arrays and torch tensors
         if isinstance(state, np.ndarray):
-            state = torch.from_numpy(state).to(self.states.device)
+            state = torch.from_numpy(state).to(self.device)
         return state * self.norm_scale + self.norm_offset
 
     def sample(self, i=None):
@@ -102,11 +103,11 @@ class ReplayBuffer:
         # Sample directly on GPU
         n_stored = min(self.n_inserted, self.max_size)
         if i is None:
-            i = torch.randint(0, n_stored, size=(self.batch_size,), device=self.states.device)
+            i = torch.randint(0, n_stored, size=(self.batch_size,), device=self.device)
         elif isinstance(i, np.ndarray):
-            i = torch.from_numpy(i).to(self.states.device)
+            i = torch.from_numpy(i).to(self.device)
         elif isinstance(i, torch.Tensor):
-            i = i.to(self.states.device)
+            i = i.to(self.device)
         
         return (self.normalize(self.states[i]),
                 self.actions[i],
