@@ -71,7 +71,7 @@ class GreedyQPolicy(RandomPolicy):
             return maxa, maxv
             
 
-    def __call__(self, state, prev_action=None):
+    def __call__(self, state, prev_action=None, **kwargs):
         values = self.value_function.from_state(state, prev_action)
         action, value = self.best_action_value_from_values(values)
         if type(value) is torch.Tensor:
@@ -104,8 +104,8 @@ class EGreedyPolicy(RandomPolicy):
     `epsilon_decay` et `epsilon_min` permettent de faire varier la valeur donnée à
     `epsilon` au cours de l'entrainement
     """
-    def __init__(self, value_function, greedy_policy_class=GreedyQPolicy, epsilon=0.05, epsilon_decay=0, epsilon_min=0.05, epsilon_test=0):
-        self.greedy_policy = greedy_policy_class(value_function)
+    def __init__(self, value_function, greedy_policy_class=GreedyQPolicy, epsilon=0.05, epsilon_decay=0, epsilon_min=0.05, epsilon_test=0, greedy_kwargs={}):
+        self.greedy_policy = greedy_policy_class(value_function, **greedy_kwargs)
         self.epsilon = epsilon
         self.epsilon_decay = epsilon_decay
         self.epsilon_min = epsilon_min
@@ -124,7 +124,7 @@ class EGreedyPolicy(RandomPolicy):
 
         if np.random.uniform(0,1) > epsilon:
             self.greedy_policy.agent = self.agent
-            action = self.greedy_policy(state, prev_action)
+            action = self.greedy_policy(state, prev_action, epsilon=epsilon)
             self.stats.update(self.greedy_policy.stats)
         else:
             action = super().__call__(state)

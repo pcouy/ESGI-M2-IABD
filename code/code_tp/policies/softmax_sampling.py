@@ -59,7 +59,7 @@ class SoftmaxSamplingPolicy(EGreedyPolicy):
                 self.agent.log_data("picked_proba", 1)
         else:
             self.greedy_policy.agent = self.agent
-            action = self.greedy_policy(state, prev_action)
+            action = self.greedy_policy(state, prev_action, epsilon=epsilon)
             self.agent.log_data("picked_proba", 1)
 
         self.agent.log_data("predicted_value", values[action])
