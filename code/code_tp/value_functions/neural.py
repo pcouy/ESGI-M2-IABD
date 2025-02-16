@@ -140,3 +140,8 @@ class ConvolutionalQFunction(DiscreteQFunction):
 
     def import_f(self, d):
         self.nn.load_state_dict(d)
+
+    def mix_with(self, other, tau=0.001):
+        for self_param, other_param in zip(self.nn.parameters(), other.nn.parameters()):
+            self_param.data.copy_(tau * other_param.data + (1 - tau) * self_param.data)
+

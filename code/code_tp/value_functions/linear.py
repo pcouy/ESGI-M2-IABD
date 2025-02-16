@@ -57,3 +57,7 @@ class LinearQValue(DiscreteQFunction):
 
     def import_f(self, d):
         self.weights = copy.deepcopy(d)
+
+    def mix_with(self, other, tau=0.001):
+        self.weights = tau * other.weights + (1 - tau) * other.weights
+        

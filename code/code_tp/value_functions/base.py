@@ -85,6 +85,9 @@ class ValueFunction:
     def import_f(self, d):
         pass
 
+    def mix_with(self, other, tau=1):
+        pass
+
     def clone(self):
         del self.init_args["self"]
         del self.init_args["__class__"]
