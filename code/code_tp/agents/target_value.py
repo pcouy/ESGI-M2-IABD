@@ -25,7 +25,7 @@ class TargetValueAgent(QLearningAgent):
             self.target_value_function.import_f(
                 self.value_function.export_f()
             )
-        else:
+        elif not self.discrete_updates:
             self.target_value_function.mix_with(self.value_function, tau=self.target_update)
 
     @torch.no_grad()
