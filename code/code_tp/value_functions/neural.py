@@ -29,6 +29,7 @@ class ConvolutionalQFunction(DiscreteQFunction):
         gradient_clipping=None,
         use_prev_action=False,
         prev_action_embedding_dim=16,  # Default embedding dimension when use_prev_action is True
+        loss_fn=nn.functional.mse_loss,
         **kwargs
     ):
         if use_prev_action:
@@ -46,6 +47,7 @@ class ConvolutionalQFunction(DiscreteQFunction):
         self.nn.share_memory()
         print(self.nn)
         self.optim = torch.optim.Adam(self.nn.parameters(), lr=self.lr)
+        self.loss_fn = loss_fn
 
         self.has_time_dim = len(env.observation_space.shape) == 4
         self.use_prev_action = use_prev_action
@@ -115,7 +117,7 @@ class ConvolutionalQFunction(DiscreteQFunction):
         pred_values = self.call_batch(states, actions, prev_actions)
         pred_error_indiv = torch.abs(pred_values[:,0] - target_values)
         pred_error = (
-            is_weights * nn.functional.mse_loss(pred_values[:,0], target_values, reduction='none')
+            is_weights * self.loss_fn(pred_values[:,0], target_values, reduction='none')
         ).mean()
 
         pred_error.backward()
