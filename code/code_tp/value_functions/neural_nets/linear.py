@@ -15,9 +15,9 @@ class LinearNeuralStack(nn.Module):
             in_dim = n
         
         last_layer = nn.Linear(in_dim, n_actions)
-        nn.init.orthogonal_(last_layer.weight, 1e-2)
+        last_layer.weight.data.uniform_(-1e-3,1e-3)
         if initial_biases is None:
-            nn.init.xavier_uniform_(last_layer.weight, 1e-2)
+            last_layer.bias.data.uniform_(-1e-3,1e-3)
         elif type(initial_biases) is int:
             last_layer.bias.data = torch.Tensor([initial_biases for _ in range(n_actions)])
         else:
