@@ -4,6 +4,7 @@ import os
 import gc
 import json
 import multiprocessing as mp
+from einops import rearrange
 
 # Set matplotlib backend before importing pyplot
 import matplotlib
@@ -123,6 +124,8 @@ class Agent:
         self.episode_end(score)
 
         if test:
+            video_tensor = rearrange(np.array(env.recorded_frames), "t w h c -> 1 t c w h")
+            self.tensorboard.add_video("test_run", video_tensor, self.training_steps, fps=30)
             env.stop_recording()
         self.test = False
 

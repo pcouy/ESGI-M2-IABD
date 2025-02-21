@@ -30,3 +30,9 @@ class LinearNeuralStack(nn.Module):
         
     def forward(self, x):
         return self.layers(x)
+
+    def log_tensorboard(self, tensorboard, step, name="linear"):
+        for i, layer in enumerate(self.layers):
+            if isinstance(layer, nn.Linear):
+                tensorboard.add_histogram(f"{name}/{i}/weights", layer.weight, step)
+                tensorboard.add_histogram(f"{name}/{i}/biases", layer.bias, step)

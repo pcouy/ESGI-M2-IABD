@@ -25,3 +25,7 @@ class DuelingOutputStack(nn.Module):
         q = value + advantage - advantage.mean(dim=-1, keepdim=True)
         
         return q
+
+    def log_tensorboard(self, tensorboard, step):
+       self.advantage_layer.log_tensorboard(tensorboard, step, name="advantage")
+       self.value_layer.log_tensorboard(tensorboard, step, name="value")

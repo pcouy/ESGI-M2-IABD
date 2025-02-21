@@ -166,3 +166,9 @@ class ConvolutionalNN(nn.Module):
                 conv_out = torch.cat([conv_out, embedded], dim=1)
                 
         return self.last_layers(conv_out)
+
+    def log_tensorboard(self, tensorboard, step):
+        if self.embedding is not None:
+            tensorboard.add_embedding(self.embedding.weight, global_step=step)
+        if callable(getattr(self.last_layers, "log_tensorboard", None)):
+            self.last_layers.log_tensorboard(tensorboard, step)

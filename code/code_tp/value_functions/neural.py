@@ -5,6 +5,7 @@ import torch
 from torch import nn
 from einops import rearrange
 from .neural_nets.convolutional import ConvolutionalNN
+from ..agents.target_value import TargetValueAgent
 
 class ConvolutionalQFunction(DiscreteQFunction):
     """
@@ -98,8 +99,12 @@ class ConvolutionalQFunction(DiscreteQFunction):
             # Ensure prev_actions are long for embedding layer
             prev_actions = self.to_tensor(prev_actions, dtype=torch.long)
         
-        values = self.nn(states, prev_actions).gather(-1, actions.reshape((len(actions),1)))
-        return values
+        values = self.nn(states, prev_actions)
+
+        if self.agent is not None:
+            for i in range(values.shape[1]):
+                self.agent.tensorboard.add_histogram(f"action/{i}", values[:,i], self.agent.training_steps)
+        return values.gather(-1, actions.reshape((len(actions),1)))
 
     def update(self, state, action, target_value, prev_action=None, is_weight=None):
         return self.update_batch([state], [action], [target_value], 
@@ -123,6 +128,7 @@ class ConvolutionalQFunction(DiscreteQFunction):
         pred_error.backward()
         self.optim.step()
         self.agent.log_data("nn_loss", pred_error.clone().cpu().item())
+        self.nn.log_tensorboard(self.agent.tensorboard, self.agent.training_steps)
         return pred_error_indiv.detach().cpu().numpy()
 
     def best_action_value_from_state(self, state, prev_action=None):
