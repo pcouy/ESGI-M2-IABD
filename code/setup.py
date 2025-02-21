@@ -10,5 +10,9 @@ setup(
         # 'gym[atari]', 'gym[accept-rom-license]',
         'opencv-python','numpy','matplotlib','pillow','pyqt5==5.15', 'torch>=2.6.0', 'einops', 'tensorboard',
         'gymnasium', 'shimmy[gym-v21]', 'shimmy',
+        'gymnasium[other]',
+        'typing_extensions==4.11.0',
+        'torchvision==0.21.0',
+        'moviepy==1.0.3',
     ]
 )
