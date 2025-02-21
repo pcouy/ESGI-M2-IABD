@@ -107,6 +107,7 @@ class DiscreteQFunction(ValueFunction):
             isinstance(env.action_space, gym.spaces.MultiDiscrete)
         super().__init__(env, *args, **kwargs)
         self.init_args = locals()
+        self.last_result = None
 
     def enum_actions(self):
         if isinstance(self.action_space, gym.spaces.Discrete):
@@ -116,14 +117,16 @@ class DiscreteQFunction(ValueFunction):
 
     def from_state(self, state, prev_action=None):
         """Prend un état et renvoit un dictionnaire `action : valeur` pour cet état"""
-        return np.array([self(state, action, prev_action) for action in self.enum_actions()])
+        self.last_result = np.array([self(state, action, prev_action) for action in self.enum_actions()])
+        return self.last_result
 
     def from_state_batch(self, states, prev_actions=None):
         action_values = []
         for i, state in enumerate(states):
             prev_action = prev_actions[i] if prev_actions is not None else None
             action_values.append(self.from_state(state, prev_action))
-        return np.array(action_values)
+        self.last_result = np.array(action_values)
+        return self.last_result
 
     def best_action_value_from_state(self, state, prev_action=None):
         values = self.from_state(state, prev_action)

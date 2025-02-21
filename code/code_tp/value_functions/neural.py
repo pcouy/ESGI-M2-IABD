@@ -85,7 +85,8 @@ class ConvolutionalQFunction(DiscreteQFunction):
         else:
             prev_actions = None
         
-        return self.nn(states, prev_actions)
+        self.last_result = self.nn(states, prev_actions)
+        return self.last_result
 
     def __call__(self, state, action, prev_action=None):
         return self.call_batch([state], [action], 

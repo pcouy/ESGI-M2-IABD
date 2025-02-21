@@ -81,6 +81,17 @@ class Agent:
             env = self.env
         return env.step(action)
 
+    def log_step(self, episode_name, step_num, transition):
+        self.tensorboard.add_scalar(f"{episode_name}/reward", transition[3], step_num)
+        #self.tensorboard.add_text(f"{episode_name}/action", str(transition[1]), step_num)
+        if step_num%10 == 0:
+            if len(transition[0].shape) == 4:
+                last_state = transition[0][:,:,-1,:]
+            else:
+                last_state = transition[0]
+            img = rearrange(last_state, "w h c -> c w h")
+            self.tensorboard.add_image(f"{episode_name}/states", img, step_num)
+
     def run_episode(self, test=False):
         """
         Jouer un épisode dans l'enfironnement. Le paramètre `test` détermine si les transitions
@@ -106,14 +117,19 @@ class Agent:
         score = 0
 
         frames = []
+        step_num = 1
         while not done:
             #frames.append(env.render('rgb_array'))
             action = self.select_action(state, prev_action)
             next_state, reward, terminated, truncated, infos = self.step(action, env=env)
             done = terminated or truncated
+            transition = (state, action, next_state, reward, done, infos, prev_action)
             if not test:
-                self.train_with_transition(state, action, next_state, reward, done, infos, prev_action)
+                self.train_with_transition(*transition)
                 self.training_steps+= 1
+            else:
+                self.log_step(f"test_episodes/{self.training_episodes}", step_num, transition)
+            step_num+= 1
             score+= reward
             state = next_state
             prev_action = action if self.use_prev_action else None  # Update prev_action if feature is enabled
@@ -260,6 +276,17 @@ class QLearningAgent(Agent):
         self.gamma = gamma
         self.value_function.agent = self
         self.policy.agent = self
+
+    def log_step(self, episode_name, step_num, transition):
+        super().log_step(episode_name, step_num, transition)
+        action_values = self.value_function.last_result
+        if len(action_values.shape) == 2:
+            action_values = action_values[-1]
+        self.tensorboard.add_scalars(
+            f"{episode_name}/action_values",
+            {str(k): v for k, v in enumerate(action_values)},
+            step_num,
+        )
 
     def train_with_transition(self, state, action, next_state, reward, done, infos, prev_action=None):
         target_value = self.target_value_from_state(next_state, reward, done, action)  # Pass current action as next prev_action
