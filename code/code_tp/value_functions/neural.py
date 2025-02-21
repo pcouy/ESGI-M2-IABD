@@ -64,6 +64,7 @@ class ConvolutionalQFunction(DiscreteQFunction):
         })
         self.init_args = locals()
         print(self.device)
+        self.last_tensorboard_log = 0
 
     def add_batch_dim(self, tensor):
         if not self.has_time_dim:
@@ -101,7 +102,7 @@ class ConvolutionalQFunction(DiscreteQFunction):
         
         values = self.nn(states, prev_actions)
 
-        if self.agent is not None:
+        if self.agent is not None and self.agent.training_steps - self.last_tensorboard_log >= 5000:
             for i in range(values.shape[1]):
                 self.agent.tensorboard.add_histogram(f"action/{i}", values[:,i], self.agent.training_steps)
         return values.gather(-1, actions.reshape((len(actions),1)))
@@ -128,7 +129,9 @@ class ConvolutionalQFunction(DiscreteQFunction):
         pred_error.backward()
         self.optim.step()
         self.agent.log_data("nn_loss", pred_error.clone().cpu().item())
-        self.nn.log_tensorboard(self.agent.tensorboard, self.agent.training_steps)
+        if self.agent.training_steps - self.last_tensorboard_log >= 5000:
+            self.nn.log_tensorboard(self.agent.tensorboard, self.agent.training_steps)
+            self.last_tensorboard_log = self.agent.training_steps
         return pred_error_indiv.detach().cpu().numpy()
 
     def best_action_value_from_state(self, state, prev_action=None):
