@@ -148,6 +148,16 @@ class ConvolutionalNN(nn.Module):
         
         self.conv_stack = conv_stack
         self.last_layers = last_layers
+        
+        self.apply(self._init_weights)
+
+    def _init_weights(self, module):
+        if isinstance(module, nn.Conv2d):
+            # Kaiming initialization for conv layers
+            nn.init.kaiming_normal_(module.weight, mode='fan_out', nonlinearity='relu')
+            if module.bias is not None:
+                # Initialize bias to small positive values to prevent dead ReLUs
+                nn.init.constant_(module.bias, 0.1)
 
     def forward(self, x, secondary_input=None):
         if len(x.shape) == 4:

@@ -15,18 +15,13 @@ class LinearNeuralStack(nn.Module):
             in_dim = n
         
         last_layer = nn.Linear(in_dim, n_actions)
-        last_layer.weight.data.uniform_(-1e-3,1e-3)
-        if initial_biases is None:
-            last_layer.bias.data.uniform_(-1e-3,1e-3)
-        elif type(initial_biases) is int:
-            last_layer.bias.data = torch.Tensor([initial_biases for _ in range(n_actions)])
-        else:
-            last_layer.bias.data = torch.Tensor(initial_biases)
         
         self.layers = nn.Sequential(
             *linear_layers,
             last_layer
         )
+
+        self.apply(self._init_weights)
         
     def forward(self, x):
         return self.layers(x)
@@ -36,3 +31,13 @@ class LinearNeuralStack(nn.Module):
             if isinstance(layer, nn.Linear):
                 tensorboard.add_histogram(f"{name}/{i}/weights", layer.weight, step)
                 tensorboard.add_histogram(f"{name}/{i}/biases", layer.bias, step)
+
+    def _init_weights(self, module):
+        if isinstance(module, nn.Linear):
+            if module == self.layers[-1]:  # Output layer
+                # Smaller initialization for better initial estimates
+                nn.init.xavier_uniform_(module.weight, gain=0.1)
+                nn.init.zeros_(module.bias)
+            else:  # Hidden layers
+                nn.init.kaiming_normal_(module.weight, mode='fan_in', nonlinearity='relu')
+                nn.init.constant_(module.bias, 0.1)
