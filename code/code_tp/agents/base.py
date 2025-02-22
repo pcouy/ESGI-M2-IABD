@@ -50,6 +50,7 @@ class Agent:
             json.dump(infos, f, indent=2, default=lambda x: x.__name__ if type(x) is type else str(x))
         self.tensorboard = SummaryWriter(os.path.join(self.save_dir, "tensorboard"))
         self.tensorboard.add_custom_scalars(tensorboard_layout)
+        self.episode_logger = SummaryWriter(os.path.join("episodes", self.save_dir))
 
     def log_data(self, key, value):
         if key not in self.stats:
@@ -82,15 +83,14 @@ class Agent:
         return env.step(action)
 
     def log_step(self, episode_name, step_num, transition):
-        self.tensorboard.add_scalar(f"{episode_name}/reward", transition[3], step_num)
+        self.episode_logger.add_scalar(f"{episode_name}/reward", transition[3], step_num)
         #self.tensorboard.add_text(f"{episode_name}/action", str(transition[1]), step_num)
-        if step_num%10 == 0:
-            if len(transition[0].shape) == 4:
-                last_state = transition[0][:,:,-1,:]
-            else:
-                last_state = transition[0]
-            img = rearrange(last_state, "w h c -> c w h")
-            self.tensorboard.add_image(f"{episode_name}/states", img, step_num)
+        if len(transition[0].shape) == 4:
+            last_state = transition[0][:,:,-1,:]
+        else:
+            last_state = transition[0]
+        img = rearrange(last_state, "w h c -> c w h")
+        self.episode_logger.add_image(f"{episode_name}/states", img, step_num)
 
     def run_episode(self, test=False):
         """
@@ -282,7 +282,7 @@ class QLearningAgent(Agent):
         action_values = self.value_function.last_result
         if len(action_values.shape) == 2:
             action_values = action_values[-1]
-        self.tensorboard.add_scalars(
+        self.episode_logger.add_scalars(
             f"{episode_name}/action_values",
             {str(k): v for k, v in enumerate(action_values)},
             step_num,
