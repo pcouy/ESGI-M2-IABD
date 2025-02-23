@@ -115,6 +115,9 @@ class ReplayBuffer:
                 self.rewards[i], 
                 self.dones[i],
                 self.prev_actions[i])
+    
+    def log_tensorboard(self, tensorboard, step):
+        pass
 
 class ReplayBufferAgent(QLearningAgent):
     """
@@ -148,6 +151,7 @@ class ReplayBufferAgent(QLearningAgent):
     def train_with_transition(self, state, action, next_state, reward, done, infos, prev_action=None):
         #print("Training from ReplayBufferAgent")
         self.replay_buffer.store(state, action, next_state, reward, done, infos, prev_action)
+        self.replay_buffer.log_tensorboard(self.tensorboard, self.training_steps)
         if self.replay_buffer.ready():
             # n_stored = min(self.replay_buffer.n_inserted, self.replay_buffer.max_size)
             # update_interval = self.replay_buffer.max_size/n_stored

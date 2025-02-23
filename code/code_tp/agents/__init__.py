@@ -7,4 +7,5 @@ from . import (
     prioritized_replay,
     prioritized_memmapped_replay_buffer,
     memmapped_replay_buffer,
+    reward_scaling_buffer_mixin,
 )
