@@ -14,6 +14,7 @@ class LinearNeuralStack(nn.Module):
             linear_layers.append(activation())
             in_dim = n
         
+        self.n_actions = n_actions
         last_layer = nn.Linear(in_dim, n_actions)
         
         self.layers = nn.Sequential(
@@ -22,15 +23,22 @@ class LinearNeuralStack(nn.Module):
         )
 
         self.apply(self._init_weights)
+        self.last_activation = None
         
     def forward(self, x):
-        return self.layers(x)
+        self.last_activation = self.layers(x)
+        return self.last_activation
 
     def log_tensorboard(self, tensorboard, step, name="linear"):
         for i, layer in enumerate(self.layers):
             if isinstance(layer, nn.Linear):
-                tensorboard.add_histogram(f"{name}/{i}/weights", layer.weight, step)
-                tensorboard.add_histogram(f"{name}/{i}/biases", layer.bias, step)
+                tensorboard.add_histogram(f"nn_params/{name}_{i}_weights", layer.weight, step)
+                tensorboard.add_histogram(f"nn_params/{name}_{i}_biases", layer.bias, step)
+        if self.last_activation is not None:
+            tensorboard.add_histogram(f"{name}_activation", self.last_activation, step)
+            if self.n_actions > 1:
+                for i in range(self.n_actions):
+                    tensorboard.add_histogram(f"{name}_activation/{i}", self.last_activation[:,i], step)
 
     def _init_weights(self, module):
         if isinstance(module, nn.Linear):
