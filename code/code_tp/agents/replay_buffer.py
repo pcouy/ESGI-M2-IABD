@@ -165,6 +165,7 @@ class ReplayBufferAgent(QLearningAgent):
                     self.train_one_batch()
                 self.last_update = self.training_steps
             self.policy.update()
+            self.policy.value_scaling = self.replay_buffer.reward_scaling_factor
 
     def select_action(self, state, prev_action=None):
         return super().select_action(

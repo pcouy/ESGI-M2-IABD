@@ -12,7 +12,7 @@ class SoftmaxSamplingPolicy(EGreedyPolicy):
     Plus l'entropie est élevée, plus la politique est exploratoire.
     """
     def __init__(self, *args, target_entropy=None, entropy_lr=0.01, epsilon_lr=0.01, min_epsilon=0.0015, 
-                 target_entropy_decay=0.9999, final_target_entropy=0.1, **kwargs):
+                 target_entropy_decay=0.9999, final_target_entropy=0.1, value_scaling=1, **kwargs):
         biases = kwargs.pop("biases", None)
         self.biases_decay = kwargs.pop("biases_decay", 0.9999)
         self.final_target_entropy = final_target_entropy
@@ -21,7 +21,7 @@ class SoftmaxSamplingPolicy(EGreedyPolicy):
         self.epsilon_lr = epsilon_lr
         self.min_epsilon = min_epsilon
         self.running_entropy = target_entropy  # Initialize running average to target
-        
+        self.value_scaling = value_scaling
         # Override parent's epsilon parameters to prevent automatic decay
         kwargs['epsilon_decay'] = 0
         kwargs['epsilon_min'] = min_epsilon
@@ -83,7 +83,7 @@ class SoftmaxSamplingPolicy(EGreedyPolicy):
         if epsilon >= self.min_epsilon:
             try:
                 # Add numerical stability by scaling values
-                scaled_values = (values + self.biases - np.max(values + self.biases))
+                scaled_values = (values + self.biases - np.max(values + self.biases)) * self.value_scaling
                 aux = np.exp((1/epsilon - 1) * scaled_values)
                 self.biases = self.biases * self.biases_decay
                 
