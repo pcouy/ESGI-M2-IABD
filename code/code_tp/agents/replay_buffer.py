@@ -168,7 +168,7 @@ class ReplayBufferAgent(QLearningAgent):
 
     def select_action(self, state, prev_action=None):
         return super().select_action(
-            self.replay_buffer.normalize(state) * self.replay_buffer.reward_scaling_factor,
+            self.replay_buffer.normalize(state),
             prev_action
         )
 
