@@ -112,9 +112,12 @@ class Agent:
         state, _ = env.reset()
         done = False
         # Initialize prev_action with a random action if the feature is enabled
-        prev_action = (self.initial_prev_action if self.initial_prev_action is not None 
-                      else self.env.action_space.sample() if self.use_prev_action 
-                      else None)
+        prev_action = (
+                        self.initial_prev_action if self.initial_prev_action is not None 
+                        else (
+                            self.env.action_space.sample() if self.use_prev_action else None
+                        )
+                    )
         score = 0
 
         frames = []
