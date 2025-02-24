@@ -119,6 +119,10 @@ class ReplayBuffer:
     def log_tensorboard(self, tensorboard, step):
         pass
 
+    @property
+    def reward_scaling_factor(self):
+        return 1
+
 class ReplayBufferAgent(QLearningAgent):
     """
     Agent de base utilisant un *replay buffer* (http://arxiv.org/abs/1312.5602)
@@ -163,7 +167,10 @@ class ReplayBufferAgent(QLearningAgent):
             self.policy.update()
 
     def select_action(self, state, prev_action=None):
-        return super().select_action(self.replay_buffer.normalize(state), prev_action)
+        return super().select_action(
+            self.replay_buffer.normalize(state) * self.replay_buffer.reward_scaling_factor,
+            prev_action
+        )
 
     def train_one_batch(self):
         states, actions, next_states, rewards, dones, prev_actions = self.replay_buffer.sample()
