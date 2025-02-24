@@ -92,7 +92,7 @@ class SoftmaxSamplingPolicy(EGreedyPolicy):
                     print(f"Max biases: {np.max(self.biases)}")
                     aux[np.isnan(aux)] = 1  # Replace NaN values with 0
                 if np.max(aux) == np.inf:
-                    aux[aux != np.inf] = 0
+                    aux[aux != np.inf] = 0.001
                     aux[aux == np.inf] = 1
                 probas = aux/np.sum(aux)
                 entropy = -np.sum(probas * np.log(probas))
