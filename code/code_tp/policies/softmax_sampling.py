@@ -11,13 +11,14 @@ class SoftmaxSamplingPolicy(EGreedyPolicy):
     L'epsilon et l'entropie cible sont ajustés automatiquement au cours de l'apprentissage.
     Plus l'entropie est élevée, plus la politique est exploratoire.
     """
-    def __init__(self, *args, target_entropy=None, entropy_lr=0.01, min_epsilon=0.0015, 
+    def __init__(self, *args, target_entropy=None, entropy_lr=0.01, epsilon_lr=0.01, min_epsilon=0.0015, 
                  target_entropy_decay=0.9999, final_target_entropy=0.1, **kwargs):
         biases = kwargs.pop("biases", None)
         self.biases_decay = kwargs.pop("biases_decay", 0.9999)
         self.final_target_entropy = final_target_entropy
         self.target_entropy_decay = target_entropy_decay
         self.entropy_lr = entropy_lr
+        self.epsilon_lr = epsilon_lr
         self.min_epsilon = min_epsilon
         self.running_entropy = target_entropy  # Initialize running average to target
         
@@ -101,9 +102,9 @@ class SoftmaxSamplingPolicy(EGreedyPolicy):
                 
                 # Adjust epsilon based on entropy difference
                 if self.running_entropy < self.target_entropy:
-                    self.epsilon = min(1.0, self.epsilon * 1.01)  # Increase exploration
+                    self.epsilon = min(1.0, self.epsilon * (1+self.epsilon_lr))  # Increase exploration
                 elif self.running_entropy > self.target_entropy:
-                    self.epsilon = max(self.min_epsilon, self.epsilon * 0.99)  # Decrease exploration
+                    self.epsilon = max(self.min_epsilon, self.epsilon * (1-self.epsilon_lr))  # Decrease exploration
                 
                 action = np.random.choice([x for x in range(len(probas))], p=probas)
                 self.agent.log_data("picked_proba", probas[action])
