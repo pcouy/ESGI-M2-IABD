@@ -20,7 +20,6 @@ class SoftmaxSamplingPolicy(EGreedyPolicy):
         self.entropy_lr = entropy_lr
         self.epsilon_lr = epsilon_lr
         self.min_epsilon = min_epsilon
-        self.running_entropy = target_entropy  # Initialize running average to target
         self.value_scaling = value_scaling
         # Override parent's epsilon parameters to prevent automatic decay
         kwargs['epsilon_decay'] = 0
@@ -30,10 +29,11 @@ class SoftmaxSamplingPolicy(EGreedyPolicy):
         self.target_entropy = (
             target_entropy 
             if target_entropy is not None else
-            np.log(self.value_function.action_space.n)
+            self.value_function.action_space.n
         )
         self.initial_target_entropy = self.target_entropy
         self.running_entropy = self.target_entropy
+        
         if biases is None:
             self.biases = np.array([0.0 for action in range(self.value_function.action_space.n)])
         else:
@@ -66,10 +66,10 @@ class SoftmaxSamplingPolicy(EGreedyPolicy):
         """Update target entropy and log stats"""
         # Decay target entropy
         self.target_entropy = max(
-            self.final_target_entropy,
-            self.target_entropy * self.target_entropy_decay
+            np.exp(self.final_target_entropy),
+            self.target_entropy - self.target_entropy_decay
         )
-        self.agent.log_data("target_entropy", self.target_entropy)
+        self.agent.log_data("target_exp_entropy", self.target_entropy)
         super().update()
 
     def __call__(self, state, prev_action=None, epsilon=None):
@@ -111,9 +111,9 @@ class SoftmaxSamplingPolicy(EGreedyPolicy):
                     self.running_entropy = (1 - self.entropy_lr) * self.running_entropy + self.entropy_lr * entropy
                 
                 # Adjust epsilon based on entropy difference
-                if self.running_entropy < self.target_entropy:
+                if self.running_entropy < np.log(self.target_entropy):
                     self.epsilon = min(1.0, self.epsilon + self.epsilon_lr)  # Increase exploration
-                elif self.running_entropy > self.target_entropy:
+                elif self.running_entropy > np.log(self.target_entropy):
                     self.epsilon = max(self.min_epsilon, self.epsilon - self.epsilon_lr)  # Decrease exploration
                 
                 action = np.random.choice([x for x in range(len(probas))], p=probas)
