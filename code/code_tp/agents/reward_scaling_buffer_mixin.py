@@ -7,12 +7,11 @@ class RewardScalingBufferMixin:
         pass
     """
     def __init__(self, *args, **kwargs):
-        self.moving_average_coeff = kwargs.pop("moving_average_coeff", 0.01)
         self.gamma = kwargs.pop("gamma", 0.99)  # discount factor
         super().__init__(*args, **kwargs)
-        self.n_dones = 1
-        self.avg_episode_length = 1
-        self.average_reward = 1
+        self.n_dones = 0
+        self.avg_episode_length = 1000
+        self.average_reward = 0
         
 
     def store(self, *transition):
@@ -21,8 +20,7 @@ class RewardScalingBufferMixin:
         if done:
             self.n_dones += 1
             self.avg_episode_length = self.n_inserted / self.n_dones
-        self.average_reward = self.average_reward * (1-self.moving_average_coeff) \
-                                + self.moving_average_coeff * transition[3]
+        self.average_reward = (self.n_inserted * self.average_reward + transition[3]) / (self.n_inserted + 1)
         return result
 
     @property
