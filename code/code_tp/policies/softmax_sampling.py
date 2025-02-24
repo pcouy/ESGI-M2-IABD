@@ -82,23 +82,33 @@ class SoftmaxSamplingPolicy(EGreedyPolicy):
 
         if epsilon >= self.min_epsilon:
             try:
-                aux = np.exp((1/epsilon - 1) * (values+self.biases-np.max(values+self.biases)))
+                # Add numerical stability by scaling values
+                scaled_values = (values + self.biases - np.max(values + self.biases))
+                aux = np.exp((1/epsilon - 1) * scaled_values)
                 self.biases = self.biases * self.biases_decay
-                if np.any(np.isnan(aux)):
-                    print("Warning: NaN values detected in softmax sampling probabilities")
-                    print(f"Values: {values}")
-                    print(f"Biases: {self.biases}")
-                    print(f"Max values: {np.max(values)}")
-                    print(f"Max biases: {np.max(self.biases)}")
-                    aux[np.isnan(aux)] = 1  # Replace NaN values with 0
-                if np.max(aux) == np.inf:
-                    aux[aux != np.inf] = 0.001
-                    aux[aux == np.inf] = 1
-                probas = aux/np.sum(aux)
-                entropy = -np.sum(probas * np.log(probas))
                 
-                # Update running average of entropy
-                self.running_entropy = (1 - self.entropy_lr) * self.running_entropy + self.entropy_lr * entropy
+                # Handle NaN and Inf values
+                if np.any(np.isnan(aux)) or np.any(np.isinf(aux)):
+                    aux = np.where(np.isnan(aux) | np.isinf(aux), 1.0, aux)
+                    aux = np.where(aux < 1e-10, 1e-10, aux)  # Prevent zero probabilities
+                
+                # Normalize probabilities
+                probas = aux / np.sum(aux)
+                
+                # Ensure probabilities are valid
+                probas = np.clip(probas, 1e-10, 1.0)
+                probas = probas / np.sum(probas)  # Renormalize after clipping
+                
+                # Calculate entropy with numerical stability
+                log_probas = np.log(probas + 1e-10)  # Add small constant to prevent log(0)
+                entropy = -np.sum(probas * log_probas)
+                
+                # Bound entropy to prevent extreme values
+                entropy = np.clip(entropy, 0.0, np.log(len(probas)))
+                
+                # Update running average of entropy with bounds checking
+                if not np.isnan(entropy) and not np.isinf(entropy):
+                    self.running_entropy = (1 - self.entropy_lr) * self.running_entropy + self.entropy_lr * entropy
                 
                 # Adjust epsilon based on entropy difference
                 if self.running_entropy < self.target_entropy:
@@ -110,8 +120,9 @@ class SoftmaxSamplingPolicy(EGreedyPolicy):
                 self.agent.log_data("picked_proba", probas[action])
                 self.agent.log_data("entropy", entropy)
                 self.agent.log_data("running_entropy", self.running_entropy)
-            except:
-                print(epsilon, values, aux, probas)
+            except Exception as e:
+                print(f"Error in softmax sampling: {e}")
+                print(f"epsilon: {epsilon}, values: {values}")
                 self.greedy_policy.agent = self.agent
                 action = self.greedy_policy(state, prev_action)
                 self.agent.log_data("picked_proba", 1)
