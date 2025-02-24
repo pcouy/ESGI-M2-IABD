@@ -50,8 +50,10 @@ class SoftmaxSamplingPolicy(EGreedyPolicy):
                     aux[aux != np.inf] = 0
                     aux[aux == np.inf] = 1
                 probas = aux/np.sum(aux)
+                entropy = -np.sum(probas * np.log(probas))
                 action = np.random.choice([x for x in range(len(probas))], p=probas)
                 self.agent.log_data("picked_proba", probas[action])
+                self.agent.log_data("entropy", entropy)
             except:
                 print(epsilon, values, aux, probas)
                 self.greedy_policy.agent = self.agent
