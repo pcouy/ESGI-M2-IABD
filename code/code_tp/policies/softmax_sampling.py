@@ -102,9 +102,9 @@ class SoftmaxSamplingPolicy(EGreedyPolicy):
                 
                 # Adjust epsilon based on entropy difference
                 if self.running_entropy < self.target_entropy:
-                    self.epsilon = min(1.0, self.epsilon * (1+self.epsilon_lr))  # Increase exploration
+                    self.epsilon = min(1.0, self.epsilon + self.epsilon_lr)  # Increase exploration
                 elif self.running_entropy > self.target_entropy:
-                    self.epsilon = max(self.min_epsilon, self.epsilon * (1-self.epsilon_lr))  # Decrease exploration
+                    self.epsilon = max(self.min_epsilon, self.epsilon - self.epsilon_lr)  # Decrease exploration
                 
                 action = np.random.choice([x for x in range(len(probas))], p=probas)
                 self.agent.log_data("picked_proba", probas[action])
