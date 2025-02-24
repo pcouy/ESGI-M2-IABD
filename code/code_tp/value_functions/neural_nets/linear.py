@@ -44,7 +44,7 @@ class LinearNeuralStack(nn.Module):
         if isinstance(module, nn.Linear):
             if module == self.layers[-1]:  # Output layer
                 # Smaller initialization for better initial estimates
-                nn.init.xavier_uniform_(module.weight, gain=0.1)
+                nn.init.xavier_uniform_(module.weight, gain=0.001)
                 nn.init.zeros_(module.bias)
             else:  # Hidden layers
                 nn.init.kaiming_normal_(module.weight, mode='fan_in', nonlinearity='relu')
