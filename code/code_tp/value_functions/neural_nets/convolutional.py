@@ -180,8 +180,12 @@ class ConvolutionalNN(nn.Module):
         # of 1 for discounted returns)
         return self.last_layers(conv_out) + 1
 
-    def log_tensorboard(self, tensorboard, step):
+    def log_tensorboard(self, tensorboard, step, action_mapper=str):
         if self.embedding is not None:
-            tensorboard.add_embedding(self.embedding.weight, global_step=step)
+            tensorboard.add_embedding(
+                self.embedding.weight,
+                global_step=step,
+                metadata=[action_mapper(i) for i in range(self.n_actions)],
+            )
         if callable(getattr(self.last_layers, "log_tensorboard", None)):
-            self.last_layers.log_tensorboard(tensorboard, step)
+            self.last_layers.log_tensorboard(tensorboard, step, action_mapper=action_mapper)

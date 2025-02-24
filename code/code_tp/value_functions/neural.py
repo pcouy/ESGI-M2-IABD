@@ -107,7 +107,11 @@ class ConvolutionalQFunction(DiscreteQFunction):
 
         if self.agent is not None and self.agent.training_steps - self.last_tensorboard_log >= self.hist_log_interval:
             for i in range(values.shape[1]):
-                self.agent.tensorboard.add_histogram(f"action/{i}", values[:,i], self.agent.training_steps)
+                self.agent.tensorboard.add_histogram(
+                    f"action/{self.agent.action_label_mapper(i)}",
+                    values[:,i],
+                    self.agent.training_steps,
+                )
         return values.gather(-1, actions.reshape((len(actions),1)))
 
     def update(self, state, action, target_value, prev_action=None, is_weight=None):
@@ -133,7 +137,11 @@ class ConvolutionalQFunction(DiscreteQFunction):
         self.optim.step()
         self.agent.log_data("nn_loss", pred_error.clone().cpu().item())
         if self.agent.training_steps - self.last_tensorboard_log >= self.hist_log_interval:
-            self.nn.log_tensorboard(self.agent.tensorboard, self.agent.training_steps)
+            self.nn.log_tensorboard(
+                self.agent.tensorboard,
+                self.agent.training_steps,
+                action_mapper=self.agent.action_label_mapper,
+            )
             self.last_tensorboard_log = self.agent.training_steps
         return pred_error_indiv.detach().cpu().numpy()
 

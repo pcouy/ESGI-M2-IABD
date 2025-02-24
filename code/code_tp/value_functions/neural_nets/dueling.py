@@ -26,6 +26,6 @@ class DuelingOutputStack(nn.Module):
         
         return q
 
-    def log_tensorboard(self, tensorboard, step):
-       self.advantage_layer.log_tensorboard(tensorboard, step, name="advantage")
-       self.value_layer.log_tensorboard(tensorboard, step, name="value")
+    def log_tensorboard(self, tensorboard, step, **kwargs):
+       self.advantage_layer.log_tensorboard(tensorboard, step, name="advantage", **kwargs)
+       self.value_layer.log_tensorboard(tensorboard, step, name="value", **kwargs)

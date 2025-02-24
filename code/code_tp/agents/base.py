@@ -18,7 +18,7 @@ class Agent:
     """
     Classe de base pour tous les agents.
     """
-    def __init__(self, env:gym.Env, use_prev_action=False, save_dir="experiment", infos={}, tensorboard_layout={}, initial_prev_action=None):
+    def __init__(self, env:gym.Env, use_prev_action=False, save_dir="experiment", infos={}, tensorboard_layout={}, initial_prev_action=None, action_label_mapper=str):
         """
         * `env`: Environnement gym dans lequel l'agent va évoluer
         * `use_prev_action`: Si True, l'action précédente est utilisée comme entrée additionnelle
@@ -33,6 +33,7 @@ class Agent:
         self.test = False
         self.should_stop = False
         self.use_prev_action = use_prev_action
+        self.action_label_mapper = action_label_mapper
         self.initial_prev_action = initial_prev_action
         self.save_dir = save_dir
         self.stats = {
@@ -284,7 +285,7 @@ class QLearningAgent(Agent):
             action_values = action_values[-1]
         self.episode_logger.add_scalars(
             f"{episode_name}/action_values",
-            {str(k): v for k, v in enumerate(action_values)},
+            {self.action_label_mapper(k): v for k, v in enumerate(action_values)},
             step_num,
         )
 
