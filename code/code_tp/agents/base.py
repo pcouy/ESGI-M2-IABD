@@ -304,10 +304,11 @@ class QLearningAgent(Agent):
         return self.value_function.best_action_value_from_state_batch(states, prev_actions)
 
     def target_value_from_state(self, next_state, reward, done, prev_action=None):
-        _, next_value = self.eval_state(next_state, prev_action)
-        if type(next_value) is torch.Tensor:
-            next_value = next_value.detach().cpu().numpy()
-        target = reward + self.gamma * next_value * (1-done)
+        with torch.no_grad():
+            _, next_value = self.eval_state(next_state, prev_action)
+            if type(next_value) is torch.Tensor:
+                next_value = next_value.detach().cpu().numpy()
+            target = reward + self.gamma * next_value * (1-done)
         return target
 
     def target_value_from_state_batch(self, next_states, rewards, dones, actions):
@@ -315,10 +316,11 @@ class QLearningAgent(Agent):
         Calcule la valeur cible pour une batch de transitions
         """
         # Pass actions as prev_actions for next state evaluation
-        next_actions, next_values = self.eval_state_batch(next_states, actions if self.use_prev_action else None)
-        # Convert boolean dones tensor to float for arithmetic operations
-        dones = dones.float() if isinstance(dones, torch.Tensor) else torch.tensor(dones, dtype=torch.float32)
-        targets = rewards + self.gamma * next_values * (1-dones)
+        with torch.no_grad():
+            next_actions, next_values = self.eval_state_batch(next_states, actions if self.use_prev_action else None)
+            # Convert boolean dones tensor to float for arithmetic operations
+            dones = dones.float() if isinstance(dones, torch.Tensor) else torch.tensor(dones, dtype=torch.float32)
+            targets = rewards + self.gamma * next_values * (1-dones)
         return targets
 
     def select_action(self, state, prev_action=None):
