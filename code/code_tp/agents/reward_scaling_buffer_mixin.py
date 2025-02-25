@@ -12,20 +12,29 @@ class RewardScalingBufferMixin:
         self.n_dones = 0
         self.avg_episode_length = 1000
         self.average_reward = 0
+        self.fixed_scaling = False
+        self.fixed_scaling_factor = None
         
 
     def store(self, *transition):
         result = super().store(*transition)
-        done = transition[4] if len(transition) > 4 else False
-        if done:
-            self.n_dones += 1
-            self.avg_episode_length = self.n_inserted / self.n_dones
-        self.average_reward = (self.n_inserted * self.average_reward + transition[3]) / (self.n_inserted + 1)
+        if not self.fixed_scaling:
+            done = transition[4] if len(transition) > 4 else False
+            self.average_reward = (self.n_inserted * self.average_reward + transition[3]) / (self.n_inserted + 1)
+            if done:
+                self.n_dones += 1
+                self.avg_episode_length = self.n_inserted / self.n_dones
+                if self.ready():
+                    self.fixed_scaling = True
+                    self.fixed_scaling_factor = self.average_reward * (1-self.gamma**self.avg_episode_length)/(1-self.gamma)
         return result
 
     @property
     def reward_scaling_factor(self):
-        return self.average_reward * (1-self.gamma**self.avg_episode_length)/(1-self.gamma)
+        if not self.fixed_scaling:
+            return self.average_reward * (1-self.gamma**self.avg_episode_length)/(1-self.gamma)
+        else:
+            return self.fixed_scaling_factor
     
     def sample(self, *args, **kwargs):
         samples = super().sample(*args, **kwargs)
