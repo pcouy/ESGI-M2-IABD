@@ -178,7 +178,7 @@ class ConvolutionalNN(nn.Module):
         # Add 1 to the output so the output layers targets are closer to 0
         # (should work better with reward scaling buffer, which targets an avergage
         # of 1 for discounted returns)
-        return self.last_layers(conv_out) + 1
+        return self.last_layers(conv_out)
 
     def log_tensorboard(self, tensorboard, step, action_mapper=str):
         if self.embedding is not None:
