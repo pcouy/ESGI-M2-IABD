@@ -189,3 +189,7 @@ class ConvolutionalNN(nn.Module):
             )
         if callable(getattr(self.last_layers, "log_tensorboard", None)):
             self.last_layers.log_tensorboard(tensorboard, step, action_mapper=action_mapper)
+        for i, layer in enumerate(self.conv_stack):
+            if isinstance(layer, nn.Conv2d):
+                tensorboard.add_histogram(f"nn_params/conv_stack_{i}_weights", layer.weight, step)
+                tensorboard.add_histogram(f"nn_params/conv_stack_{i}_biases", layer.bias, step)
