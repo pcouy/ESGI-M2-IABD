@@ -115,7 +115,7 @@ class ConvolutionalQFunction(DiscreteQFunction):
                 )
                 
                 # Compute standard deviation for each action across the batch
-                std_dev = torch.std(values[:, i]).item()
+                std_dev = torch.std(values[:, i]-values.mean(dim=-1)).item()
                 entropies[self.agent.action_label_mapper(i)] = std_dev
             
             # Rename the metric name to reflect std dev instead of entropy
