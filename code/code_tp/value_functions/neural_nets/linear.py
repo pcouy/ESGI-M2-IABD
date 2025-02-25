@@ -45,13 +45,13 @@ class LinearNeuralStack(nn.Module):
             if self.n_actions > 1:
                 for i in range(self.n_actions):
                     tensorboard.add_histogram(f"{name}_activation/{action_mapper(i)}", self.last_activation[:,i], step)
-
+        
     def _init_weights(self, module):
         if isinstance(module, nn.Linear):
             if module == self.layers[-1]:  # Output layer
                 # Smaller initialization for better initial estimates
-                nn.init.xavier_uniform_(module.weight, gain=0.001)
+                nn.init.orthogonal_(module.weight, gain=0.001)
                 nn.init.zeros_(module.bias)
             else:  # Hidden layers
-                nn.init.kaiming_normal_(module.weight, mode='fan_in', nonlinearity='relu')
+                nn.init.kaiming_normal_(module.weight, mode='fan_out', nonlinearity='relu')
                 nn.init.constant_(module.bias, 0.1)
