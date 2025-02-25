@@ -72,10 +72,11 @@ class GreedyQPolicy(RandomPolicy):
             
 
     def __call__(self, state, prev_action=None, **kwargs):
-        values = self.value_function.from_state(state, prev_action)
-        action, value = self.best_action_value_from_values(values)
-        if type(value) is torch.Tensor:
-            value = value.clone().detach().item()
+        with torch.no_grad():
+            values = self.value_function.from_state(state, prev_action)
+            action, value = self.best_action_value_from_values(values)
+            if type(value) is torch.Tensor:
+                value = value.clone().detach().item()
         if type(values) is torch.Tensor:
             values = values.clone().detach().cpu().numpy()
 
@@ -85,10 +86,11 @@ class GreedyQPolicy(RandomPolicy):
         return np.random.choice(actions)
     
     def batch_call(self, state_batch, prev_actions=None):
-        values_batch = self.value_function.from_state_batch(state_batch, prev_actions)
-        action_batch, value_batch = self.best_action_value_from_values_batch(values_batch)
-        if type(value_batch) is torch.Tensor:
-            value_batch = value_batch.clone().detach().item()
+        with torch.no_grad():
+            values_batch = self.value_function.from_state_batch(state_batch, prev_actions)
+            action_batch, value_batch = self.best_action_value_from_values_batch(values_batch)
+            if type(value_batch) is torch.Tensor:
+                value_batch = value_batch.clone().detach().item()
         if type(action_batch) is torch.Tensor:
             action_batch = action_batch.clone().detach().cpu().numpy()
         

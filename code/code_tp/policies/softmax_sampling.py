@@ -76,9 +76,10 @@ class SoftmaxSamplingPolicy(EGreedyPolicy):
         if epsilon is None:
             epsilon = self.epsilon
 
-        values = self.value_function.from_state(state, prev_action)
-        if type(values) is torch.Tensor:
-            values = values.clone().detach().cpu().numpy()
+        with torch.no_grad():
+            values = self.value_function.from_state(state, prev_action)
+            if type(values) is torch.Tensor:
+                values = values.clone().detach().cpu().numpy()
 
         if epsilon >= self.min_epsilon:
             try:
