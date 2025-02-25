@@ -106,12 +106,24 @@ class ConvolutionalQFunction(DiscreteQFunction):
         values = self.nn(states, prev_actions)
 
         if self.agent is not None and self.agent.training_steps - self.last_tensorboard_log >= self.hist_log_interval:
+            entropies = {}
             for i in range(values.shape[1]):
                 self.agent.tensorboard.add_histogram(
                     f"action/{self.agent.action_label_mapper(i)}",
                     values[:,i],
                     self.agent.training_steps,
                 )
+                
+                # Compute standard deviation for each action across the batch
+                std_dev = torch.std(values[:, i]).item()
+                entropies[self.agent.action_label_mapper(i)] = std_dev
+            
+            # Rename the metric name to reflect std dev instead of entropy
+            self.agent.tensorboard.add_scalars(
+                "action_std_dev",
+                entropies,  # We're reusing the dictionary but storing std dev values
+                self.agent.training_steps
+            )
         return values.gather(-1, actions.reshape((len(actions),1)))
 
     def update(self, state, action, target_value, prev_action=None, is_weight=None):

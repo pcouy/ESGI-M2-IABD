@@ -286,12 +286,19 @@ class QLearningAgent(Agent):
         action_values = self.value_function.last_result
         if len(action_values.shape) == 2:
             action_values = action_values[-1]
+        action_mean = action_values.mean(dim=0)
+        action_advantages = action_values - action_mean
         self.episode_logger.add_scalars(
-            f"{episode_name}/action_values",
-            {self.action_label_mapper(k): v for k, v in enumerate(action_values)},
+            f"{episode_name}/action_advantages",
+            {self.action_label_mapper(k): v for k, v in enumerate(action_advantages)},
             step_num,
         )
-
+        self.episode_logger.add_scalar(
+            f"{episode_name}/value_mean",
+            action_mean.item(),
+            step_num,
+        )
+        
     def train_with_transition(self, state, action, next_state, reward, done, infos, prev_action=None):
         target_value = self.target_value_from_state(next_state, reward, done, action)  # Pass current action as next prev_action
         self.value_function.update(state, action, target_value, prev_action)
