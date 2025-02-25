@@ -32,8 +32,8 @@ class LinearNeuralStack(nn.Module):
     def log_tensorboard(self, tensorboard, step, name="linear", action_mapper=str):
         for i, layer in enumerate(self.layers):
             if isinstance(layer, nn.Linear):
-                tensorboard.add_histogram(f"nn_params/{name}_{action_mapper(i)}_weights", layer.weight, step)
-                tensorboard.add_histogram(f"nn_params/{name}_{action_mapper(i)}_biases", layer.bias, step)
+                tensorboard.add_histogram(f"nn_params/{name}_{i}_weights", layer.weight, step)
+                tensorboard.add_histogram(f"nn_params/{name}_{i}_biases", layer.bias, step)
         if self.last_activation is not None:
             tensorboard.add_histogram(f"{name}_activation", self.last_activation, step)
             if self.n_actions > 1:
