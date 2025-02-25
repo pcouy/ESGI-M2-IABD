@@ -34,6 +34,12 @@ class LinearNeuralStack(nn.Module):
             if isinstance(layer, nn.Linear):
                 tensorboard.add_histogram(f"nn_params/{name}_{i}_weights", layer.weight, step)
                 tensorboard.add_histogram(f"nn_params/{name}_{i}_biases", layer.bias, step)
+                # Log gradients if they exist
+                if layer.weight.grad is not None:
+                    tensorboard.add_histogram(f"nn_grads/{name}_{i}_weight_grads", layer.weight.grad, step)
+                if layer.bias.grad is not None:
+                    tensorboard.add_histogram(f"nn_grads/{name}_{i}_bias_grads", layer.bias.grad, step)
+
         if self.last_activation is not None:
             tensorboard.add_histogram(f"{name}_activation", self.last_activation, step)
             if self.n_actions > 1:
