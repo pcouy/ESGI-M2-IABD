@@ -119,6 +119,11 @@ class SoftmaxSamplingPolicy(EGreedyPolicy):
                 
                 action = np.random.choice([x for x in range(len(probas))], p=probas)
                 self.agent.log_data("picked_proba", probas[action])
+                self.agent.tensorboard.add_scalars(
+                    "action_probas",
+                    {self.agent.action_label_mapper(i): probas[i] for i in range(len(probas))},
+                    self.agent.training_steps
+                )
                 self.agent.log_data("entropy", entropy)
                 self.agent.log_data("running_entropy", self.running_entropy)
             except Exception as e:
