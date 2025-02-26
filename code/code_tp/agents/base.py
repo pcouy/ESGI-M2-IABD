@@ -85,6 +85,7 @@ class Agent:
 
     def log_step(self, episode_name, step_num, transition):
         self.episode_logger.add_scalar(f"{episode_name}/reward", transition[3], step_num)
+        self.episode_reward_history.append(transition[3])
         #self.tensorboard.add_text(f"{episode_name}/action", str(transition[1]), step_num)
         if len(transition[0].shape) == 4:
             last_state = transition[0][:,:,-1,:]
@@ -92,6 +93,9 @@ class Agent:
             last_state = transition[0]
         img = rearrange(last_state, "w h c -> c w h")
         self.episode_logger.add_image(f"{episode_name}/states", img, step_num)
+
+    def log_episode_end(self, *args, **kwargs):
+        pass
 
     def run_episode(self, test=False):
         """
@@ -122,6 +126,9 @@ class Agent:
 
         frames = []
         step_num = 1
+        if test:
+            self.episode_reward_history = []
+            self.episode_value_history = []
         while not done:
             #frames.append(env.render('rgb_array'))
             action = self.select_action(state, prev_action)
@@ -140,6 +147,8 @@ class Agent:
 
         if not test:
             self.training_episodes+= 1
+        else:
+            self.log_episode_end(f"test_episodes_{self.training_episodes}")
 
         self.episode_end(score)
 
@@ -280,12 +289,15 @@ class QLearningAgent(Agent):
         self.gamma = gamma
         self.value_function.agent = self
         self.policy.agent = self
+        self.predicted_value_history = []
 
     def log_step(self, episode_name, step_num, transition):
         super().log_step(episode_name, step_num, transition)
         action_values = self.value_function.last_result
         if len(action_values.shape) == 2:
             action_values = action_values[-1]
+        value_scaling = getattr(self.policy, "value_scaling", 1)
+        self.predicted_value_history.append(action_values.max()*value_scaling)
         action_mean = action_values.mean(dim=0)
         action_advantages = action_values - action_mean
         self.episode_logger.add_scalars(
@@ -293,11 +305,23 @@ class QLearningAgent(Agent):
             {self.action_label_mapper(k): v for k, v in enumerate(action_advantages)},
             step_num,
         )
-        self.episode_logger.add_scalar(
-            f"{episode_name}/value_mean",
-            action_mean.item(),
-            step_num,
-        )
+
+    def log_episode_end(self, episode_name, *args, **kwargs):
+        super().log_episode_end(episode_name, *args, **kwargs)
+        actual_discounted_returns = [0]
+        for reward in self.episode_reward_history[::-1]:
+            actual_discounted_returns.insert(
+                0,
+                reward + self.gamma * actual_discounted_returns[0],
+            )
+        for i, (discounted_return, predicted_value) in enumerate(zip(actual_discounted_returns, self.predicted_value_history)):
+            self.episode_logger.add_scalars(
+                f"{episode_name}/value_mean",
+                {"actual": discounted_return, "predicted": predicted_value},
+                i,
+            )
+        self.episode_reward_history = []
+        self.predicted_value_history = []
         
     def train_with_transition(self, state, action, next_state, reward, done, infos, prev_action=None):
         target_value = self.target_value_from_state(next_state, reward, done, action)  # Pass current action as next prev_action
