@@ -32,7 +32,7 @@ class TestReplayBuffers(unittest.TestCase):
             episode_lengths: List of episode lengths to use (default=None)
             
         Returns:
-            List of (state, next_state, done) tuples
+            List of (state, next_state, done, action, prev_action) tuples
         """
         states = []
         indices = []
@@ -55,6 +55,7 @@ class TestReplayBuffers(unittest.TestCase):
         for episode in range(len(episode_lengths)):
             episode_length = episode_lengths[episode]
             episode_id = start_number + episode
+            prev_action = None  # Reset prev_action at start of episode
             
             print(f"\nEpisode {episode_id} (length {episode_length}):")
             for step in range(episode_length):
@@ -73,11 +74,16 @@ class TestReplayBuffers(unittest.TestCase):
                     next_state[:, 1] = step + 1
                     done = step == episode_length - 1
                 
-                idx = buffer.store(state, 0, next_state, 1.0, done, {})
-                states.append((state, next_state, done))
+                # Create predictable action: episode_id * 100 + step
+                action = episode_id * 100 + step
+                
+                idx = buffer.store(state, action, next_state, 1.0, done, {}, prev_action)
+                states.append((state, next_state, done, action, prev_action))
                 indices.append(idx)
                 
-                print(f"  Stored: episode={episode_id}, step={step}, done={done}, idx={idx}")
+                print(f"  Stored: episode={episode_id}, step={step}, done={done}, idx={idx}, action={action}, prev_action={prev_action}")
+                
+                prev_action = action  # Update prev_action for next step
                 
                 transition_count += 1
                 if transition_count >= n_transitions:
@@ -88,7 +94,7 @@ class TestReplayBuffers(unittest.TestCase):
 
         print(f"Buffer contents:")
         for i in range(min(n_transitions, buffer.max_size)):
-            print(f"  {buffer.states[i][0, :]} {buffer.dones[i]}")
+            print(f"  {buffer.states[i][0, :]} {buffer.dones[i]} {buffer.actions[i]} {buffer.prev_actions[i]}")
         
         return states, indices
 
@@ -261,6 +267,65 @@ class TestReplayBuffers(unittest.TestCase):
                         f"Dones shape mismatch: expected ({self.batch_size},), got {dones.shape}")
         self.assertEqual(prev_actions.shape, (self.batch_size,),
                         f"Previous actions shape mismatch: expected ({self.batch_size},), got {prev_actions.shape}")
+
+    def verify_actions(self, buffer, states, indices, is_prioritized=False, n_attempts=5):
+        """Helper method to verify that actions and previous actions are correctly stored and sampled.
+        
+        Args:
+            buffer: The replay buffer to verify
+            states: List of (state, next_state, done, action, prev_action) tuples from fill_buffer
+            indices: List of indices returned by fill_buffer
+            is_prioritized: Whether the buffer is prioritized (default=False)
+            n_attempts: Number of sampling attempts (default=5)
+        """
+        print("\nVerifying actions and previous actions:")
+        
+        for attempt in range(n_attempts):
+            print(f"\nAttempt {attempt}:")
+            
+            # Handle different buffer types
+            if is_prioritized:
+                batch, indices, weights = buffer.sample()
+            else:
+                batch = buffer.sample()
+            states_batch, actions, next_states_batch, rewards, dones, prev_actions = batch
+            
+            # Convert to numpy if needed
+            if isinstance(states_batch, torch.Tensor):
+                states_batch = states_batch.cpu().numpy()
+                next_states_batch = next_states_batch.cpu().numpy()
+                actions = actions.cpu().numpy()
+                prev_actions = prev_actions.cpu().numpy()
+
+            # Verify each sampled transition
+            states_batch = buffer.denormalize(states_batch).round()
+            next_states_batch = buffer.denormalize(next_states_batch).round()
+            for i in range(len(states_batch)):
+                # Extract episode and step info
+                current_episode = int(states_batch[i][0, 0])
+                current_step = int(states_batch[i][0, 1])
+                
+                # Calculate expected action and previous action
+                expected_action = current_episode * 100 + current_step
+                expected_prev_action = None if current_step == 0 else current_episode * 100 + (current_step - 1)
+                
+                # Print sample info
+                print(f"  Sample {i}: episode={current_episode}, step={current_step}")
+                print(f"    Action: expected={expected_action}, got={actions[i]}")
+                print(f"    Prev action: expected={expected_prev_action}, got={prev_actions[i]}")
+                
+                # Verify actions
+                self.assertEqual(actions[i], expected_action,
+                               f"Action mismatch for episode {current_episode}, step {current_step}")
+                
+                # Verify previous actions
+                if current_step == 0:
+                    # First step in episode should have None/0 as prev_action
+                    self.assertEqual(prev_actions[i], 0,
+                                   f"First step in episode {current_episode} should have prev_action=0")
+                else:
+                    self.assertEqual(prev_actions[i], expected_prev_action,
+                                   f"Previous action mismatch for episode {current_episode}, step {current_step}")
 
     def test_memmapped_episode_boundaries(self):
         buffer = MemmappedReplayBuffer(
@@ -613,7 +678,95 @@ class TestReplayBuffers(unittest.TestCase):
             warmup_size=1,
         )
         self.verify_batch_dimensions(buffer, is_prioritized=True, wait_for_queue=True)
-    
+
+    def test_actions(self):
+        buffer = MemmappedReplayBuffer(
+            obs_shape=self.obs_shape,
+            max_size=self.max_size,
+            batch_size=self.batch_size,
+            storage_path=self.test_dir / "memmapped_actions",
+            warmup_size=1,
+        )
+        
+        # Use fixed episode lengths for predictable testing
+        episode_lengths = [4, 3, 2]  # Three episodes of different lengths
+        states, indices = self.fill_buffer(buffer, n_transitions=9, episode_lengths=episode_lengths)  # Sum of episode lengths
+        
+        # Verify actions
+        self.verify_actions(buffer, states, indices)
+
+    def test_actions_wait_queue(self):
+        """Same as test_actions but waits for queue to be full."""
+        buffer = MemmappedReplayBuffer(
+            obs_shape=self.obs_shape,
+            max_size=self.max_size,
+            batch_size=self.batch_size,
+            storage_path=self.test_dir / "memmapped_actions_wait_queue",
+            warmup_size=1,
+        )
+        
+        # Use fixed episode lengths for predictable testing
+        episode_lengths = [4, 3, 2]  # Three episodes of different lengths
+        states, indices = self.fill_buffer(buffer, n_transitions=9, episode_lengths=episode_lengths)  # Sum of episode lengths
+        
+        # Wait for queue to be full
+        self.assertTrue(buffer.wait_for_queue(), "Timed out waiting for queue to be full")
+        
+        # Verify actions
+        self.verify_actions(buffer, states, indices)
+
+    def test_prioritized_actions(self):
+        """Test that actions and previous actions are correctly stored and sampled in PrioritizedReplayBuffer."""
+        buffer = PrioritizedReplayBuffer(
+            obs_shape=self.obs_shape,
+            max_size=self.max_size,
+            batch_size=self.batch_size,
+            warmup_size=1,
+        )
+        
+        # Use fixed episode lengths for predictable testing
+        episode_lengths = [4, 3, 2]  # Three episodes of different lengths
+        states, indices = self.fill_buffer(buffer, n_transitions=9, episode_lengths=episode_lengths)  # Sum of episode lengths
+        
+        # Verify actions
+        self.verify_actions(buffer, states, indices, is_prioritized=True)
+
+    def test_prioritized_memmapped_actions(self):
+        """Test that actions and previous actions are correctly stored and sampled in PrioritizedMemmappedReplayBuffer."""
+        buffer = PrioritizedMemmappedReplayBuffer(
+            obs_shape=self.obs_shape,
+            max_size=self.max_size,
+            batch_size=self.batch_size,
+            storage_path=self.test_dir / "prioritized_memmapped_actions",
+            warmup_size=1,
+        )
+        
+        # Use fixed episode lengths for predictable testing
+        episode_lengths = [4, 3, 2]  # Three episodes of different lengths
+        states, indices = self.fill_buffer(buffer, n_transitions=9, episode_lengths=episode_lengths)  # Sum of episode lengths
+        
+        # Verify actions
+        self.verify_actions(buffer, states, indices, is_prioritized=True)
+
+    def test_prioritized_memmapped_actions_wait_queue(self):
+        """Same as test_prioritized_memmapped_actions but waits for queue to be full."""
+        buffer = PrioritizedMemmappedReplayBuffer(
+            obs_shape=self.obs_shape,
+            max_size=self.max_size,
+            batch_size=self.batch_size,
+            storage_path=self.test_dir / "prioritized_memmapped_actions_wait_queue",
+            warmup_size=1,
+        )
+        
+        # Use fixed episode lengths for predictable testing
+        episode_lengths = [4, 3, 2]  # Three episodes of different lengths
+        states, indices = self.fill_buffer(buffer, n_transitions=9, episode_lengths=episode_lengths)  # Sum of episode lengths
+        
+        # Wait for queue to be full
+        self.assertTrue(buffer.wait_for_queue(), "Timed out waiting for queue to be full")
+        
+        # Verify actions
+        self.verify_actions(buffer, states, indices, is_prioritized=True)
 
 
 if __name__ == '__main__':
