@@ -132,7 +132,7 @@ class Agent:
                 self.train_with_transition(*transition)
                 self.training_steps+= 1
             else:
-                self.log_step(f"test_episodes/{self.training_episodes}", step_num, transition)
+                self.log_step(f"test_episodes_{self.training_episodes}", step_num, transition)
             step_num+= 1
             score+= reward
             state = next_state
