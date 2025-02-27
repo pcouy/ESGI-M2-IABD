@@ -51,7 +51,8 @@ class Agent:
             json.dump(infos, f, indent=2, default=lambda x: x.__name__ if type(x) is type else str(x))
         self.tensorboard = SummaryWriter(os.path.join(self.save_dir, "tensorboard"))
         self.tensorboard.add_custom_scalars(tensorboard_layout)
-        self.episode_logger = SummaryWriter(os.path.join("episodes", self.save_dir))
+        self.episode_logger = SummaryWriter(os.path.join("episodes", self.save_dir, "0-1000"))
+        self.episode_logger_range_start = 0
 
     def log_data(self, key, value):
         if key not in self.stats:
@@ -95,7 +96,11 @@ class Agent:
         self.episode_logger.add_image(f"{episode_name}/states", img, step_num)
 
     def log_episode_end(self, *args, **kwargs):
-        pass
+        if self.training_episodes < self.episode_logger_range_start + 1000:
+            return
+        self.episode_logger.close()
+        self.episode_logger_range_start += 1000
+        self.episode_logger = SummaryWriter(os.path.join("episodes", self.save_dir, f"{self.episode_logger_range_start}-{self.episode_logger_range_start+1000}"))
 
     def run_episode(self, test=False):
         """
