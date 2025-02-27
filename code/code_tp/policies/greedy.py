@@ -13,6 +13,7 @@ class RandomPolicy:
         self.value_function = value_function
         self.stats = {}
         self.agent = None
+        self.in_test = False
 
     def __call__(self, state):
         """
@@ -26,13 +27,16 @@ class RandomPolicy:
         """
         return self(state_batch)
 
-    def test(self, state):
+    def test(self, state, *args, **kwargs):
         """
         Prend un état en argument, retourne une action.
         Utilisée durant les épisodes d'évaluation, le comportement par défaut est d'appliquer
         la politique définie dans `__call__`
         """
-        return self(state)
+        self.in_test = True
+        result = self(state, *args, **kwargs)
+        self.in_test = False
+        return result
 
     def update(self):
         """
@@ -80,7 +84,10 @@ class GreedyQPolicy(RandomPolicy):
 
         actions = [k for k, v in enumerate(values) if v == value]
 
-        self.agent.log_data("predicted_value", value)
+        if self.in_test:
+            self.agent.log_data("predicted_value_test", value)
+        else:
+            self.agent.log_data("predicted_value", value)
         return np.random.choice(actions)
 
     def batch_call(self, state_batch, prev_actions=None):
@@ -96,7 +103,10 @@ class GreedyQPolicy(RandomPolicy):
         if type(action_batch) is torch.Tensor:
             action_batch = action_batch.clone().detach().cpu().numpy()
 
-        self.agent.log_data("predicted_value", value_batch.mean())
+        if self.in_test:
+            self.agent.log_data("predicted_value_test", value_batch.mean())
+        else:
+            self.agent.log_data("predicted_value", value_batch.mean())
         return action_batch
 
 
@@ -152,8 +162,10 @@ class EGreedyPolicy(RandomPolicy):
         )
         return action_batch
 
-    def test(self, state, prev_action=None):
-        return self(state, prev_action, epsilon=self.epsilon_test)
+    def test(self, state, prev_action=None, *args, **kwargs):
+        return super().test(
+            state, prev_action, epsilon=self.epsilon_test, *args, **kwargs
+        )
 
     def update_epsilon(self):
         self.epsilon = max(self.epsilon * (1 - self.epsilon_decay), self.epsilon_min)

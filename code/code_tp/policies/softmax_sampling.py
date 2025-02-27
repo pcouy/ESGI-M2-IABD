@@ -117,48 +117,61 @@ class SoftmaxSamplingPolicy(EGreedyPolicy):
                 # Bound entropy to prevent extreme values
                 entropy = np.clip(entropy, 0.0, np.log(len(probas)))
 
-                # Update running average of entropy with bounds checking
-                if not np.isnan(entropy) and not np.isinf(entropy):
-                    self.running_entropy = (
-                        1 - self.entropy_lr
-                    ) * self.running_entropy + self.entropy_lr * entropy
+                if not self.in_test:
+                    # Update running average of entropy with bounds checking
+                    if not np.isnan(entropy) and not np.isinf(entropy):
+                        self.running_entropy = (
+                            1 - self.entropy_lr
+                        ) * self.running_entropy + self.entropy_lr * entropy
 
-                # Adjust epsilon based on entropy difference
-                if self.running_entropy < np.log(self.target_entropy):
-                    self.epsilon = min(
-                        1.0, self.epsilon + self.epsilon_lr
-                    )  # Increase exploration
-                elif self.running_entropy > np.log(self.target_entropy):
-                    self.epsilon = max(
-                        self.min_epsilon, self.epsilon - self.epsilon_lr
-                    )  # Decrease exploration
+                    # Adjust epsilon based on entropy difference
+                    if self.running_entropy < np.log(self.target_entropy):
+                        self.epsilon = min(
+                            1.0, self.epsilon + self.epsilon_lr
+                        )  # Increase exploration
+                    elif self.running_entropy > np.log(self.target_entropy):
+                        self.epsilon = max(
+                            self.min_epsilon, self.epsilon - self.epsilon_lr
+                        )  # Decrease exploration
 
                 action = np.random.choice([x for x in range(len(probas))], p=probas)
-                self.agent.log_data("picked_proba", probas[action])
-                self.agent.tensorboard.add_scalars(
-                    "action_probas",
-                    {
-                        self.agent.action_label_mapper(i): probas[i]
-                        for i in range(len(probas))
-                    },
-                    self.agent.training_steps,
-                )
-                self.agent.log_data("entropy", entropy)
-                self.agent.log_data("running_entropy", self.running_entropy)
+                if self.in_test:
+                    self.agent.log_data(
+                        "picked_proba_test", probas[action], accumulate=False
+                    )
+                else:
+                    self.agent.log_data("picked_proba", probas[action])
+                    self.agent.tensorboard.add_scalars(
+                        "action_probas",
+                        {
+                            self.agent.action_label_mapper(i): probas[i]
+                            for i in range(len(probas))
+                        },
+                        self.agent.training_steps,
+                    )
+                    self.agent.log_data("entropy", entropy)
+                    self.agent.log_data("running_entropy", self.running_entropy)
             except Exception as e:
                 print(f"Error in softmax sampling: {e}")
                 print(f"epsilon: {epsilon}, values: {values}")
                 self.greedy_policy.agent = self.agent
                 action = self.greedy_policy(state, prev_action)
-                self.agent.log_data("picked_proba", 1)
-                self.agent.log_data("entropy", 0)
+                if not self.in_test:
+                    self.agent.log_data("picked_proba", 1)
+                    self.agent.log_data("entropy", 0)
         else:
             self.greedy_policy.agent = self.agent
             action = self.greedy_policy(state, prev_action, epsilon=epsilon)
-            self.agent.log_data("picked_proba", 1)
-            self.agent.log_data("entropy", 0)
+            if not self.in_test:
+                self.agent.log_data("picked_proba", 1)
+                self.agent.log_data("entropy", 0)
 
-        self.agent.log_data("predicted_value", values[action])
+        if self.in_test:
+            self.agent.log_data(
+                "predicted_value_test", values[action], accumulate=False
+            )
+        else:
+            self.agent.log_data("predicted_value", values[action])
         self.stats.update(self.greedy_policy.stats)
 
         return action

@@ -30,6 +30,7 @@ class Agent:
         tensorboard_layout={},
         initial_prev_action=None,
         action_label_mapper=str,
+        accumulate_stats=100,
     ):
         """
         * `env`: Environnement gym dans lequel l'agent va évoluer
@@ -40,6 +41,7 @@ class Agent:
         """
         self.training_steps = 0
         self.training_episodes = 0
+        self.testing_steps = 0
         self.env = env
         self.agent = self
         self.test = False
@@ -52,6 +54,9 @@ class Agent:
             "scores": {"x_label": "Episode", "data": []},
             "test_scores": {"data": []},
         }
+        self.cumulative_stats = {}
+        self.accumulate_stats = accumulate_stats
+        self.last_stats_update = {}
         os.makedirs(self.save_dir, exist_ok=True)
         with open(os.path.join(self.save_dir, "infos.json"), "w") as f:
             print(infos)
@@ -68,11 +73,34 @@ class Agent:
         )
         self.episode_logger_range_start = 0
 
-    def log_data(self, key, value):
+    def log_data(self, key, value, accumulate=True):
+        if self.test:
+            step = self.testing_steps
+        else:
+            step = self.training_steps
         if key not in self.stats:
             self.stats[key] = {"data": []}
-        self.stats[key]["data"].append(value)
-        self.tensorboard.add_scalar(key, value, self.training_steps)
+
+        if not accumulate or self.test:
+            self.stats[key]["data"].append(value)
+            self.tensorboard.add_scalar(key, value, step)
+            return
+
+        if key not in self.last_stats_update:
+            self.last_stats_update[key] = 0
+        if key not in self.cumulative_stats:
+            self.cumulative_stats[key] = {"data": np.array([])}
+        self.cumulative_stats[key]["data"] = np.append(
+            self.cumulative_stats[key]["data"], value
+        )
+
+        if self.training_steps - self.last_stats_update[key] > self.accumulate_stats:
+            self.last_stats_update[key] = self.training_steps
+            self.stats[key]["data"].append(self.cumulative_stats[key]["data"].mean())
+            self.tensorboard.add_scalar(
+                key, self.cumulative_stats[key]["data"].mean(), step
+            )
+            self.cumulative_stats[key]["data"] = np.array([])
 
     def select_action(self, state: np.ndarray, prev_action=None) -> np.ndarray:
         """
@@ -139,10 +167,13 @@ class Agent:
             env = gym.wrappers.RecordVideo(
                 self.env,
                 os.path.join(
-                    self.save_dir, "videos", "{:05d}".format(self.training_episodes)
+                    self.save_dir,
+                    "videos",
                 ),
+                name_prefix="{:05d}".format(self.training_episodes),
                 episode_trigger=lambda _: True,
             )
+            env.step_id = self.training_steps
 
         state, _ = env.reset()
         done = False
@@ -171,6 +202,7 @@ class Agent:
                 self.train_with_transition(*transition)
                 self.training_steps += 1
             else:
+                self.testing_steps += 1
                 self.log_step(
                     f"test_episodes_{self.training_episodes}", step_num, transition
                 )
@@ -271,9 +303,9 @@ class Agent:
             )
         )
         if not self.test:
-            self.log_data("scores", score)
+            self.log_data("scores", score, accumulate=False)
         else:
-            self.log_data("test_scores", score)
+            self.log_data("test_scores", score, accumulate=False)
 
     def plot_stats(self, save_dir=None):
         """
