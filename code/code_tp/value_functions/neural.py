@@ -147,6 +147,8 @@ class ConvolutionalQFunction(DiscreteQFunction):
 
         pred_error.backward()
         self.optim.step()
+        self.reset_noise()
+
         self.agent.log_data("nn_loss", pred_error.clone().cpu().item())
         if self.agent.training_steps - self.last_tensorboard_log >= self.hist_log_interval:
             self.nn.log_tensorboard(
@@ -156,6 +158,12 @@ class ConvolutionalQFunction(DiscreteQFunction):
             )
             self.last_tensorboard_log = self.agent.training_steps
         return pred_error_indiv.detach().cpu().numpy()
+
+    def reset_noise(self, strength=1):
+        if callable(getattr(self.nn, "reset_noise", None)):
+            self.nn.reset_noise(strength)
+            if isinstance(self.agent, TargetValueAgent):
+                self.agent.target_value_function.reset_noise(strength)
 
     def best_action_value_from_state(self, state, prev_action=None):
         maxa, maxv = self.best_action_value_from_state_batch(

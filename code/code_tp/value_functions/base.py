@@ -9,7 +9,7 @@ class ValueFunction:
     """
     Classe de base des fonctions de valeur de type $v(s)$
     """
-    def __init__(self, env, lr=0.1, lr_decay=0, lr_min=1e-5):
+    def __init__(self, env, lr=0.1, lr_decay=0, lr_min=1e-5, **kwargs):
         """
         * `env`: Environnement sur lequel porte la fonction de valeur. Est utilisé uniquement pour
                  déterminer les espaces des états et des actions.
@@ -30,7 +30,8 @@ class ValueFunction:
                 "data": []
             }
         }
-        self.init_args = locals()
+        self.init_args = kwargs
+        self.init_args.update(locals())
 
     def __call__(self, state, prev_action=None):
         """

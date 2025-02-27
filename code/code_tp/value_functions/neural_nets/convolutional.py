@@ -180,6 +180,10 @@ class ConvolutionalNN(nn.Module):
         # of 1 for discounted returns)
         return self.last_layers(conv_out)
 
+    def reset_noise(self, strength=1):
+        if callable(getattr(self.last_layers, "reset_noise", None)):
+            self.last_layers.reset_noise(strength)
+
     def log_tensorboard(self, tensorboard, step, action_mapper=str):
         if self.embedding is not None:
             tensorboard.add_embedding(
