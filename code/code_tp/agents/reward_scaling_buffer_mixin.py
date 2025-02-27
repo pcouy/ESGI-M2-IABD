@@ -8,7 +8,7 @@ class RewardScalingBufferMixin:
     """
 
     def __init__(self, *args, **kwargs):
-        self.gamma = kwargs.pop("gamma", 0.99)  # discount factor
+        self.gamma = kwargs.get("gamma", 0.99)  # discount factor
         super().__init__(*args, **kwargs)
         self.n_dones = 0
         self.avg_episode_length = 1000

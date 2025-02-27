@@ -14,26 +14,40 @@ def _return_one_batch(
     current_n,
     max_size,
     idx=None,
+    n_steps=1,
+    discount=0.99,
 ):
     n_stored = current_n if current_n < max_size else max_size
     states, actions, rewards, dones, prev_actions = memmapped_arrays
     if idx is None:
         valid_indices = np.where(~dones[:n_stored])[0]
         idx = np.random.choice(valid_indices, size=batch_size, replace=True)
-    next_idx = (idx + 1) % (max_size)
+    next_idx = idx
+
+    current_steps = 0
+    current_idx = idx
 
     batch_states = states[idx].copy()
     batch_actions = actions[idx].copy()
-    batch_next_states = states[next_idx].copy()
-    batch_rewards = rewards[idx].copy()
-    batch_dones = dones[next_idx].copy()
     batch_prev_actions = prev_actions[idx].copy()
+    batch_rewards = np.zeros(batch_size, dtype=np.float32)
+
+    while current_steps < n_steps:
+        next_idx = (next_idx + (1 - dones[next_idx])) % (max_size)
+        batch_next_states = states[next_idx].copy()
+        batch_rewards = batch_rewards + rewards[current_idx].copy() * (
+            discount**current_steps
+        ) * (1 - dones[current_idx])
+        batch_dones = dones[next_idx].copy()
+
+        current_idx = next_idx
+        current_steps += 1
 
     return (
         batch_states,
         batch_actions,
         batch_next_states,
-        batch_rewards,
+        batch_rewards.astype(np.float32),
         batch_dones,
         batch_prev_actions,
     )
@@ -47,6 +61,8 @@ def _preloader_func(
     n_inserted_val,
     preload_queue,
     stop_event,
+    n_step=1,
+    gamma=0.99,
 ):
     # Open memmapped arrays for reading
     states_path = os.path.join(storage_path, "states.dat")
@@ -79,6 +95,8 @@ def _preloader_func(
             batch_size,
             current_n,
             max_size,
+            n_steps=n_step,
+            discount=gamma,
         )
 
         try:
@@ -100,6 +118,8 @@ class MemmappedReplayBuffer(ReplayBuffer):
         preload_on_gpu=True,
         flush_every=None,
         warmup_size=None,
+        n_step=1,
+        gamma=0.99,
     ):
         # Initialize parameters manually to avoid GPU allocation in parent's __init__
         self.flush_every = flush_every
@@ -115,6 +135,8 @@ class MemmappedReplayBuffer(ReplayBuffer):
             if warmup_size is not None
             else 2 * self.batch_size * preload_batches
         )
+        self.n_step = n_step
+        self.gamma = gamma
         self.storage_path = storage_path
         os.makedirs(self.storage_path, exist_ok=True)
         print(f"MemmappedReplayBuffer initialized with warmup_size={self.warmup_size}")
@@ -171,6 +193,8 @@ class MemmappedReplayBuffer(ReplayBuffer):
                     self.n_inserted_val,
                     self.preload_queue,
                     self.stop_event,
+                    self.n_step,
+                    self.gamma,
                 ),
             )
             self.preloader_process.daemon = True
@@ -208,6 +232,8 @@ class MemmappedReplayBuffer(ReplayBuffer):
                 self.batch_size,
                 current_n,
                 self.max_size,
+                n_steps=self.n_step,
+                discount=self.gamma,
             )
 
             # Load and normalize states - note we get next states from idx + 1
@@ -348,13 +374,21 @@ class MemmappedReplayBuffer(ReplayBuffer):
                 batch_dones,
                 batch_prev_actions,
             ) = _return_one_batch(
-                (self.states, self.actions, self.rewards, self.dones, self.prev_actions),
+                (
+                    self.states,
+                    self.actions,
+                    self.rewards,
+                    self.dones,
+                    self.prev_actions,
+                ),
                 self.batch_size,
                 self.n_inserted,
                 self.max_size,
                 i,
+                n_steps=self.n_step,
+                discount=self.gamma,
             )
-            
+
             if self.preload_on_gpu:
                 batch_states = torch.from_numpy(batch_states).to(
                     self.device, non_blocking=True
@@ -374,7 +408,7 @@ class MemmappedReplayBuffer(ReplayBuffer):
                 batch_prev_actions = torch.from_numpy(batch_prev_actions).to(
                     self.device, non_blocking=True
                 )
-            
+
             # Normalize states for direct index sampling
             batch_states = self.normalize(batch_states)
             batch_next_states = self.normalize(batch_next_states)
@@ -426,6 +460,8 @@ class MemmappedReplayBuffer(ReplayBuffer):
                             self.batch_size,
                             current_n,
                             self.max_size,
+                            n_steps=self.n_step,
+                            discount=self.gamma,
                         )
 
                         batch_states = self.normalize(
@@ -482,6 +518,8 @@ class MemmappedReplayBuffer(ReplayBuffer):
                             self.batch_size,
                             current_n,
                             self.max_size,
+                            n_steps=self.n_step,
+                            discount=self.gamma,
                         )
 
             # Normalize states for non-preloaded batches

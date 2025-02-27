@@ -232,26 +232,30 @@ class PrioritizedMemmappedReplayBuffer(MemmappedReplayBuffer):
                 batch_dones,
                 batch_prev_actions,
             ) = _return_one_batch(
-                (self.states, self.actions, self.rewards, self.dones, self.prev_actions),
+                (
+                    self.states,
+                    self.actions,
+                    self.rewards,
+                    self.dones,
+                    self.prev_actions,
+                ),
                 self.batch_size,
                 current_n,
                 self.max_size,
                 batch_indices,
+                n_steps=self.n_step,
+                discount=self.gamma,
             )
 
             # Load and normalize the data
             batch_states = self.normalize(
-                torch.from_numpy(batch_states).to(
-                    self.device, non_blocking=True
-                )
+                torch.from_numpy(batch_states).to(self.device, non_blocking=True)
             )
             batch_actions = torch.from_numpy(batch_actions).to(
                 self.device, non_blocking=True
             )
             batch_next_states = self.normalize(
-                torch.from_numpy(batch_next_states).to(
-                    self.device, non_blocking=True
-                )
+                torch.from_numpy(batch_next_states).to(self.device, non_blocking=True)
             )
             batch_rewards = torch.from_numpy(batch_rewards).to(
                 self.device, non_blocking=True
