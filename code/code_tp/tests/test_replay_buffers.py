@@ -17,7 +17,7 @@ class TestReplayBuffers(unittest.TestCase):
         self.test_dir = pathlib.Path("test_replay_buffer")
         self.test_dir.mkdir(parents=True, exist_ok=True)
         self.obs_shape = (2, 2)  # [episode_id, step_id] for both rows
-        self.max_size = 32
+        self.max_size = 64
         self.batch_size = 8
         self.episode_lengths = None
 
@@ -110,7 +110,7 @@ class TestReplayBuffers(unittest.TestCase):
         return states, indices
 
     def verify_episode_boundaries(
-        self, buffer, n_attempts=5, is_prioritized=False, allow_wrapping=False
+        self, buffer, n_attempts=20, is_prioritized=False, allow_wrapping=False
     ):
         """Helper method to verify that sampling respects episode boundaries.
 
