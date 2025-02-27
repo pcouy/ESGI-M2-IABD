@@ -8,17 +8,29 @@ from einops import rearrange
 
 # Set matplotlib backend before importing pyplot
 import matplotlib
-matplotlib.use('Agg')  # Use non-interactive backend
+
+matplotlib.use("Agg")  # Use non-interactive backend
 import matplotlib.pyplot as plt
 
 import torch
 from torch.utils.tensorboard import SummaryWriter
 
+
 class Agent:
     """
     Classe de base pour tous les agents.
     """
-    def __init__(self, env:gym.Env, use_prev_action=False, save_dir="experiment", infos={}, tensorboard_layout={}, initial_prev_action=None, action_label_mapper=str):
+
+    def __init__(
+        self,
+        env: gym.Env,
+        use_prev_action=False,
+        save_dir="experiment",
+        infos={},
+        tensorboard_layout={},
+        initial_prev_action=None,
+        action_label_mapper=str,
+    ):
         """
         * `env`: Environnement gym dans lequel l'agent va évoluer
         * `use_prev_action`: Si True, l'action précédente est utilisée comme entrée additionnelle
@@ -37,26 +49,28 @@ class Agent:
         self.initial_prev_action = initial_prev_action
         self.save_dir = save_dir
         self.stats = {
-            'scores': {
-                'x_label': "Episode",
-                'data': []
-            },
-            'test_scores': {
-                'data': []
-            }
+            "scores": {"x_label": "Episode", "data": []},
+            "test_scores": {"data": []},
         }
         os.makedirs(self.save_dir, exist_ok=True)
         with open(os.path.join(self.save_dir, "infos.json"), "w") as f:
             print(infos)
-            json.dump(infos, f, indent=2, default=lambda x: x.__name__ if type(x) is type else str(x))
+            json.dump(
+                infos,
+                f,
+                indent=2,
+                default=lambda x: x.__name__ if type(x) is type else str(x),
+            )
         self.tensorboard = SummaryWriter(os.path.join(self.save_dir, "tensorboard"))
         self.tensorboard.add_custom_scalars(tensorboard_layout)
-        self.episode_logger = SummaryWriter(os.path.join("episodes", self.save_dir, "0-1000"))
+        self.episode_logger = SummaryWriter(
+            os.path.join("episodes", self.save_dir, "0-1000")
+        )
         self.episode_logger_range_start = 0
 
     def log_data(self, key, value):
         if key not in self.stats:
-            self.stats[key] = {'data':[]}
+            self.stats[key] = {"data": []}
         self.stats[key]["data"].append(value)
         self.tensorboard.add_scalar(key, value, self.training_steps)
 
@@ -67,7 +81,9 @@ class Agent:
         """
         raise NotImplementedError
 
-    def train_with_transition(self, state, action, next_state, reward, done, infos, prev_action=None):
+    def train_with_transition(
+        self, state, action, next_state, reward, done, infos, prev_action=None
+    ):
         """
         Met à jour l'agent suite à une transition. Les noms des paramètres sont explicites.
         Le paramètre `infos`, rarement utilisé, fait partie des réponses standardisées des
@@ -85,11 +101,13 @@ class Agent:
         return env.step(action)
 
     def log_step(self, episode_name, step_num, transition):
-        self.episode_logger.add_scalar(f"{episode_name}/reward", transition[3], step_num)
+        self.episode_logger.add_scalar(
+            f"{episode_name}/reward", transition[3], step_num
+        )
         self.episode_reward_history.append(transition[3])
-        #self.tensorboard.add_text(f"{episode_name}/action", str(transition[1]), step_num)
+        # self.tensorboard.add_text(f"{episode_name}/action", str(transition[1]), step_num)
         if len(transition[0].shape) == 4:
-            last_state = transition[0][:,:,-1,:]
+            last_state = transition[0][:, :, -1, :]
         else:
             last_state = transition[0]
         img = rearrange(last_state, "w h c -> c w h")
@@ -100,7 +118,13 @@ class Agent:
             return
         self.episode_logger.close()
         self.episode_logger_range_start += 1000
-        self.episode_logger = SummaryWriter(os.path.join("episodes", self.save_dir, f"{self.episode_logger_range_start}-{self.episode_logger_range_start+1000}"))
+        self.episode_logger = SummaryWriter(
+            os.path.join(
+                "episodes",
+                self.save_dir,
+                f"{self.episode_logger_range_start}-{self.episode_logger_range_start+1000}",
+            )
+        )
 
     def run_episode(self, test=False):
         """
@@ -112,21 +136,22 @@ class Agent:
             env = self.env
         else:
             os.makedirs(os.path.join(self.save_dir, "videos"), exist_ok=True)
-            env = gym.wrappers.RecordVideo(self.env, os.path.join(
-                self.save_dir,
-                "videos",
-                "{:05d}".format(self.training_episodes)
-            ), episode_trigger=lambda _: True)
+            env = gym.wrappers.RecordVideo(
+                self.env,
+                os.path.join(
+                    self.save_dir, "videos", "{:05d}".format(self.training_episodes)
+                ),
+                episode_trigger=lambda _: True,
+            )
 
         state, _ = env.reset()
         done = False
         # Initialize prev_action with a random action if the feature is enabled
         prev_action = (
-                        self.initial_prev_action if self.initial_prev_action is not None 
-                        else (
-                            self.env.action_space.sample() if self.use_prev_action else None
-                        )
-                    )
+            self.initial_prev_action
+            if self.initial_prev_action is not None
+            else (self.env.action_space.sample() if self.use_prev_action else None)
+        )
         score = 0
 
         frames = []
@@ -135,31 +160,44 @@ class Agent:
             self.episode_reward_history = []
             self.episode_value_history = []
         while not done:
-            #frames.append(env.render('rgb_array'))
+            # frames.append(env.render('rgb_array'))
             action = self.select_action(state, prev_action)
-            next_state, reward, terminated, truncated, infos = self.step(action, env=env)
+            next_state, reward, terminated, truncated, infos = self.step(
+                action, env=env
+            )
             done = terminated or truncated
             transition = (state, action, next_state, reward, done, infos, prev_action)
             if not test:
                 self.train_with_transition(*transition)
-                self.training_steps+= 1
+                self.training_steps += 1
             else:
-                self.log_step(f"test_episodes_{self.training_episodes}", step_num, transition)
-            step_num+= 1
-            score+= reward
+                self.log_step(
+                    f"test_episodes_{self.training_episodes}", step_num, transition
+                )
+            step_num += 1
+            score += reward
             state = next_state
-            prev_action = action if self.use_prev_action else None  # Update prev_action if feature is enabled
+            prev_action = (
+                action if self.use_prev_action else None
+            )  # Update prev_action if feature is enabled
 
         if not test:
-            self.training_episodes+= 1
+            self.training_episodes += 1
         else:
             self.log_episode_end(f"test_episodes_{self.training_episodes}")
 
         self.episode_end(score)
 
         if test:
-            video_tensor = rearrange(np.array(env.recorded_frames), "t w h c -> 1 t c w h")
-            self.tensorboard.add_video("test_run", video_tensor, self.training_steps, fps=self.env.metadata.get("render_fps", 30))
+            video_tensor = rearrange(
+                np.array(env.recorded_frames), "t w h c -> 1 t c w h"
+            )
+            self.tensorboard.add_video(
+                "test_run",
+                video_tensor,
+                self.training_steps,
+                fps=self.env.metadata.get("render_fps", 30),
+            )
             env.stop_recording()
         self.test = False
 
@@ -169,7 +207,14 @@ class Agent:
         for i in range(n):
             self.run_episode(test=test)
 
-    def train(self, n_episodes=1000, test_interval=50, train_callbacks=[], test_callbacks=[], test_interval_type="episode"):
+    def train(
+        self,
+        n_episodes=1000,
+        test_interval=50,
+        train_callbacks=[],
+        test_callbacks=[],
+        test_interval_type="episode",
+    ):
         """
         Boucle d'entrainement.
 
@@ -186,14 +231,16 @@ class Agent:
         if test_callbacks is None:
             test_callbacks = []
         if self.plot_stats not in test_callbacks:
-            test_callbacks+= [self.plot_stats]
+            test_callbacks += [self.plot_stats]
         self.should_stop = False
 
         while self.training_episodes < n_episodes and not self.should_stop:
             self.run_episode(test=False)
             for cb in train_callbacks:
                 cb(self.save_dir)
-            if self.test_condition(self.training_episodes, test_interval, test_interval_type):
+            if self.test_condition(
+                self.training_episodes, test_interval, test_interval_type
+            ):
                 with torch.no_grad():
                     self.run_episode(test=True)
                 for cb in test_callbacks:
@@ -211,19 +258,18 @@ class Agent:
                 self.last_test_step = self.training_steps
             return result
         else:
-            return (i+1)%test_interval == 0
-
+            return (i + 1) % test_interval == 0
 
     def episode_end(self, score):
         """
         Méthode appelée par `run_episode` à la fin de chaque épisode, reçoit le
         score de l'épisode achevé comme argument.
         """
-        print("{} episode ({}) done with score = {:.2f}".format(
-            "Testing" if self.test else "Training",
-            self.training_episodes,
-            score
-        ))
+        print(
+            "{} episode ({}) done with score = {:.2f}".format(
+                "Testing" if self.test else "Training", self.training_episodes, score
+            )
+        )
         if not self.test:
             self.log_data("scores", score)
         else:
@@ -234,6 +280,7 @@ class Agent:
         Trace les courbes des tableaux contenus dans `self.stats`. Si `save_dir` vaut `None`,
         affiche directement les courbes, sinon les sauvegarde.
         """
+
         def plot_stat(name, x_label="", data=[]):
             if type(data) is torch.Tensor:
                 data = data.detach().cpu().numpy()
@@ -245,42 +292,43 @@ class Agent:
             plt.ylabel(name)
             fig.tight_layout()
             if save_dir is not None:
-                fig.savefig(os.path.join(
-                    save_dir,
-                    "{}.png".format(name)
-                ))
+                fig.savefig(os.path.join(save_dir, "{}.png".format(name)))
             else:
                 plt.show()
             fig.clf()
             plt.clf()
             plt.close(fig)
+
         procs = []
         # "Hack" utilisant `multiprocessing` pour éviter une fuite de mémoire avec
         # matplotlib
         for stat in self.stats.keys():
-            procs.append(mp.Process(target=plot_stat, 
-                                    args=(stat,), 
-                                    kwargs=self.stats[stat]
-                                   ))
+            procs.append(
+                mp.Process(target=plot_stat, args=(stat,), kwargs=self.stats[stat])
+            )
             procs[-1].daemon = True
             procs[-1].start()
         for proc in procs:
             proc.join()
 
+
 class RandomAgent(Agent):
     """
     Agent effectuant une action aléatoire à tous les pas de temps
     """
+
     def select_action(self, *args, **kwargs):
         return self.env.action_space.sample()
 
     def train_with_transition(self, *args, **kwargs):
         print(args)
 
+
 class QLearningAgent(Agent):
     """
     Implémente l'algorithme du *Q-Learning*
     """
+
     def __init__(self, env, value_function, policy, gamma=0.99, **kwargs):
         """
         * `env`: Environnement gym dans lequel l'agent évolue
@@ -302,7 +350,7 @@ class QLearningAgent(Agent):
         if len(action_values.shape) == 2:
             action_values = action_values[-1]
         value_scaling = getattr(self.policy, "value_scaling", 1)
-        self.predicted_value_history.append(action_values.max()*value_scaling)
+        self.predicted_value_history.append(action_values.max() * value_scaling)
         action_mean = action_values.mean(dim=0)
         action_advantages = action_values - action_mean
         self.episode_logger.add_scalars(
@@ -319,7 +367,9 @@ class QLearningAgent(Agent):
                 0,
                 reward + self.gamma * actual_discounted_returns[0],
             )
-        for i, (discounted_return, predicted_value) in enumerate(zip(actual_discounted_returns, self.predicted_value_history)):
+        for i, (discounted_return, predicted_value) in enumerate(
+            zip(actual_discounted_returns, self.predicted_value_history)
+        ):
             self.episode_logger.add_scalars(
                 f"{episode_name}/value_mean",
                 {"actual": discounted_return, "predicted": predicted_value},
@@ -327,9 +377,13 @@ class QLearningAgent(Agent):
             )
         self.episode_reward_history = []
         self.predicted_value_history = []
-        
-    def train_with_transition(self, state, action, next_state, reward, done, infos, prev_action=None):
-        target_value = self.target_value_from_state(next_state, reward, done, action)  # Pass current action as next prev_action
+
+    def train_with_transition(
+        self, state, action, next_state, reward, done, infos, prev_action=None
+    ):
+        target_value = self.target_value_from_state(
+            next_state, reward, done, action
+        )  # Pass current action as next prev_action
         self.value_function.update(state, action, target_value, prev_action)
         self.policy.update()
 
@@ -337,14 +391,16 @@ class QLearningAgent(Agent):
         return self.value_function.best_action_value_from_state(state, prev_action)
 
     def eval_state_batch(self, states, prev_actions=None):
-        return self.value_function.best_action_value_from_state_batch(states, prev_actions)
+        return self.value_function.best_action_value_from_state_batch(
+            states, prev_actions
+        )
 
     def target_value_from_state(self, next_state, reward, done, prev_action=None):
         with torch.no_grad():
             _, next_value = self.eval_state(next_state, prev_action)
             if type(next_value) is torch.Tensor:
                 next_value = next_value.detach().cpu().numpy()
-            target = reward + self.gamma * next_value * (1-done)
+            target = reward + self.gamma * next_value * (1 - done)
         return target
 
     def target_value_from_state_batch(self, next_states, rewards, dones, actions):
@@ -353,10 +409,16 @@ class QLearningAgent(Agent):
         """
         # Pass actions as prev_actions for next state evaluation
         with torch.no_grad():
-            next_actions, next_values = self.eval_state_batch(next_states, actions if self.use_prev_action else None)
+            next_actions, next_values = self.eval_state_batch(
+                next_states, actions if self.use_prev_action else None
+            )
             # Convert boolean dones tensor to float for arithmetic operations
-            dones = dones.float() if isinstance(dones, torch.Tensor) else torch.tensor(dones, dtype=torch.float32)
-            targets = rewards + self.gamma * next_values * (1-dones)
+            dones = (
+                dones.float()
+                if isinstance(dones, torch.Tensor)
+                else torch.tensor(dones, dtype=torch.float32)
+            )
+            targets = rewards + self.gamma * next_values * (1 - dones)
         return targets
 
     def select_action(self, state, prev_action=None):
@@ -370,13 +432,17 @@ class QLearningAgent(Agent):
         self.stats.update(self.policy.stats)
         super().plot_stats(save_dir)
 
+
 class SARSAAgent(QLearningAgent):
-    def train_with_transition(self, state, action, next_state, reward, done, infos, prev_action=None):
+    def train_with_transition(
+        self, state, action, next_state, reward, done, infos, prev_action=None
+    ):
         if not done:
-            next_value = self.value_function(next_state, self.policy(next_state, prev_action))
+            next_value = self.value_function(
+                next_state, self.policy(next_state, prev_action)
+            )
         else:
             next_value = 0
-        target_value = reward + self.gamma*next_value
+        target_value = reward + self.gamma * next_value
         self.value_function.update(state, action, target_value, prev_action)
         self.policy.update()
-    

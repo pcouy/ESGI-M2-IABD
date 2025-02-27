@@ -8,15 +8,15 @@ class SpacioTemporalConv(nn.Module):
         in_channels,
         out_channels,
         kernel_size,
-        stride = 1,
-        padding = 0,
-        dilation = 1,
-        groups = 1,
-        bias = True,
-        padding_mode = "zeros",
-        device = None,
-        dtype = None,
-        time_size = 2,
+        stride=1,
+        padding=0,
+        dilation=1,
+        groups=1,
+        bias=True,
+        padding_mode="zeros",
+        device=None,
+        dtype=None,
+        time_size=2,
     ):
         super().__init__()
         if type(kernel_size) is int:
@@ -59,10 +59,7 @@ class SpacioTemporalConv(nn.Module):
             conv1,
             conv2,
         )
-        
 
     def forward(self, x):
         y = self.layers(x)
         return y.view(y.shape[:-1])
-
-

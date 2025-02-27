@@ -4,25 +4,28 @@ from einops import rearrange
 from .linear import LinearNeuralStack
 from .conv_with_time import SpacioTemporalConv
 
+
 class ConvolutionalNN(nn.Module):
     """
     Implémente un réseau de neurones convolutionnel en PyTorch.
     """
-    def __init__(self,
-                 img_shape,
-                 n_actions,
-                 n_filters=None,
-                 kernel_size=4,
-                 stride=2,
-                 padding=0,
-                 dilation=1,
-                 activation=nn.Tanh,
-                 pooling=None,
-                 output_stack_class=LinearNeuralStack,
-                 output_stack_args={ 'layers': [256] },
-                 embedding_dim=None,
-                 embedding_size=None
-            ):
+
+    def __init__(
+        self,
+        img_shape,
+        n_actions,
+        n_filters=None,
+        kernel_size=4,
+        stride=2,
+        padding=0,
+        dilation=1,
+        activation=nn.Tanh,
+        pooling=None,
+        output_stack_class=LinearNeuralStack,
+        output_stack_args={"layers": [256]},
+        embedding_dim=None,
+        embedding_size=None,
+    ):
         """
         * `img_shape` est un tuple représentant la forme d'une image passée en entrée du réseau
         de neurones (telle que donnée par np_arrah.shape)
@@ -57,7 +60,7 @@ class ConvolutionalNN(nn.Module):
         self.n_actions = n_actions
         layers = []
         if n_filters is None:
-            n_filters = [16,16]
+            n_filters = [16, 16]
 
         if type(kernel_size) is int:
             kernel_sizes = [kernel_size for _ in n_filters]
@@ -73,7 +76,7 @@ class ConvolutionalNN(nn.Module):
             paddings = [padding for _ in n_filters]
         elif type(padding) is list:
             paddings = padding
-            
+
         if type(stride) is int:
             strides = [stride for _ in n_filters]
         elif type(stride) is list:
@@ -91,48 +94,52 @@ class ConvolutionalNN(nn.Module):
             else:
                 conv_class = nn.Conv2d
                 additional_args = {}
-            
+
             if pooling is not None:
-                layers.append(conv_class(
-                    n_in,
-                    n_out,
-                    kernel_size,
-                    1,
-                    padding,
-                    dilation,
-                    **additional_args,
-                ))
-                
+                layers.append(
+                    conv_class(
+                        n_in,
+                        n_out,
+                        kernel_size,
+                        1,
+                        padding,
+                        dilation,
+                        **additional_args,
+                    )
+                )
+
                 if pooling == "max":
-                    layers.append(nn.MaxPool2d(stride+1, stride, 1))
+                    layers.append(nn.MaxPool2d(stride + 1, stride, 1))
                 elif pooling == "avg":
-                    layers.append(nn.AvgPool2d(stride+1, stride, 1))
+                    layers.append(nn.AvgPool2d(stride + 1, stride, 1))
                 else:
                     print("Pooling type {} unkwown :  no pooling used")
             else:
-                layers.append(conv_class(
-                    n_in,
-                    n_out,
-                    kernel_size,
-                    stride,
-                    padding,
-                    dilation,
-                    **additional_args,
-                ))
-            
+                layers.append(
+                    conv_class(
+                        n_in,
+                        n_out,
+                        kernel_size,
+                        stride,
+                        padding,
+                        dilation,
+                        **additional_args,
+                    )
+                )
+
             layers.append(activation())
-            
+
         layers.append(nn.Flatten())
         conv_stack = nn.Sequential(*layers)
 
         x = torch.rand(img_shape)
         if len(img_shape) == 3:
-            y=conv_stack(rearrange([x], 'b w h c -> b c w h'))
+            y = conv_stack(rearrange([x], "b w h c -> b c w h"))
         else:
-            y=conv_stack(rearrange([x], 'b w h t c -> b c w h t'))
+            y = conv_stack(rearrange([x], "b w h t c -> b c w h t"))
 
         in_size = y.shape[-1]
-        
+
         # Add embedding layer if specified
         self.embedding = None
         if embedding_dim is not None and embedding_size is not None:
@@ -143,18 +150,18 @@ class ConvolutionalNN(nn.Module):
             in_dim=in_size,
             n_actions=n_actions,
             activation=activation,
-            **output_stack_args
+            **output_stack_args,
         )
-        
+
         self.conv_stack = conv_stack
         self.last_layers = last_layers
-        
+
         self.apply(self._init_weights)
 
     def _init_weights(self, module):
         if isinstance(module, nn.Conv2d):
             # Kaiming initialization for conv layers
-            nn.init.kaiming_normal_(module.weight, mode='fan_out', nonlinearity='relu')
+            nn.init.kaiming_normal_(module.weight, mode="fan_out", nonlinearity="relu")
             if module.bias is not None:
                 # Initialize bias to small positive values to prevent dead ReLUs
                 nn.init.constant_(module.bias, 0.1)
@@ -166,7 +173,7 @@ class ConvolutionalNN(nn.Module):
             conv_out = self.conv_stack(rearrange(x, "b w h t c -> b c w h t"))
         elif len(x.shape) == 3:
             conv_out = self.conv_stack(rearrange([x], "b w h c -> b c w h"))[0]
-            
+
         # Handle secondary input if provided
         if secondary_input is not None and self.embedding is not None:
             embedded = self.embedding(secondary_input)
@@ -174,7 +181,7 @@ class ConvolutionalNN(nn.Module):
                 conv_out = torch.cat([conv_out, embedded.squeeze(0)], dim=0)
             else:  # Batch case
                 conv_out = torch.cat([conv_out, embedded], dim=1)
-                
+
         # Add 1 to the output so the output layers targets are closer to 0
         # (should work better with reward scaling buffer, which targets an avergage
         # of 1 for discounted returns)
@@ -188,14 +195,24 @@ class ConvolutionalNN(nn.Module):
                 metadata=[action_mapper(i) for i in range(self.n_actions)],
             )
         if callable(getattr(self.last_layers, "log_tensorboard", None)):
-            self.last_layers.log_tensorboard(tensorboard, step, action_mapper=action_mapper)
+            self.last_layers.log_tensorboard(
+                tensorboard, step, action_mapper=action_mapper
+            )
         for i, layer in enumerate(self.conv_stack):
             if isinstance(layer, nn.Conv2d):
                 # Log weights and biases
-                tensorboard.add_histogram(f"nn_params/conv_stack_{i}_weights", layer.weight, step)
-                tensorboard.add_histogram(f"nn_params/conv_stack_{i}_biases", layer.bias, step)
+                tensorboard.add_histogram(
+                    f"nn_params/conv_stack_{i}_weights", layer.weight, step
+                )
+                tensorboard.add_histogram(
+                    f"nn_params/conv_stack_{i}_biases", layer.bias, step
+                )
                 # Log gradients if they exist
                 if layer.weight.grad is not None:
-                    tensorboard.add_histogram(f"nn_grads/conv_stack_{i}_weight_grads", layer.weight.grad, step)
+                    tensorboard.add_histogram(
+                        f"nn_grads/conv_stack_{i}_weight_grads", layer.weight.grad, step
+                    )
                 if layer.bias.grad is not None:
-                    tensorboard.add_histogram(f"nn_grads/conv_stack_{i}_bias_grads", layer.bias.grad, step)
+                    tensorboard.add_histogram(
+                        f"nn_grads/conv_stack_{i}_bias_grads", layer.bias.grad, step
+                    )

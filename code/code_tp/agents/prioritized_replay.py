@@ -11,10 +11,12 @@ SumTree
 a binary tree data structure where the parent's value is the sum of its children
 """
 
+
 class SumTree:
     """
     A binary tree data structure where the parent's value is the sum of its children
     """
+
     write = 0
 
     def __init__(self, capacity):
@@ -84,13 +86,22 @@ class PrioritizedReplayBuffer(ReplayBuffer):
 
     Modifie `ReplayBuffer` pour échantilloner la mémoire en tenant compte d'un critère de priorité
     """
+
     e = 0.01
 
-    def __init__(self, obs_shape, max_size=100000, batch_size=32, default_error=10000, 
-                    alpha=0.5, alpha_decrement_per_sampling=None,
-                    beta=0, beta_increment_per_sampling=None,
-                    total_samplings=None,
-                    **kwargs):
+    def __init__(
+        self,
+        obs_shape,
+        max_size=100000,
+        batch_size=32,
+        default_error=10000,
+        alpha=0.5,
+        alpha_decrement_per_sampling=None,
+        beta=0,
+        beta_increment_per_sampling=None,
+        total_samplings=None,
+        **kwargs
+    ):
         """
         * `alpha`: Hyperparamètre *priority* dans l'article. Une valeur de 0 correspond à donner la
         même priorité à toutes les transitions, *ie* à utiliser un *replay buffer* non priorisé
@@ -105,20 +116,20 @@ class PrioritizedReplayBuffer(ReplayBuffer):
         * `total_samplings`: Vaut `5*max_size` par défaut
         """
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        
+
         self.alpha = alpha
         self.beta = beta
 
         if total_samplings is None:
-            total_samplings = 5*max_size
+            total_samplings = 5 * max_size
 
         if alpha_decrement_per_sampling is None:
-            self.alpha_decrement_per_sampling = self.alpha/total_samplings
+            self.alpha_decrement_per_sampling = self.alpha / total_samplings
         else:
             self.alpha_decrement_per_sampling = alpha_decrement_per_sampling
 
         if beta_increment_per_sampling is None:
-            self.beta_increment_per_sampling = (1-self.beta)/total_samplings
+            self.beta_increment_per_sampling = (1 - self.beta) / total_samplings
         else:
             self.beta_increment_per_sampling = beta_increment_per_sampling
 
@@ -142,8 +153,8 @@ class PrioritizedReplayBuffer(ReplayBuffer):
         segment = self.tree.total() / self.batch_size
         priorities = []
 
-        self.beta = np.min([1., self.beta + self.beta_increment_per_sampling])
-        self.alpha = np.max([0., self.alpha - self.alpha_decrement_per_sampling])
+        self.beta = np.min([1.0, self.beta + self.beta_increment_per_sampling])
+        self.alpha = np.max([0.0, self.alpha - self.alpha_decrement_per_sampling])
 
         for i in range(self.batch_size):
             a = segment * i
@@ -159,14 +170,22 @@ class PrioritizedReplayBuffer(ReplayBuffer):
             sampling_probabilities = priorities / self.tree.total()
             with warnings.catch_warnings(record=True) as w:
                 warnings.simplefilter("always")
-                is_weight = np.power(self.tree.n_entries * sampling_probabilities, -self.beta)
+                is_weight = np.power(
+                    self.tree.n_entries * sampling_probabilities, -self.beta
+                )
                 is_weight /= is_weight.max()
                 if len(w) > 0 and issubclass(w[-1].category, RuntimeWarning):
-                    is_weight = torch.tensor([1.0] * self.batch_size, dtype=torch.float32, device=self.device)
+                    is_weight = torch.tensor(
+                        [1.0] * self.batch_size, dtype=torch.float32, device=self.device
+                    )
                 else:
-                    is_weight = torch.tensor(is_weight, dtype=torch.float32, device=self.device)
+                    is_weight = torch.tensor(
+                        is_weight, dtype=torch.float32, device=self.device
+                    )
         else:
-            is_weight = torch.tensor([1.0] * self.batch_size, dtype=torch.float32, device=self.device)
+            is_weight = torch.tensor(
+                [1.0] * self.batch_size, dtype=torch.float32, device=self.device
+            )
 
         batch = super().sample(i=js)
 
@@ -176,16 +195,26 @@ class PrioritizedReplayBuffer(ReplayBuffer):
         p = self._get_priority(error)
         self.tree.update(idx, p)
 
+
 class PrioritizedReplayBufferAgent(ReplayBufferAgent):
     """
     Agent tirant profit du `PrioritizedReplayBuffer` en utilisant la **Différence Temporelle**
     (càd l'erreur entre la prédiction de la fonction de valeur et la valeur cible) comme
     critère de priorité
     """
-    def train_one_batch(self):
-        (states, actions, next_states, rewards, dones, prev_actions), idxs, is_weights = self.replay_buffer.sample()
 
-        target_values = self.target_value_from_state_batch(next_states, rewards, dones, actions)
-        errors = self.value_function.update_batch(states, actions, target_values, prev_actions, is_weights)
+    def train_one_batch(self):
+        (
+            (states, actions, next_states, rewards, dones, prev_actions),
+            idxs,
+            is_weights,
+        ) = self.replay_buffer.sample()
+
+        target_values = self.target_value_from_state_batch(
+            next_states, rewards, dones, actions
+        )
+        errors = self.value_function.update_batch(
+            states, actions, target_values, prev_actions, is_weights
+        )
         for idx, err in zip(idxs, errors):
             self.replay_buffer.update(idx, err)

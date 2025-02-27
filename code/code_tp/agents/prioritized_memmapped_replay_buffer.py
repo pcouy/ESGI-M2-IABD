@@ -13,6 +13,7 @@ class MemmappedSumTree:
     """
     A memory-mapped version of the SumTree that stores the tree structure on disk
     """
+
     def __init__(self, capacity, storage_path):
         self.capacity = capacity
         self.storage_path = storage_path
@@ -21,15 +22,15 @@ class MemmappedSumTree:
         # Create memory-mapped arrays for the tree and data indices
         tree_path = os.path.join(storage_path, "sum_tree.dat")
         data_path = os.path.join(storage_path, "data_indices.dat")
-        
-        self.tree = np.memmap(tree_path, mode="w+", 
-                            shape=(2 * capacity - 1,), dtype=np.float32)
-        self.data = np.memmap(data_path, mode="w+",
-                            shape=(capacity,), dtype=np.int32)
-        
+
+        self.tree = np.memmap(
+            tree_path, mode="w+", shape=(2 * capacity - 1,), dtype=np.float32
+        )
+        self.data = np.memmap(data_path, mode="w+", shape=(capacity,), dtype=np.int32)
+
         self.write = 0
         self.n_entries = 0
-        
+
         # Initialize arrays to zero
         self.tree[:] = 0
         self.data[:] = 0
@@ -70,7 +71,7 @@ class MemmappedSumTree:
 
         if self.n_entries < self.capacity:
             self.n_entries += 1
-            
+
         # Periodically flush to disk
         if self.write % 100 == 0:
             self.tree.flush()
@@ -92,27 +93,42 @@ class PrioritizedMemmappedReplayBuffer(MemmappedReplayBuffer):
     A memory-mapped version of PrioritizedReplayBuffer that stores both experience data
     and the priority tree structure on disk
     """
+
     e = 0.01
-    
-    def __init__(self, default_error=10000, alpha=0.5, alpha_decrement_per_sampling=None, 
-                 beta=0, beta_increment_per_sampling=None, total_samplings=None, **kwargs):
-        
+
+    def __init__(
+        self,
+        default_error=10000,
+        alpha=0.5,
+        alpha_decrement_per_sampling=None,
+        beta=0,
+        beta_increment_per_sampling=None,
+        total_samplings=None,
+        **kwargs
+    ):
+
         # Initialize the base memory-mapped buffer
         super().__init__(**kwargs)
-        
+
         # Priority-related parameters
         self.alpha = alpha
         self.beta = beta
         if total_samplings is None:
             total_samplings = 5 * self.max_size
-        
-        self.alpha_decrement_per_sampling = (alpha_decrement_per_sampling if alpha_decrement_per_sampling is not None 
-                                           else self.alpha / total_samplings)
-        self.beta_increment_per_sampling = (beta_increment_per_sampling if beta_increment_per_sampling is not None 
-                                          else (1 - self.beta) / total_samplings)
-        
+
+        self.alpha_decrement_per_sampling = (
+            alpha_decrement_per_sampling
+            if alpha_decrement_per_sampling is not None
+            else self.alpha / total_samplings
+        )
+        self.beta_increment_per_sampling = (
+            beta_increment_per_sampling
+            if beta_increment_per_sampling is not None
+            else (1 - self.beta) / total_samplings
+        )
+
         # Create memory-mapped sum tree in a subdirectory
-        tree_storage_path = os.path.join(self.storage_path, 'sum_tree')
+        tree_storage_path = os.path.join(self.storage_path, "sum_tree")
         self.tree = MemmappedSumTree(self.max_size, tree_storage_path)
         self.default_error = default_error
 
@@ -145,8 +161,8 @@ class PrioritizedMemmappedReplayBuffer(MemmappedReplayBuffer):
             priorities = []
             segment = self.tree.total() / self.batch_size
 
-            self.beta = np.min([1., self.beta + self.beta_increment_per_sampling])
-            self.alpha = np.max([0., self.alpha - self.alpha_decrement_per_sampling])
+            self.beta = np.min([1.0, self.beta + self.beta_increment_per_sampling])
+            self.alpha = np.max([0.0, self.alpha - self.alpha_decrement_per_sampling])
 
             # Keep sampling until we have enough valid transitions
             while len(batch_indices) < self.batch_size:
@@ -164,30 +180,60 @@ class PrioritizedMemmappedReplayBuffer(MemmappedReplayBuffer):
             sampling_probabilities = priorities / self.tree.total()
             with warnings.catch_warnings(record=True) as w:
                 warnings.simplefilter("always")
-                is_weights = np.power(self.tree.n_entries * sampling_probabilities, -self.beta)
+                is_weights = np.power(
+                    self.tree.n_entries * sampling_probabilities, -self.beta
+                )
                 is_weights /= is_weights.max()
                 if len(w) > 0 and issubclass(w[-1].category, RuntimeWarning):
                     is_weights = None
                 else:
-                    is_weights = torch.tensor(is_weights, dtype=torch.float32, device=self.device)
+                    is_weights = torch.tensor(
+                        is_weights, dtype=torch.float32, device=self.device
+                    )
             tree_idxs = [idx + self.tree.capacity - 1 for idx in batch_indices]
 
             # Load and normalize the data
-            batch_states = self.normalize(torch.from_numpy(self.states[batch_indices]).to(self.device, non_blocking=True))
-            batch_actions = torch.from_numpy(self.actions[batch_indices]).to(self.device, non_blocking=True)
+            batch_states = self.normalize(
+                torch.from_numpy(self.states[batch_indices]).to(
+                    self.device, non_blocking=True
+                )
+            )
+            batch_actions = torch.from_numpy(self.actions[batch_indices]).to(
+                self.device, non_blocking=True
+            )
             next_indices = [(idx + 1) % (self.max_size + 1) for idx in batch_indices]
-            batch_next_states = self.normalize(torch.from_numpy(self.states[next_indices]).to(self.device, non_blocking=True))
-            batch_rewards = torch.from_numpy(self.rewards[batch_indices]).to(self.device, non_blocking=True)
+            batch_next_states = self.normalize(
+                torch.from_numpy(self.states[next_indices]).to(
+                    self.device, non_blocking=True
+                )
+            )
+            batch_rewards = torch.from_numpy(self.rewards[batch_indices]).to(
+                self.device, non_blocking=True
+            )
             next_done_indices = [(idx + 1) % self.max_size for idx in batch_indices]
-            batch_dones = torch.from_numpy(self.dones[next_done_indices]).to(self.device, non_blocking=True)
-            batch_prev_actions = torch.from_numpy(self.prev_actions[batch_indices]).to(self.device, non_blocking=True)
+            batch_dones = torch.from_numpy(self.dones[next_done_indices]).to(
+                self.device, non_blocking=True
+            )
+            batch_prev_actions = torch.from_numpy(self.prev_actions[batch_indices]).to(
+                self.device, non_blocking=True
+            )
 
             try:
-                self.preload_queue.put((
-                    (batch_states, batch_actions, batch_next_states, batch_rewards, batch_dones, batch_prev_actions),
-                    tree_idxs,
-                    is_weights
-                ), block=False)
+                self.preload_queue.put(
+                    (
+                        (
+                            batch_states,
+                            batch_actions,
+                            batch_next_states,
+                            batch_rewards,
+                            batch_dones,
+                            batch_prev_actions,
+                        ),
+                        tree_idxs,
+                        is_weights,
+                    ),
+                    block=False,
+                )
             except queue.Full:
                 time.sleep(0.1)
                 continue
@@ -196,7 +242,7 @@ class PrioritizedMemmappedReplayBuffer(MemmappedReplayBuffer):
     def sample(self, i=None, timeout=0):
         if i is not None:
             return super().sample(i=i, skip_episode_check=True)
-            
+
         if self.preload_queue is not None:
             try:
                 return self.preload_queue.get(timeout=timeout)
@@ -210,8 +256,8 @@ class PrioritizedMemmappedReplayBuffer(MemmappedReplayBuffer):
         priorities = []
         segment = self.tree.total() / self.batch_size
 
-        self.beta = np.min([1., self.beta + self.beta_increment_per_sampling])
-        self.alpha = np.max([0., self.alpha - self.alpha_decrement_per_sampling])
+        self.beta = np.min([1.0, self.beta + self.beta_increment_per_sampling])
+        self.alpha = np.max([0.0, self.alpha - self.alpha_decrement_per_sampling])
 
         # Keep sampling until we have enough valid transitions
         n_stored = self.n_inserted if self.n_inserted < self.max_size else self.max_size
@@ -229,12 +275,16 @@ class PrioritizedMemmappedReplayBuffer(MemmappedReplayBuffer):
         sampling_probabilities = priorities / self.tree.total()
         with warnings.catch_warnings(record=True) as w:
             warnings.simplefilter("always")
-            is_weights = np.power(self.tree.n_entries * sampling_probabilities, -self.beta)
+            is_weights = np.power(
+                self.tree.n_entries * sampling_probabilities, -self.beta
+            )
             is_weights /= is_weights.max()
             if len(w) > 0 and issubclass(w[-1].category, RuntimeWarning):
                 is_weights = None
             else:
-                is_weights = torch.tensor(is_weights, dtype=torch.float32, device=self.device)
+                is_weights = torch.tensor(
+                    is_weights, dtype=torch.float32, device=self.device
+                )
 
         # Get the batch using parent class's sample method with skip_episode_check=True
         batch = super().sample(i=batch_indices, skip_episode_check=True)
@@ -248,6 +298,6 @@ class PrioritizedMemmappedReplayBuffer(MemmappedReplayBuffer):
 
     def close(self):
         super().close()
-        if hasattr(self, 'tree'):
+        if hasattr(self, "tree"):
             self.tree.tree.flush()
             self.tree.data.flush()
