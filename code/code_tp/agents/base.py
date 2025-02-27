@@ -32,6 +32,7 @@ class Agent:
         action_label_mapper=str,
         accumulate_stats=100,
         random_test_steps=0,
+        random_train_steps=0,
     ):
         """
         * `env`: Environnement gym dans lequel l'agent va évoluer
@@ -44,6 +45,7 @@ class Agent:
         self.training_episodes = 0
         self.testing_steps = 0
         self.random_test_steps = random_test_steps
+        self.random_train_steps = random_train_steps
         self.env = env
         self.agent = self
         self.test = False
@@ -194,7 +196,9 @@ class Agent:
             self.episode_value_history = []
         while not done:
             # frames.append(env.render('rgb_array'))
-            if test and step_num <= self.random_test_steps:
+            if (test and step_num <= self.random_test_steps) or (
+                not test and step_num <= self.random_train_steps
+            ):
                 action = self.env.action_space.sample()
             else:
                 action = self.select_action(state, prev_action)
