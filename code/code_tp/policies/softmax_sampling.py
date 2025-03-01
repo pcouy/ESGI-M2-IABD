@@ -69,11 +69,12 @@ class SoftmaxSamplingPolicy(EGreedyPolicy):
     def update(self):
         """Update target entropy and log stats"""
         # Decay target entropy
-        self.target_entropy = max(
-            np.exp(self.final_target_entropy),
-            self.target_entropy - self.target_entropy_decay,
-        )
-        self.agent.log_data("target_exp_entropy", self.target_entropy)
+        if not self.agent.test:
+            self.target_entropy = max(
+                np.exp(self.final_target_entropy),
+                self.target_entropy - self.target_entropy_decay,
+            )
+            self.agent.log_data("target_exp_entropy", self.target_entropy)
         super().update()
 
     def __call__(self, state, prev_action=None, epsilon=None):

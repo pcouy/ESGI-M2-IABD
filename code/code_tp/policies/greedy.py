@@ -171,8 +171,9 @@ class EGreedyPolicy(RandomPolicy):
         self.epsilon = max(self.epsilon * (1 - self.epsilon_decay), self.epsilon_min)
 
     def update(self):
-        self.update_epsilon()
-        self.agent.log_data("epsilon", self.epsilon)
+        if not self.agent.test:
+            self.update_epsilon()
+            self.agent.log_data("epsilon", self.epsilon)
         super().update()
 
 

@@ -159,7 +159,7 @@ class ConvolutionalQFunction(DiscreteQFunction):
 
         pred_error.backward()
         self.optim.step()
-        self.agent.log_data("nn_loss", pred_error.clone().cpu().item())
+        self.agent.log_data("nn_loss", pred_error.clone().cpu().item(), test=False)
         if (
             self.agent.training_steps - self.last_tensorboard_log
             >= self.hist_log_interval

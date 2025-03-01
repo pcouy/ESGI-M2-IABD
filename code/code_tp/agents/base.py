@@ -33,6 +33,7 @@ class Agent:
         accumulate_stats=100,
         random_test_steps=0,
         random_train_steps=0,
+        test_patience=0,
     ):
         """
         * `env`: Environnement gym dans lequel l'agent va évoluer
@@ -46,6 +47,7 @@ class Agent:
         self.testing_steps = 0
         self.random_test_steps = random_test_steps
         self.random_train_steps = random_train_steps
+        self.test_patience = test_patience
         self.env = env
         self.agent = self
         self.test = False
@@ -77,8 +79,10 @@ class Agent:
         )
         self.episode_logger_range_start = 0
 
-    def log_data(self, key, value, accumulate=True):
-        if self.test:
+    def log_data(self, key, value, accumulate=True, test=None):
+        if test is None:
+            test = self.test
+        if test:
             step = self.testing_steps
         else:
             step = self.training_steps
@@ -191,17 +195,26 @@ class Agent:
 
         frames = []
         step_num = 1
+        last_reward_step = 1
+        train_test_transitions = False
         if test:
             self.episode_reward_history = []
             self.episode_value_history = []
         while not done:
             # frames.append(env.render('rgb_array'))
-            if (test and step_num <= self.random_test_steps) or (
-                not test and step_num <= self.random_train_steps
+            if (
+                (test and step_num <= self.random_test_steps)
+                or (not test and step_num <= self.random_train_steps)
+                or (
+                    test
+                    and self.test_patience > 0
+                    and step_num - last_reward_step > 10 * self.test_patience
+                )
             ):
                 action = self.env.action_space.sample()
             else:
-                action = self.select_action(state, prev_action)
+                with torch.no_grad():
+                    action = self.select_action(state, prev_action)
             next_state, reward, terminated, truncated, infos = self.step(
                 action, env=env
             )
@@ -215,8 +228,25 @@ class Agent:
                 self.log_step(
                     f"test_episodes_{self.training_episodes}", step_num, transition
                 )
+                if (
+                    not train_test_transitions
+                    and self.test_patience > 0
+                    and step_num - last_reward_step > self.test_patience
+                ):
+                    print("Agent stuck in test, learning from test transitions")
+                    train_test_transitions = True
+                if train_test_transitions:
+                    try:
+                        self.train_with_transition(*transition)
+                        self.training_steps += 1
+                    except Exception as e:
+                        print("Error training on test transition")
+                        print(f"{e}")
+                        print(f"{transition}")
             step_num += 1
             score += reward
+            if reward > 0:
+                last_reward_step = step_num
             state = next_state
             prev_action = (
                 action if self.use_prev_action else None
@@ -282,8 +312,7 @@ class Agent:
             if self.test_condition(
                 self.training_episodes, test_interval, test_interval_type
             ):
-                with torch.no_grad():
-                    self.run_episode(test=True)
+                self.run_episode(test=True)
                 for cb in test_callbacks:
                     cb(self.save_dir)
                 gc.collect()
@@ -426,7 +455,8 @@ class QLearningAgent(Agent):
             next_state, reward, done, action
         )  # Pass current action as next prev_action
         self.value_function.update(state, action, target_value, prev_action)
-        self.policy.update()
+        if not self.test:
+            self.policy.update()
 
     def eval_state(self, state, prev_action=None):
         return self.value_function.best_action_value_from_state(state, prev_action)
@@ -486,4 +516,5 @@ class SARSAAgent(QLearningAgent):
             next_value = 0
         target_value = reward + self.gamma * next_value
         self.value_function.update(state, action, target_value, prev_action)
-        self.policy.update()
+        if not self.test:
+            self.policy.update()
