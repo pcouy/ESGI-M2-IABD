@@ -211,7 +211,11 @@ class PrioritizedReplayBufferAgent(ReplayBufferAgent):
         ) = self.replay_buffer.sample()
 
         target_values = self.target_value_from_state_batch(
-            next_states, rewards, dones, actions
+            next_states,
+            rewards,
+            dones,
+            actions,
+            getattr(self.replay_buffer, "n_step", 1),
         )
         errors = self.value_function.update_batch(
             states, actions, target_values, prev_actions, is_weights

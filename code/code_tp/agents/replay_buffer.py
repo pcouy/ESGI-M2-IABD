@@ -206,7 +206,11 @@ class ReplayBufferAgent(QLearningAgent):
         )
         # print(actions.shape)
         target_values = self.target_value_from_state_batch(
-            next_states, rewards, dones, actions
+            next_states,
+            rewards,
+            dones,
+            actions,
+            getattr(self.replay_buffer, "n_step", 1),
         )
         self.value_function.update_batch(states, actions, target_values, prev_actions)
 

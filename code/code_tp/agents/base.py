@@ -466,15 +466,19 @@ class QLearningAgent(Agent):
             states, prev_actions
         )
 
-    def target_value_from_state(self, next_state, reward, done, prev_action=None):
+    def target_value_from_state(
+        self, next_state, reward, done, prev_action=None, n_step=1
+    ):
         with torch.no_grad():
             _, next_value = self.eval_state(next_state, prev_action)
             if type(next_value) is torch.Tensor:
                 next_value = next_value.detach().cpu().numpy()
-            target = reward + self.gamma * next_value * (1 - done)
+            target = reward + self.gamma**n_step * next_value * (1 - done)
         return target
 
-    def target_value_from_state_batch(self, next_states, rewards, dones, actions):
+    def target_value_from_state_batch(
+        self, next_states, rewards, dones, actions, n_step=1
+    ):
         """
         Calcule la valeur cible pour une batch de transitions
         """
@@ -489,7 +493,7 @@ class QLearningAgent(Agent):
                 if isinstance(dones, torch.Tensor)
                 else torch.tensor(dones, dtype=torch.float32)
             )
-            targets = rewards + self.gamma * next_values * (1 - dones)
+            targets = rewards + self.gamma**n_step * next_values * (1 - dones)
         return targets
 
     def select_action(self, state, prev_action=None):
