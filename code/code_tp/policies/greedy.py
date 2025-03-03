@@ -84,7 +84,7 @@ class GreedyQPolicy(RandomPolicy):
 
         actions = [k for k, v in enumerate(values) if v == value]
 
-        if self.in_test:
+        if self.in_test or self.agent.test:
             self.agent.log_data("predicted_value_test", value)
         else:
             self.agent.log_data("predicted_value", value)
@@ -103,7 +103,7 @@ class GreedyQPolicy(RandomPolicy):
         if type(action_batch) is torch.Tensor:
             action_batch = action_batch.clone().detach().cpu().numpy()
 
-        if self.in_test:
+        if self.in_test or self.agent.test:
             self.agent.log_data("predicted_value_test", value_batch.mean())
         else:
             self.agent.log_data("predicted_value", value_batch.mean())
