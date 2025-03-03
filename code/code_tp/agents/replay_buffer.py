@@ -12,7 +12,9 @@ class ReplayBuffer:
     [l'article sur le DQN](http://arxiv.org/abs/1312.5602)
     """
 
-    def __init__(self, obs_shape, max_size=100000, batch_size=32, warmup_size=None, **kwargs):
+    def __init__(
+        self, obs_shape, max_size=100000, batch_size=32, warmup_size=None, **kwargs
+    ):
         """
         * `obs_shape` : Taille d'un tableau numpy contenant une observation
         * `max_size` : Nombre de transitions conservées en mémoire
