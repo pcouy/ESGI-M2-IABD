@@ -6,3 +6,4 @@ results/
 tags
 /*.py
 /*.ipynb
+build/
