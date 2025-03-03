@@ -3,9 +3,10 @@ from torch import nn
 import torch.nn.functional as F
 from einops import rearrange
 
+
 class NoisyLinear(nn.Module):
     """Noisy linear module for NoisyNet.
-    
+
     Attributes:
         in_features (int): input size of linear module
         out_features (int): output size of linear module
@@ -14,24 +15,20 @@ class NoisyLinear(nn.Module):
         weight_sigma (nn.Parameter): std value weight parameter
         bias_mu (nn.Parameter): mean value bias parameter
         bias_sigma (nn.Parameter): std value bias parameter
-        
+
     """
 
     def __init__(self, in_features: int, out_features: int, std_init: float = 0.5):
         """Initialization."""
         super(NoisyLinear, self).__init__()
-        
+
         self.in_features = in_features
         self.out_features = out_features
         self.std_init = std_init
 
         self.weight_mu = nn.Parameter(torch.Tensor(out_features, in_features))
-        self.weight_sigma = nn.Parameter(
-            torch.Tensor(out_features, in_features)
-        )
-        self.register_buffer(
-            "weight_epsilon", torch.Tensor(out_features, in_features)
-        )
+        self.weight_sigma = nn.Parameter(torch.Tensor(out_features, in_features))
+        self.register_buffer("weight_epsilon", torch.Tensor(out_features, in_features))
 
         self.bias_mu = nn.Parameter(torch.Tensor(out_features))
         self.bias_sigma = nn.Parameter(torch.Tensor(out_features))
@@ -44,13 +41,9 @@ class NoisyLinear(nn.Module):
         """Reset trainable network parameters (factorized gaussian noise)."""
         mu_range = 1 / math.sqrt(self.in_features)
         self.weight_mu.data.uniform_(-mu_range, mu_range)
-        self.weight_sigma.data.fill_(
-            self.std_init / math.sqrt(self.in_features)
-        )
+        self.weight_sigma.data.fill_(self.std_init / math.sqrt(self.in_features))
         self.bias_mu.data.uniform_(-mu_range, mu_range)
-        self.bias_sigma.data.fill_(
-            self.std_init / math.sqrt(self.out_features)
-        )
+        self.bias_sigma.data.fill_(self.std_init / math.sqrt(self.out_features))
 
     def reset_noise(self, strength=1):
         """Make new noise."""
@@ -58,12 +51,12 @@ class NoisyLinear(nn.Module):
         epsilon_out = self.scale_noise(self.out_features)
 
         # outer product
-        self.weight_epsilon.copy_(strength*epsilon_out.ger(epsilon_in))
-        self.bias_epsilon.copy_(strength*epsilon_out)
+        self.weight_epsilon.copy_(strength * epsilon_out.ger(epsilon_in))
+        self.bias_epsilon.copy_(strength * epsilon_out)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """Forward method implementation.
-        
+
         We don't use separate statements on train / eval mode.
         It doesn't show remarkable difference of performance.
         """
@@ -72,7 +65,7 @@ class NoisyLinear(nn.Module):
             self.weight_mu + self.weight_sigma * self.weight_epsilon,
             self.bias_mu + self.bias_sigma * self.bias_epsilon,
         )
-    
+
     @staticmethod
     def scale_noise(size: int) -> torch.Tensor:
         """Set scale to make noise (factorized gaussian noise)."""
@@ -80,32 +73,35 @@ class NoisyLinear(nn.Module):
 
         return x.sign().mul(x.abs().sqrt())
 
+
 class NoisyLinearNeuralStack(nn.Module):
     """
     Implémente des couches de sorties linéaires (*fully connected*) simples
     """
-    def __init__(self, layers, in_dim, n_actions, activation=nn.ReLU, initial_biases=None):
+
+    def __init__(
+        self, layers, in_dim, n_actions, activation=nn.ReLU, initial_biases=None
+    ):
         super().__init__()
         linear_layers = []
         for n in layers:
             linear_layers.append(NoisyLinear(in_dim, n))
             linear_layers.append(activation())
             in_dim = n
-        
+
         last_layer = nn.Linear(in_dim, n_actions)
-        last_layer.weight.data.uniform_(-1e-3,1e-3)
+        last_layer.weight.data.uniform_(-1e-3, 1e-3)
         if initial_biases is None:
-            last_layer.bias.data.uniform_(-1e-3,1e-3)
+            last_layer.bias.data.uniform_(-1e-3, 1e-3)
         elif type(initial_biases) is int:
-            last_layer.bias.data = torch.Tensor([initial_biases for _ in range(n_actions)])
+            last_layer.bias.data = torch.Tensor(
+                [initial_biases for _ in range(n_actions)]
+            )
         else:
             last_layer.bias.data = torch.Tensor(initial_biases)
-        
-        self.layers = nn.Sequential(
-            *linear_layers,
-            last_layer
-        )
-        
+
+        self.layers = nn.Sequential(*linear_layers, last_layer)
+
     def forward(self, x):
         return self.layers(x)
 
