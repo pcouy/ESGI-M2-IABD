@@ -1,14 +1,17 @@
 import numpy as np
 import gymnasium as gym
 
+
 def enum_discrete(space):
     """Fonction utilitaire pour obtenir un itérateur sur les actions d'un espace `gym.spaces.Discrete`"""
     return range(space.n)
+
 
 class ValueFunction:
     """
     Classe de base des fonctions de valeur de type $v(s)$
     """
+
     def __init__(self, env, lr=0.1, lr_decay=0, lr_min=1e-5, **kwargs):
         """
         * `env`: Environnement sur lequel porte la fonction de valeur. Est utilisé uniquement pour
@@ -24,12 +27,7 @@ class ValueFunction:
         self.lr_decay = lr_decay
         self.lr_min = lr_min
         self.agent = None
-        self.stats = {
-            "lr": {
-                "x_label": "step",
-                "data": []
-            }
-        }
+        self.stats = {"lr": {"x_label": "step", "data": []}}
         self.init_args = kwargs
         self.init_args.update(locals())
 
@@ -46,7 +44,12 @@ class ValueFunction:
         """
         if prev_actions is None:
             return np.array([self(state) for state in states])
-        return np.array([self(state, prev_action) for state, prev_action in zip(states, prev_actions)])
+        return np.array(
+            [
+                self(state, prev_action)
+                for state, prev_action in zip(states, prev_actions)
+            ]
+        )
 
     def update(self, state, action, target_value, prev_action=None, is_weight=None):
         """
@@ -60,10 +63,12 @@ class ValueFunction:
         * `prev_action`: action précédente (optionnel)
         * `is_weight`: poids d'importance sampling (optionnel)
         """
-        self.lr = max(self.lr*(1-self.lr_decay), self.lr_min)
+        self.lr = max(self.lr * (1 - self.lr_decay), self.lr_min)
         self.agent.log_data("lr", self.lr)
 
-    def update_batch(self, states, actions, target_values, prev_actions=None, is_weights=None):
+    def update_batch(
+        self, states, actions, target_values, prev_actions=None, is_weights=None
+    ):
         """
         Méthode mettant à jour l'agent sur un *batch* de transitions. Simple boucle pour appeler
         `self.update` par défaut. Est utile principalement pour les agents à *replay buffer*.
@@ -75,10 +80,15 @@ class ValueFunction:
             is_weights = np.ones((states.shape[0],))
         if prev_actions is None:
             prev_actions = [None] * states.shape[0]
-            
-        return np.array([self.update(state, action, target_value, prev_action, is_weight) for
-                        state, action, target_value, prev_action, is_weight in
-                        zip(states, actions, target_values, prev_actions, is_weights)])
+
+        return np.array(
+            [
+                self.update(state, action, target_value, prev_action, is_weight)
+                for state, action, target_value, prev_action, is_weight in zip(
+                    states, actions, target_values, prev_actions, is_weights
+                )
+            ]
+        )
 
     def export_f(self):
         pass
@@ -99,13 +109,16 @@ class ValueFunction:
         print(self.init_args)
         return type(self)(*args, **kwargs, **self.init_args)
 
+
 class DiscreteQFunction(ValueFunction):
     """
     Classe de base pour les fonctions de valeur de type $q(s,a)$ dans les espaces d'actions discrets
     """
+
     def __init__(self, env, *args, **kwargs):
-        assert isinstance(env.action_space, gym.spaces.Discrete) or \
-            isinstance(env.action_space, gym.spaces.MultiDiscrete)
+        assert isinstance(env.action_space, gym.spaces.Discrete) or isinstance(
+            env.action_space, gym.spaces.MultiDiscrete
+        )
         super().__init__(env, *args, **kwargs)
         self.init_args = locals()
         self.last_result = None
@@ -118,7 +131,9 @@ class DiscreteQFunction(ValueFunction):
 
     def from_state(self, state, prev_action=None):
         """Prend un état et renvoit un dictionnaire `action : valeur` pour cet état"""
-        self.last_result = np.array([self(state, action, prev_action) for action in self.enum_actions()])
+        self.last_result = np.array(
+            [self(state, action, prev_action) for action in self.enum_actions()]
+        )
         return self.last_result
 
     def from_state_batch(self, states, prev_actions=None):
@@ -131,7 +146,7 @@ class DiscreteQFunction(ValueFunction):
 
     def best_action_value_from_state(self, state, prev_action=None):
         values = self.from_state(state, prev_action)
-        maxv, maxa = max((v,a) for a,v in enumerate(values))
+        maxv, maxa = max((v, a) for a, v in enumerate(values))
         return maxa, maxv
 
     def best_action_value_from_state_batch(self, states, prev_actions=None):
@@ -145,5 +160,16 @@ class DiscreteQFunction(ValueFunction):
         raise NotImplementedError
 
     def call_batch(self, states, actions, prev_actions=None):
-        return np.array([self(*args) for args in zip(states, actions, 
-                       [prev_actions[i] if prev_actions is not None else None for i in range(len(states))])])
+        return np.array(
+            [
+                self(*args)
+                for args in zip(
+                    states,
+                    actions,
+                    [
+                        prev_actions[i] if prev_actions is not None else None
+                        for i in range(len(states))
+                    ],
+                )
+            ]
+        )

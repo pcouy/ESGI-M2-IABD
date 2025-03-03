@@ -10,56 +10,85 @@ import gymnasium as gym
 from gymnasium.spaces import Box
 from gymnasium.spaces import Discrete
 
+
 class Maze(BaseMaze):
-    x = np.array([[1, 1, 1, 1, 1, 1], 
-              [1, 2, 0, 0, 0, 1], 
-              [1, 0, 0, 0, 0, 1], 
-              [1, 0, 0, 0, 0, 1], 
-              [1, 0, 0, 0, 3, 1], 
-              [1, 1, 1, 1, 1, 1]])
+    x = np.array(
+        [
+            [1, 1, 1, 1, 1, 1],
+            [1, 2, 0, 0, 0, 1],
+            [1, 0, 0, 0, 0, 1],
+            [1, 0, 0, 0, 0, 1],
+            [1, 0, 0, 0, 3, 1],
+            [1, 1, 1, 1, 1, 1],
+        ]
+    )
 
     @property
     def size(self):
         return self.x.shape
 
     def make_objects(self):
-        free = Object('free', 0, color.free, False, np.stack(np.where(
-            np.any((self.x == 0, self.x == 2), axis=0)
-        ), axis=1))
-        obstacle = Object('obstacle', 1, color.obstacle, True, np.stack(np.where(self.x == 1), axis=1))
-        agent = Object('agent', 2, color.agent, False, [])
-        goal = Object('goal', 3, color.goal, False, np.stack(np.where(self.x == 3), axis =1))
-        lava = Object('lava', 4, color.lava, False, np.stack(np.where(self.x == 4), axis =1))
+        free = Object(
+            "free",
+            0,
+            color.free,
+            False,
+            np.stack(np.where(np.any((self.x == 0, self.x == 2), axis=0)), axis=1),
+        )
+        obstacle = Object(
+            "obstacle", 1, color.obstacle, True, np.stack(np.where(self.x == 1), axis=1)
+        )
+        agent = Object("agent", 2, color.agent, False, [])
+        goal = Object(
+            "goal", 3, color.goal, False, np.stack(np.where(self.x == 3), axis=1)
+        )
+        lava = Object(
+            "lava", 4, color.lava, False, np.stack(np.where(self.x == 4), axis=1)
+        )
         return free, obstacle, agent, goal, lava
+
 
 class GenericMaze(Maze):
     def __init__(self, x, objects=None, rewards_done=None):
         self.x = np.array(x)
         self.orig_x = self.x.copy()
         self.object_definitions = {
-            'free': Object('free', 0, color.free, False, np.stack(np.where(
-                np.any((self.x == 0, self.x == 2), axis=0)
-            ), axis=1)),
-            'obstacle': Object('obstacle', 1, color.obstacle, True, np.stack(np.where(self.x == 1), axis=1)),
-            'agent': Object('agent', 2, color.agent, False, []),
-            'goal': Object('goal', 3, color.goal, False, np.stack(np.where(self.x == 3), axis =1)),
-            'lava': Object('lava', 4, color.lava, False, np.stack(np.where(self.x == 4), axis =1)),
+            "free": Object(
+                "free",
+                0,
+                color.free,
+                False,
+                np.stack(np.where(np.any((self.x == 0, self.x == 2), axis=0)), axis=1),
+            ),
+            "obstacle": Object(
+                "obstacle",
+                1,
+                color.obstacle,
+                True,
+                np.stack(np.where(self.x == 1), axis=1),
+            ),
+            "agent": Object("agent", 2, color.agent, False, []),
+            "goal": Object(
+                "goal", 3, color.goal, False, np.stack(np.where(self.x == 3), axis=1)
+            ),
+            "lava": Object(
+                "lava", 4, color.lava, False, np.stack(np.where(self.x == 4), axis=1)
+            ),
         }
         if objects is not None:
             assert type(objects) is dict
-            for k,v in objects.items():
+            for k, v in objects.items():
                 assert type(v) is Object
                 self.object_definitions[k] = v
 
-
         self.rewards_done = {
-            'obstacle': (-0.01,False),
-            'goal': (10,True),
-            'lava': (-2,True)
+            "obstacle": (-0.01, False),
+            "goal": (10, True),
+            "lava": (-2, True),
         }
         if rewards_done is not None:
             assert type(rewards_done) is dict
-            for k,v in rewards_done.items():
+            for k, v in rewards_done.items():
                 assert type(v) in [float, int]
                 self.rewards_done[k] = v
 
@@ -77,13 +106,18 @@ class Env(BaseEnv):
 
         self.motions = VonNeumannMotion()
 
-        self.observation_space = Box(low=0, high=len(self.maze.objects), shape=self.maze.size, dtype=np.uint8)
+        self.observation_space = Box(
+            low=0, high=len(self.maze.objects), shape=self.maze.size, dtype=np.uint8
+        )
         self.action_space = Discrete(len(self.motions))
 
     def step(self, action):
         motion = self.motions[action]
         current_position = self.maze.objects.agent.positions[0]
-        new_position = [current_position[0] + motion[0], current_position[1] + motion[1]]
+        new_position = [
+            current_position[0] + motion[0],
+            current_position[1] + motion[1],
+        ]
 
         reward, done = self.get_reward_and_done(new_position)
 
@@ -110,13 +144,19 @@ class Env(BaseEnv):
         return reward, done
 
     def reset(self):
-        self.maze.objects.agent.positions = np.stack(np.where(self.maze.orig_x == 2), axis =1)
-        self.maze.objects.goal.positions = np.stack(np.where(self.maze.orig_x == 3), axis =1)
+        self.maze.objects.agent.positions = np.stack(
+            np.where(self.maze.orig_x == 2), axis=1
+        )
+        self.maze.objects.goal.positions = np.stack(
+            np.where(self.maze.orig_x == 3), axis=1
+        )
         return self.maze.objects.agent.positions[0], {}
 
     def _is_valid(self, position):
         nonnegative = position[0] >= 0 and position[1] >= 0
-        within_edge = position[0] < self.maze.size[0] and position[1] < self.maze.size[1]
+        within_edge = (
+            position[0] < self.maze.size[0] and position[1] < self.maze.size[1]
+        )
         passable = not self.maze.to_impassable()[position[0]][position[1]]
         return nonnegative and within_edge and passable
 
@@ -139,6 +179,7 @@ class Env(BaseEnv):
     def get_image(self):
         return self.maze.to_rgb()
 
+
 class GenericEnv(Env):
     default_reward = -0.01
 
@@ -147,12 +188,13 @@ class GenericEnv(Env):
         if valid:
             self.maze.objects.agent.positions = [new_position]
 
-        for o, (r,d) in self.maze.rewards_done.items():
+        for o, (r, d) in self.maze.rewards_done.items():
             for pos in getattr(self.maze.objects, o).positions:
                 if new_position[0] == pos[0] and new_position[1] == pos[1]:
                     return r, d
 
         return self.default_reward, False
+
 
 def register_env_from_maze(this_maze, name):
     class GridEnv(GenericEnv):
@@ -160,13 +202,14 @@ def register_env_from_maze(this_maze, name):
 
     gym.envs.register(id=name, entry_point=GridEnv, max_episode_steps=200)
 
+
 class StochasticWrapper(gym.Wrapper):
     def __init__(self, env, stochasticity):
         super().__init__(env)
         self.stochasticity = stochasticity
 
     def step(self, action):
-        if np.random.uniform(0,1) < self.stochasticity:
+        if np.random.uniform(0, 1) < self.stochasticity:
             action = self.env.action_space.sample()
 
         return self.env.step(action)
