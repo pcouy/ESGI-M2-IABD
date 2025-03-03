@@ -86,6 +86,7 @@ class NoisyLinearNeuralStack(nn.Module):
     ):
         super().__init__()
         linear_layers = []
+        self.n_actions = n_actions
         for n in layers:
             linear_layers.append(NoisyLinear(in_dim, n))
             linear_layers.append(activation())
