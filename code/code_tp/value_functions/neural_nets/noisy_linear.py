@@ -2,6 +2,7 @@ import torch
 from torch import nn
 import torch.nn.functional as F
 from einops import rearrange
+import math
 
 
 class NoisyLinear(nn.Module):
@@ -37,9 +38,10 @@ class NoisyLinear(nn.Module):
         self.reset_parameters()
         self.reset_noise()
 
-    def reset_parameters(self):
+    def reset_parameters(self, mu_range=None):
         """Reset trainable network parameters (factorized gaussian noise)."""
-        mu_range = 1 / math.sqrt(self.in_features)
+        if mu_range is None:
+            mu_range = 1 / math.sqrt(self.in_features)
         self.weight_mu.data.uniform_(-mu_range, mu_range)
         self.weight_sigma.data.fill_(self.std_init / math.sqrt(self.in_features))
         self.bias_mu.data.uniform_(-mu_range, mu_range)
@@ -84,29 +86,70 @@ class NoisyLinearNeuralStack(nn.Module):
     ):
         super().__init__()
         linear_layers = []
+        self.n_actions = n_actions
         for n in layers:
             linear_layers.append(NoisyLinear(in_dim, n))
             linear_layers.append(activation())
             in_dim = n
 
-        last_layer = nn.Linear(in_dim, n_actions)
-        last_layer.weight.data.uniform_(-1e-3, 1e-3)
-        if initial_biases is None:
-            last_layer.bias.data.uniform_(-1e-3, 1e-3)
-        elif type(initial_biases) is int:
-            last_layer.bias.data = torch.Tensor(
-                [initial_biases for _ in range(n_actions)]
-            )
-        else:
-            last_layer.bias.data = torch.Tensor(initial_biases)
-
+        last_layer = NoisyLinear(in_dim, n_actions)
+        last_layer.reset_parameters(mu_range=1e-3)
         self.layers = nn.Sequential(*linear_layers, last_layer)
 
-    def forward(self, x):
-        return self.layers(x)
+        self.last_activation = None
 
-    def reset_noise(self):
+    def forward(self, x):
+        self.last_activation = self.layers(x)
+        return self.last_activation
+
+    def reset_noise(self, strength=1):
         """Reset all noisy layers."""
         for layer in self.layers:
             if isinstance(layer, NoisyLinear):
-                layer.reset_noise()
+                layer.reset_noise(strength)
+
+    def log_tensorboard(self, tensorboard, step, name="linear", action_mapper=str):
+        for i, layer in enumerate(self.layers):
+            if isinstance(layer, NoisyLinear):
+                tensorboard.add_histogram(
+                    f"nn_params/{name}_{i}_weights", layer.weight_mu, step
+                )
+                tensorboard.add_histogram(
+                    f"nn_params/{name}_{i}_biases", layer.bias_mu, step
+                )
+                tensorboard.add_histogram(
+                    f"nn_params/{name}_{i}_weights_sigma", layer.weight_sigma, step
+                )
+                tensorboard.add_histogram(
+                    f"nn_params/{name}_{i}_biases_sigma", layer.bias_sigma, step
+                )
+                # Log gradients if they exist
+                if layer.weight_mu.grad is not None:
+                    tensorboard.add_histogram(
+                        f"nn_grads/{name}_{i}_weight_grads", layer.weight_mu.grad, step
+                    )
+                if layer.bias_mu.grad is not None:
+                    tensorboard.add_histogram(
+                        f"nn_grads/{name}_{i}_bias_grads", layer.bias_mu.grad, step
+                    )
+                if layer.weight_sigma.grad is not None:
+                    tensorboard.add_histogram(
+                        f"nn_grads/{name}_{i}_weight_sigma_grads",
+                        layer.weight_sigma.grad,
+                        step,
+                    )
+                if layer.bias_sigma.grad is not None:
+                    tensorboard.add_histogram(
+                        f"nn_grads/{name}_{i}_bias_sigma_grads",
+                        layer.bias_sigma.grad,
+                        step,
+                    )
+        if self.last_activation is not None:
+            tensorboard.add_histogram(f"{name}_activation", self.last_activation, step)
+            if self.n_actions > 1:
+                for i in range(self.n_actions):
+                    tensorboard.add_histogram(
+                        f"{name}_activation/{action_mapper(i)}",
+                        self.last_activation[:, i],
+                        step,
+                    )

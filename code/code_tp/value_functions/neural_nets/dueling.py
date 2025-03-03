@@ -20,16 +20,25 @@ class DuelingOutputStack(nn.Module):
         activation=nn.ReLU,
         initial_biases=None,
         identify_mean=True,
+        streams_class=LinearNeuralStack,
+        streams_kwargs={},
     ):
         super().__init__()
         self.identify_mean = identify_mean
         # set advantage layer
-        self.advantage_layer = LinearNeuralStack(
-            layers, in_dim, n_actions, activation, initial_biases
+        self.advantage_layer = streams_class(
+            layers,
+            in_dim,
+            n_actions,
+            activation,
+            initial_biases,
+            **streams_kwargs,
         )
 
         # set value layer
-        self.value_layer = LinearNeuralStack(layers, in_dim, 1, activation)
+        self.value_layer = streams_class(
+            layers, in_dim, 1, activation, initial_biases, **streams_kwargs
+        )
 
     def forward(self, x):
         value = self.value_layer(x)
@@ -46,3 +55,9 @@ class DuelingOutputStack(nn.Module):
             tensorboard, step, name="advantage", **kwargs
         )
         self.value_layer.log_tensorboard(tensorboard, step, name="value", **kwargs)
+
+    def reset_noise(self, strength=1):
+        if hasattr(self.advantage_layer, "reset_noise"):
+            self.advantage_layer.reset_noise(strength)
+        if hasattr(self.value_layer, "reset_noise"):
+            self.value_layer.reset_noise(strength)

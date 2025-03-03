@@ -94,6 +94,7 @@ class ConvolutionalQFunction(DiscreteQFunction):
         )[0]
 
     def call_batch(self, states, actions, prev_actions=None):
+        self.reset_noise()
         states = self.to_tensor(states)
         # Use long for action indices
         actions = self.to_tensor(actions, dtype=torch.long)
