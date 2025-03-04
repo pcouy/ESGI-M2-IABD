@@ -26,7 +26,7 @@ class RewardScalingBufferMixin:
             if done:
                 self.n_dones += 1
                 self.avg_episode_length = self.n_inserted / self.n_dones
-                if self.ready():
+                if self.n_inserted > self.warmup_size * 5:
                     self.fixed_scaling = True
                     self.fixed_scaling_factor = (
                         self.average_reward
