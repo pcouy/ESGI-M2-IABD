@@ -47,6 +47,9 @@ class SoftmaxSamplingPolicy(EGreedyPolicy):
         self.n_actions = self.value_function.action_space.n
 
         self.running_action_probas = np.ones((self.n_actions,)) / self.n_actions
+        self.sampling_count = 0
+        with open("final_target_entropy.txt", "w") as f:
+            f.write(str(self.final_target_entropy))
 
         if biases is None:
             self.biases = np.array(
@@ -195,7 +198,15 @@ class SoftmaxSamplingPolicy(EGreedyPolicy):
             step,
         )
         self.stats.update(self.greedy_policy.stats)
-
+        self.sampling_count += 1
+        if self.sampling_count % 1000 == 0:
+            try:
+                with open("final_target_entropy.txt", "r") as f:
+                    self.final_target_entropy = float(f.read())
+            except FileNotFoundError:
+                pass
+            except ValueError:
+                pass
         return action
 
     def call_batch(self, state_batch, epsilon=None):
