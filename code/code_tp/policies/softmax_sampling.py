@@ -184,6 +184,11 @@ class SoftmaxSamplingPolicy(EGreedyPolicy):
         self.agent.log_data(
             f"picked_proba{tag_suffix}", probas[action], accumulate=accumulate
         )
+        self.agent.log_data(
+            f"picked_surprise{tag_suffix}",
+            -np.log(probas[action]) / np.log(self.n_actions),
+            accumulate=accumulate,
+        )
         self.agent.tensorboard.add_scalars(
             f"action_probas{tag_suffix}",
             {self.agent.action_label_mapper(i): probas[i] for i in range(len(probas))},
