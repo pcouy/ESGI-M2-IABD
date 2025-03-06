@@ -34,6 +34,7 @@ class ConvolutionalQFunction(DiscreteQFunction):
         prev_action_embedding_dim=16,  # Default embedding dimension when use_prev_action is True
         loss_fn=nn.functional.mse_loss,
         hist_log_interval=5000,
+        test_noise=0,
         **kwargs,
     ):
         if use_prev_action:
@@ -58,6 +59,8 @@ class ConvolutionalQFunction(DiscreteQFunction):
 
         if gradient_clipping is not None:
             nn.utils.clip_grad_norm_(self.nn.parameters(), gradient_clipping)
+
+        self._test_noise = test_noise
 
         self.stats.update({"nn_loss": {"x_label": "step", "data": []}})
         self.init_args = locals()
@@ -85,6 +88,7 @@ class ConvolutionalQFunction(DiscreteQFunction):
         else:
             prev_actions = None
 
+        self.reset_noise()
         self.last_result = self.nn(states, prev_actions)
         return self.last_result
 
@@ -175,7 +179,14 @@ class ConvolutionalQFunction(DiscreteQFunction):
             self.last_tensorboard_log = self.agent.training_steps
         return pred_error_indiv.detach().cpu().numpy()
 
-    def reset_noise(self, strength=1):
+    @property
+    def _default_noise_strength(self):
+        if getattr(self.agent, "test", False):
+            return self._test_noise
+        return 1
+
+    def reset_noise(self, strength=None):
+        strength = self._default_noise_strength if strength is None else strength
         if callable(getattr(self.nn, "reset_noise", None)):
             self.nn.reset_noise(strength)
             if isinstance(self.agent, TargetValueAgent):
