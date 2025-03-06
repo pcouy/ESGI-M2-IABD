@@ -110,7 +110,9 @@ class Agent:
             )
             self.cumulative_stats[key]["data"] = np.array([])
 
-    def select_action(self, state: np.ndarray, prev_action=None) -> np.ndarray:
+    def select_action(
+        self, state: np.ndarray, prev_action=None, **kwargs
+    ) -> np.ndarray:
         """
         Prend un état en entrée, renvoie une action
         * `prev_action`: Action précédente (optionnel)
@@ -496,11 +498,11 @@ class QLearningAgent(Agent):
             targets = rewards + self.gamma**n_step * next_values * (1 - dones)
         return targets
 
-    def select_action(self, state, prev_action=None):
+    def select_action(self, state, prev_action=None, **kwargs):
         if not self.test:
-            return self.policy(state, prev_action)
+            return self.policy(state, prev_action, **kwargs)
         else:
-            return self.policy.test(state, prev_action)
+            return self.policy.test(state, prev_action, **kwargs)
 
     def plot_stats(self, save_dir):
         self.stats.update(self.value_function.stats)

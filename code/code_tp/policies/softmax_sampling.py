@@ -79,7 +79,9 @@ class SoftmaxSamplingPolicy(EGreedyPolicy):
             self.agent.log_data("target_exp_entropy", self.target_entropy)
         super().update()
 
-    def __call__(self, state, prev_action=None, epsilon=None):
+    def __call__(
+        self, state, prev_action=None, epsilon=None, update_epsilon=True, **kwargs
+    ):
         if epsilon is None:
             epsilon = self.epsilon
 
@@ -125,7 +127,7 @@ class SoftmaxSamplingPolicy(EGreedyPolicy):
                 # Bound entropy to prevent extreme values
                 entropy = np.clip(entropy, 0.0, np.log(len(probas)))
 
-                if not self.in_test:
+                if not self.in_test and update_epsilon:
                     # Update running average of entropy with bounds checking
                     if not np.isnan(entropy) and not np.isinf(entropy):
                         self.running_entropy = (

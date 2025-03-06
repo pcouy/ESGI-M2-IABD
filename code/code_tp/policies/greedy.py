@@ -15,7 +15,7 @@ class RandomPolicy:
         self.agent = None
         self.in_test = False
 
-    def __call__(self, state):
+    def __call__(self, state, **kwargs):
         """
         Prend un état en argument, retourne une action
         """
@@ -139,16 +139,16 @@ class EGreedyPolicy(RandomPolicy):
         super().__init__(value_function)
         self.stats.update({"epsilon": {"x_label": "step", "data": []}})
 
-    def __call__(self, state, prev_action=None, epsilon=None):
+    def __call__(self, state, prev_action=None, epsilon=None, **kwargs):
         if epsilon is None:
             epsilon = self.epsilon
 
         if np.random.uniform(0, 1) > epsilon:
             self.greedy_policy.agent = self.agent
-            action = self.greedy_policy(state, prev_action, epsilon=epsilon)
+            action = self.greedy_policy(state, prev_action, epsilon=epsilon, **kwargs)
             self.stats.update(self.greedy_policy.stats)
         else:
-            action = super().__call__(state)
+            action = super().__call__(state, **kwargs)
 
         return action
 
@@ -165,9 +165,8 @@ class EGreedyPolicy(RandomPolicy):
         return action_batch
 
     def test(self, state, prev_action=None, *args, **kwargs):
-        return super().test(
-            state, prev_action, epsilon=self.epsilon_test, *args, **kwargs
-        )
+        epsilon = kwargs.pop("epsilon", self.epsilon_test)
+        return super().test(state, prev_action, epsilon=epsilon, *args, **kwargs)
 
     def update_epsilon(self):
         self.epsilon = max(self.epsilon * (1 - self.epsilon_decay), self.epsilon_min)
