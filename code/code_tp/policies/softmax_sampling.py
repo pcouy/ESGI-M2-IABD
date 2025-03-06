@@ -48,8 +48,10 @@ class SoftmaxSamplingPolicy(EGreedyPolicy):
 
         self.running_action_probas = np.ones((self.n_actions,)) / self.n_actions
         self.sampling_count = 0
-        with open("final_target_entropy.txt", "w") as f:
-            f.write(str(self.final_target_entropy))
+        self._save_attr("final_target_entropy")
+        self._save_attr("running_action_probas_lr")
+        self._save_attr("entropy_lr")
+        self._save_attr("epsilon_lr")
 
         if biases is None:
             self.biases = np.array(
@@ -125,6 +127,7 @@ class SoftmaxSamplingPolicy(EGreedyPolicy):
                     (1 - self.running_action_probas_lr) * self.running_action_probas
                     + self.running_action_probas_lr * probas
                 )
+
                 self.agent.tensorboard.add_scalars(
                     f"running_action_probas{tag_suffix}",
                     {
@@ -200,14 +203,25 @@ class SoftmaxSamplingPolicy(EGreedyPolicy):
         self.stats.update(self.greedy_policy.stats)
         self.sampling_count += 1
         if self.sampling_count % 1000 == 0:
-            try:
-                with open("final_target_entropy.txt", "r") as f:
-                    self.final_target_entropy = float(f.read())
-            except FileNotFoundError:
-                pass
-            except ValueError:
-                pass
+            self._load_attr("final_target_entropy")
+            self._load_attr("running_action_probas_lr")
+            self._load_attr("entropy_lr")
+            self._load_attr("epsilon_lr")
         return action
+
+    def _save_attr(self, attr_name):
+        with open(f"{attr_name}.txt", "w") as f:
+            f.write(str(getattr(self, attr_name)))
+
+    def _load_attr(self, attr_name):
+        try:
+            with open(f"{attr_name}.txt", "r") as f:
+                setattr(self, attr_name, float(f.read()))
+        except FileNotFoundError:
+            pass
+        except ValueError:
+            with open(f"{attr_name}.txt", "r") as f:
+                print(f"Error loading {attr_name} from file :{f.read()=}")
 
     def call_batch(self, state_batch, epsilon=None):
         raise NotImplementedError
