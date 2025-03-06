@@ -204,16 +204,36 @@ class Agent:
             self.episode_value_history = []
         while not done:
             # frames.append(env.render('rgb_array'))
-            if (
-                (test and step_num <= self.random_test_steps)
-                or (not test and step_num <= self.random_train_steps)
-                or (
-                    test
-                    and self.test_patience > 0
-                    and step_num - last_reward_step > 10 * self.test_patience
-                )
+            if (test and step_num <= self.random_test_steps) or (
+                not test and step_num <= self.random_train_steps
             ):
                 action = self.env.action_space.sample()
+            elif (
+                test
+                and self.test_patience > 0
+                and step_num - last_reward_step > self.test_patience
+            ):
+                policy_epsilon = getattr(self.policy, "epsilon_test", None)
+                if policy_epsilon is None:
+                    action = self.env.action_space.sample()
+                else:
+                    new_epsilon = (
+                        policy_epsilon
+                        + 0.1
+                        * (step_num - last_reward_step - self.test_patience)
+                        / self.test_patience
+                    )
+                    new_epsilon = max(0, min(1, new_epsilon))
+                    self.log_data(
+                        "impatience_epsilon_test", new_epsilon, accumulate=False
+                    )
+                    with torch.no_grad():
+                        action = self.select_action(
+                            state,
+                            prev_action,
+                            epsilon=new_epsilon,
+                            update_epsilon=False,
+                        )
             else:
                 with torch.no_grad():
                     action = self.select_action(state, prev_action)
