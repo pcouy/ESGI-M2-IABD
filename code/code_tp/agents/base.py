@@ -89,7 +89,7 @@ class Agent:
         if key not in self.stats:
             self.stats[key] = {"data": []}
 
-        if not accumulate or self.test:
+        if not accumulate:
             self.stats[key]["data"].append(value)
             self.tensorboard.add_scalar(key, value, step)
             return

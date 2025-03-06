@@ -46,6 +46,8 @@ class SoftmaxSamplingPolicy(EGreedyPolicy):
         self.initial_target_entropy = self.target_entropy
         self.running_entropy = self.target_entropy
 
+        self.n_actions = self.value_function.action_space.n
+
         if biases is None:
             self.biases = np.array(
                 [0.0 for action in range(self.value_function.action_space.n)]
@@ -80,6 +82,11 @@ class SoftmaxSamplingPolicy(EGreedyPolicy):
     def __call__(self, state, prev_action=None, epsilon=None):
         if epsilon is None:
             epsilon = self.epsilon
+
+        # Logging variables
+        tag_suffix = "_test" if self.in_test else ""
+        accumulate = not self.in_test
+        step = self.agent.testing_steps if self.in_test else self.agent.training_steps
 
         with torch.no_grad():
             values = self.value_function.from_state(state, prev_action)
@@ -136,20 +143,7 @@ class SoftmaxSamplingPolicy(EGreedyPolicy):
                         )  # Decrease exploration
 
                 action = np.random.choice([x for x in range(len(probas))], p=probas)
-                if self.in_test:
-                    self.agent.log_data(
-                        "picked_proba_test", probas[action], accumulate=False
-                    )
-                else:
-                    self.agent.log_data("picked_proba", probas[action])
-                    self.agent.tensorboard.add_scalars(
-                        "action_probas",
-                        {
-                            self.agent.action_label_mapper(i): probas[i]
-                            for i in range(len(probas))
-                        },
-                        self.agent.training_steps,
-                    )
+                if not self.in_test:
                     self.agent.log_data("entropy", entropy)
                     self.agent.log_data("running_entropy", self.running_entropy)
             except Exception as e:
@@ -157,22 +151,29 @@ class SoftmaxSamplingPolicy(EGreedyPolicy):
                 print(f"epsilon: {epsilon}, values: {values}")
                 self.greedy_policy.agent = self.agent
                 action = self.greedy_policy(state, prev_action)
+                probas = np.zeros((self.n_actions,))
+                probas[action] = 1
                 if not self.in_test:
-                    self.agent.log_data("picked_proba", 1)
                     self.agent.log_data("entropy", 0)
         else:
             self.greedy_policy.agent = self.agent
             action = self.greedy_policy(state, prev_action, epsilon=epsilon)
+            probas = np.zeros((self.n_actions,))
+            probas[action] = 1
             if not self.in_test:
-                self.agent.log_data("picked_proba", 1)
                 self.agent.log_data("entropy", 0)
 
-        if self.in_test:
-            self.agent.log_data(
-                "predicted_value_test", values[action], accumulate=False
-            )
-        else:
-            self.agent.log_data("predicted_value", values[action])
+        self.agent.log_data(
+            f"predicted_value{tag_suffix}", values[action], accumulate=accumulate
+        )
+        self.agent.log_data(
+            f"picked_proba{tag_suffix}", probas[action], accumulate=accumulate
+        )
+        self.agent.tensorboard.add_scalars(
+            f"action_probas{tag_suffix}",
+            {self.agent.action_label_mapper(i): probas[i] for i in range(len(probas))},
+            step,
+        )
         self.stats.update(self.greedy_policy.stats)
 
         return action
