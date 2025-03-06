@@ -13,7 +13,47 @@ matplotlib.use("Agg")  # Use non-interactive backend
 import matplotlib.pyplot as plt
 
 import torch
+
 from torch.utils.tensorboard import SummaryWriter
+from tensorboard import program, default as tb_default
+import threading
+
+
+class TBThread(threading.Thread):
+    def stop(self):
+        pass  # TODO
+
+
+class KillableTensorBoard(program.TensorBoard):
+    def launch(self):
+        self.server = self._make_server()
+        self.server_thread = TBThread(
+            target=self.server.serve_forever, name="TensorBoard"
+        )
+        self.server_thread.daemon = True
+        self.server_thread.start()
+        return self.server.get_url()
+
+    def stop(self):
+        self.server_thread.stop()
+        self.server.shutdown()
+        # TODO
+
+
+class AutoStartSummaryWriter(SummaryWriter):
+    def serve(self, tb_args):
+        print(f"{self.get_logdir()=}")
+        self.tb_serve = KillableTensorBoard(tb_default.get_plugins())
+        self.tb_serve.configure(argv=["serve", "--logdir", self.get_logdir(), *tb_args])
+        url = self.tb_serve.launch()
+        print(f"Tensorflow listening on {url}")
+
+    def close(self, *args, **kwargs):
+        super().close(*args, **kwargs)
+        try:
+            self.tb_serve.stop()
+        except:
+            pass
 
 
 class Agent:
@@ -72,10 +112,30 @@ class Agent:
                 indent=2,
                 default=lambda x: x.__name__ if type(x) is type else str(x),
             )
-        self.tensorboard = SummaryWriter(os.path.join(self.save_dir, "tensorboard"))
+        self.tensorboard = AutoStartSummaryWriter(
+            os.path.join(self.save_dir, "tensorboard")
+        )
+        self.tensorboard.serve(
+            [
+                "--bind_all",
+                "--port",
+                "6006",
+                "--samples_per_plugin",
+                "scalars=50000,images=500",
+            ]
+        )
         self.tensorboard.add_custom_scalars(tensorboard_layout)
-        self.episode_logger = SummaryWriter(
-            os.path.join("episodes", self.save_dir, "0-1000")
+        self.episode_logger = AutoStartSummaryWriter(
+            os.path.join("episodes", self.save_dir, "0-1000"),
+        )
+        self.episode_logger.serve(
+            [
+                "--bind_all",
+                "--port",
+                "6007",
+                "--samples_per_plugin",
+                "scalars=5000,images=5000",
+            ]
         )
         self.episode_logger_range_start = 0
 
@@ -152,16 +212,26 @@ class Agent:
         self.episode_logger.add_image(f"{episode_name}/states", img, step_num)
 
     def log_episode_end(self, *args, **kwargs):
-        if self.training_episodes < self.episode_logger_range_start + 1000:
+        RANGE_LEN = 1000
+        if self.training_episodes < self.episode_logger_range_start + RANGE_LEN:
             return
         self.episode_logger.close()
-        self.episode_logger_range_start += 1000
-        self.episode_logger = SummaryWriter(
+        self.episode_logger_range_start += RANGE_LEN
+        self.episode_logger = AutoStartSummaryWriter(
             os.path.join(
                 "episodes",
                 self.save_dir,
-                f"{self.episode_logger_range_start}-{self.episode_logger_range_start+1000}",
-            )
+                f"{self.episode_logger_range_start}-{self.episode_logger_range_start+RANGE_LEN}",
+            ),
+        )
+        self.episode_logger.serve(
+            [
+                "--bind_all",
+                "--port",
+                "6007",
+                "--samples_per_plugin",
+                "scalars=5000,images=5000",
+            ]
         )
 
     def run_episode(self, test=False):
@@ -452,7 +522,6 @@ class QLearningAgent(Agent):
         )
 
     def log_episode_end(self, episode_name, *args, **kwargs):
-        super().log_episode_end(episode_name, *args, **kwargs)
         actual_discounted_returns = [0]
         for reward in self.episode_reward_history[::-1]:
             actual_discounted_returns.insert(
@@ -469,6 +538,7 @@ class QLearningAgent(Agent):
             )
         self.episode_reward_history = []
         self.predicted_value_history = []
+        super().log_episode_end(episode_name, *args, **kwargs)
 
     def train_with_transition(
         self, state, action, next_state, reward, done, infos, prev_action=None
