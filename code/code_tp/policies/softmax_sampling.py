@@ -21,8 +21,9 @@ class SoftmaxSamplingPolicy(EGreedyPolicy):
         epsilon_lr=0.01,
         min_epsilon=0.0015,
         target_entropy_decay=0.9999,
-        final_target_entropy=0.1,
+        final_target_entropy=2 / 3,
         value_scaling=1,
+        running_action_probas_lr=1,
         **kwargs,
     ):
         biases = kwargs.pop("biases", None)
@@ -33,20 +34,19 @@ class SoftmaxSamplingPolicy(EGreedyPolicy):
         self.epsilon_lr = epsilon_lr
         self.min_epsilon = min_epsilon
         self.value_scaling = value_scaling
+        self.running_action_probas_lr = running_action_probas_lr
         # Override parent's epsilon parameters to prevent automatic decay
         kwargs["epsilon_decay"] = 0
         kwargs["epsilon_min"] = min_epsilon
 
         super().__init__(*args, **kwargs)
-        self.target_entropy = (
-            target_entropy
-            if target_entropy is not None
-            else self.value_function.action_space.n
-        )
+        self.target_entropy = target_entropy if target_entropy is not None else 1
         self.initial_target_entropy = self.target_entropy
         self.running_entropy = self.target_entropy
 
         self.n_actions = self.value_function.action_space.n
+
+        self.running_action_probas = np.ones((self.n_actions,)) / self.n_actions
 
         if biases is None:
             self.biases = np.array(
@@ -73,10 +73,10 @@ class SoftmaxSamplingPolicy(EGreedyPolicy):
         # Decay target entropy
         if not self.agent.test:
             self.target_entropy = max(
-                np.exp(self.final_target_entropy),
+                self.final_target_entropy,
                 self.target_entropy - self.target_entropy_decay,
             )
-            self.agent.log_data("target_exp_entropy", self.target_entropy)
+            self.agent.log_data("target_entropy", self.target_entropy)
         super().update()
 
     def __call__(
@@ -118,14 +118,27 @@ class SoftmaxSamplingPolicy(EGreedyPolicy):
                 probas = np.clip(probas, 1e-10, 1.0)
                 probas = probas / np.sum(probas)  # Renormalize after clipping
 
-                # Calculate entropy with numerical stability
-                log_probas = np.log(
-                    probas + 1e-10
-                )  # Add small constant to prevent log(0)
+                self.running_action_probas = (
+                    (1 - self.running_action_probas_lr) * self.running_action_probas
+                    + self.running_action_probas_lr * probas
+                )
+                self.agent.tensorboard.add_scalars(
+                    f"running_action_probas{tag_suffix}",
+                    {
+                        self.agent.action_label_mapper(i): self.running_action_probas[i]
+                        for i in range(len(probas))
+                    },
+                    step,
+                )
+
+                log_probas = np.log(self.running_action_probas + 1e-10) / np.log(
+                    self.n_actions
+                )
+
                 entropy = -np.sum(probas * log_probas)
 
                 # Bound entropy to prevent extreme values
-                entropy = np.clip(entropy, 0.0, np.log(len(probas)))
+                entropy = np.clip(entropy, 0.0, 1.0)
 
                 if not self.in_test and update_epsilon:
                     # Update running average of entropy with bounds checking
@@ -135,11 +148,11 @@ class SoftmaxSamplingPolicy(EGreedyPolicy):
                         ) * self.running_entropy + self.entropy_lr * entropy
 
                     # Adjust epsilon based on entropy difference
-                    if self.running_entropy < np.log(self.target_entropy):
+                    if self.running_entropy < self.target_entropy:
                         self.epsilon = min(
                             1.0, self.epsilon + self.epsilon_lr
                         )  # Increase exploration
-                    elif self.running_entropy > np.log(self.target_entropy):
+                    elif self.running_entropy > self.target_entropy:
                         self.epsilon = max(
                             self.min_epsilon, self.epsilon - self.epsilon_lr
                         )  # Decrease exploration
