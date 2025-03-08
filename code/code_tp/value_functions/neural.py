@@ -51,7 +51,11 @@ class ConvolutionalQFunction(DiscreteQFunction):
         ).to(self.device)
         self.nn.share_memory()
         print(self.nn)
-        self.optim = torch.optim.Adam(self.nn.parameters(), lr=self.lr)
+        self.optim = torch.optim.Adam(
+            self.nn.parameters(),
+            lr=self.lr,
+            eps=1.5e-4,
+        )
         self.loss_fn = loss_fn
 
         self.has_time_dim = len(env.observation_space.shape) == 4
