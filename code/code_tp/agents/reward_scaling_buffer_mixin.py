@@ -15,6 +15,9 @@ class RewardScalingBufferMixin:
         self.average_reward = 0
         self.fixed_scaling = False
         self.fixed_scaling_factor = None
+        self.reward_scaling_warmup_size = kwargs.get(
+            "reward_scaling_warmup_size", 5 * self.warmup_size
+        )
 
     def store(self, *transition):
         result = super().store(*transition)
@@ -26,7 +29,7 @@ class RewardScalingBufferMixin:
             if done:
                 self.n_dones += 1
                 self.avg_episode_length = self.n_inserted / self.n_dones
-                if self.n_inserted > self.warmup_size * 5:
+                if self.n_inserted > self.reward_scaling_warmup_size:
                     self.fixed_scaling = True
                     self.fixed_scaling_factor = (
                         self.average_reward
