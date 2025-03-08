@@ -208,6 +208,8 @@ class ReplayBufferAgent(QLearningAgent):
             self.policy.value_scaling = self.replay_buffer.reward_scaling_factor
 
     def select_action(self, state, prev_action=None, **kwargs):
+        if not self.replay_buffer.ready():
+            return self.env.action_space.sample()
         update_epsilon = kwargs.pop("update_epsilon", self.replay_buffer.ready())
         return super().select_action(
             self.replay_buffer.normalize(state),
