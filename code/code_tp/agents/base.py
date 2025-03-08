@@ -15,45 +15,22 @@ import matplotlib.pyplot as plt
 import torch
 
 from torch.utils.tensorboard import SummaryWriter
-from tensorboard import program, default as tb_default
-import threading
-
-
-class TBThread(threading.Thread):
-    def stop(self):
-        pass  # TODO
-
-
-class KillableTensorBoard(program.TensorBoard):
-    def launch(self):
-        self.server = self._make_server()
-        self.server_thread = TBThread(
-            target=self.server.serve_forever, name="TensorBoard"
-        )
-        self.server_thread.daemon = True
-        self.server_thread.start()
-        return self.server.get_url()
-
-    def stop(self):
-        self.server_thread.stop()
-        self.server.shutdown()
-        # TODO
+import subprocess
 
 
 class AutoStartSummaryWriter(SummaryWriter):
     def serve(self, tb_args):
         print(f"{self.get_logdir()=}")
-        self.tb_serve = KillableTensorBoard(tb_default.get_plugins())
-        self.tb_serve.configure(argv=["serve", "--logdir", self.get_logdir(), *tb_args])
-        url = self.tb_serve.launch()
-        print(f"Tensorflow listening on {url}")
+        self.tb_serve = subprocess.Popen(
+            ["tensorboard", "--logdir", self.get_logdir(), *tb_args]
+        )
 
     def close(self, *args, **kwargs):
         super().close(*args, **kwargs)
         try:
-            self.tb_serve.stop()
+            self.tb_serve.kill()
         except:
-            pass
+            print("Error stopping TensorBoard")
 
 
 class Agent:
@@ -74,6 +51,7 @@ class Agent:
         random_test_steps=0,
         random_train_steps=0,
         test_patience=0,
+        rotate_tensorboard_every=1000,
     ):
         """
         * `env`: Environnement gym dans lequel l'agent va évoluer
@@ -103,6 +81,7 @@ class Agent:
         self.cumulative_stats = {}
         self.accumulate_stats = accumulate_stats
         self.last_stats_update = {}
+        self.rotate_tensorboard_every = rotate_tensorboard_every
         os.makedirs(self.save_dir, exist_ok=True)
         with open(os.path.join(self.save_dir, "infos.json"), "w") as f:
             print(infos)
@@ -212,7 +191,7 @@ class Agent:
         self.episode_logger.add_image(f"{episode_name}/states", img, step_num)
 
     def log_episode_end(self, *args, **kwargs):
-        RANGE_LEN = 1000
+        RANGE_LEN = self.rotate_tensorboard_every
         if self.training_episodes < self.episode_logger_range_start + RANGE_LEN:
             return
         self.episode_logger.close()
