@@ -485,6 +485,14 @@ class QLearningAgent(Agent):
         self.policy.agent = self
         self.predicted_value_history = []
 
+    @property
+    def gamma(self):
+        return self._gamma
+
+    @gamma.setter
+    def gamma(self, value):
+        self._gamma = value
+
     def log_step(self, episode_name, step_num, transition):
         super().log_step(episode_name, step_num, transition)
         action_values = self.value_function.last_result

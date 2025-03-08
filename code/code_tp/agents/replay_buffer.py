@@ -174,6 +174,17 @@ class ReplayBufferAgent(QLearningAgent):
         self.batches_per_update = batches_per_update
         self.last_update = 0
 
+    @property
+    def gamma(self):
+        return self._gamma
+
+    @gamma.setter
+    def gamma(self, value):
+        self._gamma = value
+        self.log_data("gamma", value, accumulate=True, test=False)
+        if hasattr(self, "replay_buffer") and hasattr(self.replay_buffer, "gamma"):
+            self.replay_buffer.gamma = value
+
     def train_with_transition(
         self, state, action, next_state, reward, done, infos, prev_action=None
     ):
