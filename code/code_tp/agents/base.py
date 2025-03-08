@@ -495,6 +495,8 @@ class QLearningAgent(Agent):
 
     def log_step(self, episode_name, step_num, transition):
         super().log_step(episode_name, step_num, transition)
+        if self.value_function.last_result is None:
+            return
         action_values = self.value_function.last_result
         if len(action_values.shape) == 2:
             action_values = action_values[-1]
