@@ -47,6 +47,7 @@ class SoftmaxSamplingPolicy(EGreedyPolicy):
         self.n_actions = self.value_function.action_space.n
 
         self.running_action_probas = np.ones((self.n_actions,)) / self.n_actions
+        self.running_greedy_action_probas = np.ones((self.n_actions,)) / self.n_actions
         self.sampling_count = 0
         self._save_attr("final_target_entropy")
         self._save_attr("running_action_probas_lr")
@@ -123,6 +124,20 @@ class SoftmaxSamplingPolicy(EGreedyPolicy):
                 probas = np.clip(probas, 1e-10, 1.0)
                 probas = probas / np.sum(probas)  # Renormalize after clipping
 
+                greedy_probas = np.zeros_like(probas)
+                greedy_probas[probas.argmax()] = 1
+                self.running_greedy_action_probas = (
+                    (1 - self.running_action_probas_lr)
+                    * self.running_greedy_action_probas
+                    + self.running_action_probas_lr * greedy_probas
+                )
+                log_greedy_probas = np.log(
+                    self.running_greedy_action_probas + 1e-10
+                ) / np.log(self.n_actions)
+                greedy_entropy = -np.sum(
+                    self.running_greedy_action_probas * log_greedy_probas
+                )
+
                 self.running_action_probas = (
                     (1 - self.running_action_probas_lr) * self.running_action_probas
                     + self.running_action_probas_lr * probas
@@ -166,6 +181,7 @@ class SoftmaxSamplingPolicy(EGreedyPolicy):
                 action = np.random.choice([x for x in range(len(probas))], p=probas)
                 if not self.in_test:
                     self.agent.log_data("entropy", entropy)
+                    self.agent.log_data("entropy_greedy", greedy_entropy)
                     self.agent.log_data("running_entropy", self.running_entropy)
             except Exception as e:
                 print(f"Error in softmax sampling: {e}")
