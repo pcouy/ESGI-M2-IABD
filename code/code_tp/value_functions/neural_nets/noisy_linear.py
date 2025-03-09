@@ -123,6 +123,16 @@ class NoisyLinearNeuralStack(nn.Module):
                 tensorboard.add_histogram(
                     f"nn_params/{name}_{i}_biases_sigma", layer.bias_sigma, step
                 )
+                tensorboard.add_scalar(
+                    f"nn_noise/{name}_{i}_weights_sigma_norm",
+                    layer.weight_sigma.norm(),
+                    step,
+                )
+                tensorboard.add_scalar(
+                    f"nn_noise/{name}_{i}_biases_sigma_norm",
+                    layer.bias_sigma.norm(),
+                    step,
+                )
                 # Log gradients if they exist
                 if layer.weight_mu.grad is not None:
                     tensorboard.add_histogram(
