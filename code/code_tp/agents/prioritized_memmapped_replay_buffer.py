@@ -154,6 +154,7 @@ class PrioritizedMemmappedReplayBuffer(MemmappedReplayBuffer):
         default_error=10000,
         alpha=0.5,
         alpha_decrement_per_sampling=None,
+        min_alpha=0.5,
         beta=0,
         beta_increment_per_sampling=None,
         total_samplings=None,
@@ -165,6 +166,7 @@ class PrioritizedMemmappedReplayBuffer(MemmappedReplayBuffer):
 
         # Priority-related parameters
         self.alpha = alpha
+        self.min_alpha = min_alpha
         self.beta = beta
         if total_samplings is None:
             total_samplings = 5 * self.max_size
@@ -172,7 +174,7 @@ class PrioritizedMemmappedReplayBuffer(MemmappedReplayBuffer):
         self.alpha_decrement_per_sampling = (
             alpha_decrement_per_sampling
             if alpha_decrement_per_sampling is not None
-            else self.alpha / total_samplings
+            else (self.alpha - self.min_alpha) / total_samplings
         )
         self.beta_increment_per_sampling = (
             beta_increment_per_sampling
@@ -327,6 +329,7 @@ class PrioritizedMemmappedReplayBuffer(MemmappedReplayBuffer):
                 self.alpha_decrement_per_sampling,
             )
         )
+        self.alpha = np.max([self.min_alpha, self.alpha])
 
         # Get the batch using parent class's sample method with skip_episode_check=True
         batch = super().sample(i=batch_indices, skip_episode_check=True)

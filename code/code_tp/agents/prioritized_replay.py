@@ -97,6 +97,7 @@ class PrioritizedReplayBuffer(ReplayBuffer):
         default_error=10000,
         alpha=0.5,
         alpha_decrement_per_sampling=None,
+        min_alpha=0.5,
         beta=0,
         beta_increment_per_sampling=None,
         total_samplings=None,
@@ -118,13 +119,16 @@ class PrioritizedReplayBuffer(ReplayBuffer):
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
         self.alpha = alpha
+        self.min_alpha = min_alpha
         self.beta = beta
 
         if total_samplings is None:
             total_samplings = 5 * max_size
 
         if alpha_decrement_per_sampling is None:
-            self.alpha_decrement_per_sampling = self.alpha / total_samplings
+            self.alpha_decrement_per_sampling = (
+                self.alpha - self.min_alpha
+            ) / total_samplings
         else:
             self.alpha_decrement_per_sampling = alpha_decrement_per_sampling
 
@@ -162,7 +166,9 @@ class PrioritizedReplayBuffer(ReplayBuffer):
         priorities = []
 
         self.beta = np.min([1.0, self.beta + self.beta_increment_per_sampling])
-        self.alpha = np.max([0.0, self.alpha - self.alpha_decrement_per_sampling])
+        self.alpha = np.max(
+            [self.min_alpha, self.alpha - self.alpha_decrement_per_sampling]
+        )
 
         for i in range(self.batch_size):
             a = segment * i
