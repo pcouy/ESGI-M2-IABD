@@ -137,6 +137,14 @@ class PrioritizedReplayBuffer(ReplayBuffer):
         self.default_error = default_error
         super().__init__(obs_shape, max_size, batch_size, **kwargs)
 
+    @property
+    def default_error(self):
+        return 20 * self.running_error_mean
+
+    @default_error.setter
+    def default_error(self, value):
+        self.running_error_mean = value / 20
+
     def _get_priority(self, error):
         return (np.abs(error) + self.e) ** self.alpha
 
@@ -192,6 +200,7 @@ class PrioritizedReplayBuffer(ReplayBuffer):
         return batch, idxs, is_weight
 
     def update(self, idx, error):
+        self.running_error_mean = (1 - 1e-6) * self.running_error_mean + 1e-6 * error
         p = self._get_priority(error)
         self.tree.update(idx, p)
 
@@ -225,3 +234,6 @@ class PrioritizedReplayBufferAgent(ReplayBufferAgent):
         if not self.test:
             self.log_data("priority/alpha", self.replay_buffer.alpha, test=False)
             self.log_data("priority/beta", self.replay_buffer.beta, test=False)
+            self.log_data(
+                "priority/default_error", self.replay_buffer.default_error, test=False
+            )

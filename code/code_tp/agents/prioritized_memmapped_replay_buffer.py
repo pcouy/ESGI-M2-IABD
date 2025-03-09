@@ -185,6 +185,14 @@ class PrioritizedMemmappedReplayBuffer(MemmappedReplayBuffer):
         self.tree = MemmappedSumTree(self.max_size, tree_storage_path)
         self.default_error = default_error
 
+    @property
+    def default_error(self):
+        return 20 * self.running_error_mean
+
+    @default_error.setter
+    def default_error(self, value):
+        self.running_error_mean = value / 20
+
     def _get_priority(self, error):
         return (np.abs(error) + self.e) ** self.alpha
 
@@ -326,6 +334,7 @@ class PrioritizedMemmappedReplayBuffer(MemmappedReplayBuffer):
         return batch, tree_idxs, is_weights
 
     def update(self, idx, error):
+        self.running_error_mean = (1 - 1e-6) * self.running_error_mean + 1e-6 * error
         p = self._get_priority(error)
         self.tree.update(idx, p)
 
