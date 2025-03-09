@@ -222,3 +222,6 @@ class PrioritizedReplayBufferAgent(ReplayBufferAgent):
         )
         for idx, err in zip(idxs, errors):
             self.replay_buffer.update(idx, err)
+        if not self.test:
+            self.log_data("priority/alpha", self.replay_buffer.alpha, test=False)
+            self.log_data("priority/beta", self.replay_buffer.beta, test=False)
