@@ -70,6 +70,7 @@ class ConvolutionalQFunction(DiscreteQFunction):
         self.init_args = locals()
         print(self.device)
         self.last_tensorboard_log = 0
+        self.training_steps = 0
         self.hist_log_interval = hist_log_interval
 
     def add_batch_dim(self, tensor):
@@ -149,6 +150,7 @@ class ConvolutionalQFunction(DiscreteQFunction):
     def update_batch(
         self, states, actions, target_values, prev_actions=None, is_weights=None
     ):
+        self.training_steps += 1
         if is_weights is None:
             is_weights = torch.ones(
                 (states.shape[0],), dtype=torch.float32, device=self.device
@@ -170,7 +172,8 @@ class ConvolutionalQFunction(DiscreteQFunction):
         self.optim.step()
         self.reset_noise()
 
-        self.agent.log_data("nn_loss", pred_error.clone().cpu().item(), test=False)
+        if self.training_steps > 1000:
+            self.agent.log_data("nn_loss", pred_error.clone().cpu().item(), test=False)
         if (
             self.agent.training_steps - self.last_tensorboard_log
             >= self.hist_log_interval
