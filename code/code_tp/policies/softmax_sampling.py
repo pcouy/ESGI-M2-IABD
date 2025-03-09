@@ -141,7 +141,7 @@ class SoftmaxSamplingPolicy(EGreedyPolicy):
                     self.n_actions
                 )
 
-                entropy = -np.sum(probas * log_probas)
+                entropy = -np.sum(self.running_action_probas * log_probas)
 
                 # Bound entropy to prevent extreme values
                 entropy = np.clip(entropy, 0.0, 1.0)
