@@ -433,7 +433,9 @@ class Agent:
             plt.ylabel(name)
             fig.tight_layout()
             if save_dir is not None:
-                fig.savefig(os.path.join(save_dir, "{}.png".format(name)))
+                fig.savefig(
+                    os.path.join(save_dir, "{}.png".format(name.replace("/", "_")))
+                )
             else:
                 plt.show()
             fig.clf()
