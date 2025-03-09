@@ -152,6 +152,7 @@ class PrioritizedMemmappedReplayBuffer(MemmappedReplayBuffer):
     def __init__(
         self,
         default_error=10000,
+        default_error_scale=20,
         alpha=0.5,
         alpha_decrement_per_sampling=None,
         min_alpha=0.5,
@@ -185,15 +186,16 @@ class PrioritizedMemmappedReplayBuffer(MemmappedReplayBuffer):
         # Create memory-mapped sum tree in a subdirectory
         tree_storage_path = os.path.join(self.storage_path, "sum_tree")
         self.tree = MemmappedSumTree(self.max_size, tree_storage_path)
+        self.default_error_scale = default_error_scale
         self.default_error = default_error
 
     @property
     def default_error(self):
-        return 20 * self.running_error_mean
+        return self.default_error_scale * self.running_error_mean
 
     @default_error.setter
     def default_error(self, value):
-        self.running_error_mean = value / 20
+        self.running_error_mean = value / self.default_error_scale
 
     def _get_priority(self, error):
         return (np.abs(error) + self.e) ** self.alpha

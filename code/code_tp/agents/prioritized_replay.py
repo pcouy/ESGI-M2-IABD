@@ -95,6 +95,7 @@ class PrioritizedReplayBuffer(ReplayBuffer):
         max_size=100000,
         batch_size=32,
         default_error=10000,
+        default_error_scale=20,
         alpha=0.5,
         alpha_decrement_per_sampling=None,
         min_alpha=0.5,
@@ -138,16 +139,17 @@ class PrioritizedReplayBuffer(ReplayBuffer):
             self.beta_increment_per_sampling = beta_increment_per_sampling
 
         self.tree = SumTree(max_size)
+        self.default_error_scale = default_error_scale
         self.default_error = default_error
         super().__init__(obs_shape, max_size, batch_size, **kwargs)
 
     @property
     def default_error(self):
-        return 20 * self.running_error_mean
+        return self.default_error_scale * self.running_error_mean
 
     @default_error.setter
     def default_error(self, value):
-        self.running_error_mean = value / 20
+        self.running_error_mean = value / self.default_error_scale
 
     def _get_priority(self, error):
         return (np.abs(error) + self.e) ** self.alpha
