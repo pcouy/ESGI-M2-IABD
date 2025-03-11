@@ -118,6 +118,7 @@ class Agent:
         )
         self.episode_logger_range_start = 0
 
+    @torch.compiler.disable(recursive=True)
     def log_data(self, key, value, accumulate=True, test=None):
         if test is None:
             test = self.test

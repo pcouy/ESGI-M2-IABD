@@ -102,6 +102,7 @@ class ConvolutionalQFunction(DiscreteQFunction):
             [state], [action], None if prev_action is None else [prev_action]
         )[0]
 
+    @torch.compile
     def call_batch(self, states, actions, prev_actions=None):
         self.reset_noise()
         states = self.to_tensor(states)
@@ -147,6 +148,7 @@ class ConvolutionalQFunction(DiscreteQFunction):
             None if prev_action is None else [prev_action],
         )[0]
 
+    @torch.compile
     def update_batch(
         self, states, actions, target_values, prev_actions=None, is_weights=None
     ):
@@ -192,6 +194,7 @@ class ConvolutionalQFunction(DiscreteQFunction):
             return self._test_noise
         return 1
 
+    @torch.compiler.disable(recursive=True)
     def reset_noise(self, strength=None):
         strength = self._default_noise_strength if strength is None else strength
         if callable(getattr(self.nn, "reset_noise", None)):
