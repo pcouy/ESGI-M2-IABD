@@ -65,6 +65,7 @@ class RewardScalingBufferMixin:
         return samples
 
     def log_tensorboard(self, tensorboard, step):
-        tensorboard.add_scalar(
-            "reward_scaling_factor", self.reward_scaling_factor, step
-        )
+        if not self.fixed_scaling:
+            tensorboard.add_scalar(
+                "reward_scaling_factor", self.reward_scaling_factor, step
+            )
