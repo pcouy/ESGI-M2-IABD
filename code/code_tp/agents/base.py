@@ -232,6 +232,7 @@ class Agent:
                 ),
                 name_prefix="{:05d}".format(self.training_episodes),
                 episode_trigger=lambda _: True,
+                fps=self.env.metadata["render_fps"],
             )
             env.step_id = self.training_steps
 
