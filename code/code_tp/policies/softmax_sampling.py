@@ -101,7 +101,7 @@ class SoftmaxSamplingPolicy(EGreedyPolicy):
             if type(values) is torch.Tensor:
                 values = values.clone().detach().cpu().numpy()
 
-        if epsilon >= self.min_epsilon:
+        if epsilon > 0:
             try:
                 # Add numerical stability by scaling values
                 scaled_values = (
@@ -124,65 +124,10 @@ class SoftmaxSamplingPolicy(EGreedyPolicy):
                 probas = np.clip(probas, 1e-10, 1.0)
                 probas = probas / np.sum(probas)  # Renormalize after clipping
 
+                action = np.random.choice([x for x in range(len(probas))], p=probas)
+
                 greedy_probas = np.zeros_like(probas)
                 greedy_probas[probas.argmax()] = 1
-                self.running_greedy_action_probas = (
-                    (1 - self.running_action_probas_lr)
-                    * self.running_greedy_action_probas
-                    + self.running_action_probas_lr * greedy_probas
-                )
-                log_greedy_probas = np.log(
-                    self.running_greedy_action_probas + 1e-10
-                ) / np.log(self.n_actions)
-                greedy_entropy = -np.sum(
-                    self.running_greedy_action_probas * log_greedy_probas
-                )
-
-                self.running_action_probas = (
-                    (1 - self.running_action_probas_lr) * self.running_action_probas
-                    + self.running_action_probas_lr * probas
-                )
-
-                self.agent.tensorboard.add_scalars(
-                    f"running_action_probas{tag_suffix}",
-                    {
-                        self.agent.action_label_mapper(i): self.running_action_probas[i]
-                        for i in range(len(probas))
-                    },
-                    step,
-                )
-
-                log_probas = np.log(self.running_action_probas + 1e-10) / np.log(
-                    self.n_actions
-                )
-
-                entropy = -np.sum(self.running_action_probas * log_probas)
-
-                # Bound entropy to prevent extreme values
-                entropy = np.clip(entropy, 0.0, 1.0)
-
-                if not self.in_test and update_epsilon:
-                    # Update running average of entropy with bounds checking
-                    if not np.isnan(entropy) and not np.isinf(entropy):
-                        self.running_entropy = (
-                            1 - self.entropy_lr
-                        ) * self.running_entropy + self.entropy_lr * entropy
-
-                    # Adjust epsilon based on entropy difference
-                    if self.running_entropy < self.target_entropy:
-                        self.epsilon = min(
-                            1.0, self.epsilon + self.epsilon_lr
-                        )  # Increase exploration
-                    elif self.running_entropy > self.target_entropy:
-                        self.epsilon = max(
-                            self.min_epsilon, self.epsilon - self.epsilon_lr
-                        )  # Decrease exploration
-
-                action = np.random.choice([x for x in range(len(probas))], p=probas)
-                if not self.in_test:
-                    self.agent.log_data("entropy", entropy)
-                    self.agent.log_data("entropy_greedy", greedy_entropy)
-                    self.agent.log_data("running_entropy", self.running_entropy)
             except Exception as e:
                 print(f"Error in softmax sampling: {e}")
                 print(f"epsilon: {epsilon}, values: {values}")
@@ -190,15 +135,64 @@ class SoftmaxSamplingPolicy(EGreedyPolicy):
                 action = self.greedy_policy(state, prev_action)
                 probas = np.zeros((self.n_actions,))
                 probas[action] = 1
-                if not self.in_test:
-                    self.agent.log_data("entropy", 0)
+                greedy_probas = probas
         else:
             self.greedy_policy.agent = self.agent
             action = self.greedy_policy(state, prev_action, epsilon=epsilon)
             probas = np.zeros((self.n_actions,))
             probas[action] = 1
-            if not self.in_test:
-                self.agent.log_data("entropy", 0)
+            greedy_probas = probas
+
+        self.running_greedy_action_probas = (
+            (1 - self.running_action_probas_lr) * self.running_greedy_action_probas
+            + self.running_action_probas_lr * greedy_probas
+        )
+        log_greedy_probas = np.log(self.running_greedy_action_probas + 1e-10) / np.log(
+            self.n_actions
+        )
+        greedy_entropy = -np.sum(self.running_greedy_action_probas * log_greedy_probas)
+
+        self.running_action_probas = (
+            1 - self.running_action_probas_lr
+        ) * self.running_action_probas + self.running_action_probas_lr * probas
+
+        self.agent.tensorboard.add_scalars(
+            f"running_action_probas{tag_suffix}",
+            {
+                self.agent.action_label_mapper(i): self.running_action_probas[i]
+                for i in range(len(probas))
+            },
+            step,
+        )
+
+        log_probas = np.log(self.running_action_probas + 1e-10) / np.log(self.n_actions)
+
+        entropy = -np.sum(self.running_action_probas * log_probas)
+
+        # Bound entropy to prevent extreme values
+        entropy = np.clip(entropy, 0.0, 1.0)
+
+        if not self.in_test and update_epsilon:
+            # Update running average of entropy with bounds checking
+            if not np.isnan(entropy) and not np.isinf(entropy):
+                self.running_entropy = (
+                    1 - self.entropy_lr
+                ) * self.running_entropy + self.entropy_lr * entropy
+
+            # Adjust epsilon based on entropy difference
+            if self.running_entropy < self.target_entropy:
+                self.epsilon = min(
+                    1.0, self.epsilon + self.epsilon_lr
+                )  # Increase exploration
+            elif self.running_entropy > self.target_entropy:
+                self.epsilon = max(
+                    self.min_epsilon, self.epsilon - self.epsilon_lr
+                )  # Decrease exploration
+
+        if not self.in_test:
+            self.agent.log_data("entropy", entropy)
+            self.agent.log_data("entropy_greedy", greedy_entropy)
+            self.agent.log_data("running_entropy", self.running_entropy)
 
         self.agent.log_data(
             f"predicted_value{tag_suffix}", values[action], accumulate=accumulate
