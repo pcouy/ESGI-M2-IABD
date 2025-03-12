@@ -51,7 +51,7 @@ class ConvolutionalQFunction(DiscreteQFunction):
         ).to(self.device)
         self.nn.share_memory()
         print(self.nn)
-        self.optim = torch.optim.Adam(
+        self.optim = torch.optim.RAdam(
             self.nn.parameters(),
             lr=self.lr,
             eps=1.5e-4,
