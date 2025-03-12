@@ -10,4 +10,5 @@ from . import (
     reward_scaling_buffer_mixin,
     n_step,
     annealed_discount_mixin,
+    decision_rate_mixin,
 )
