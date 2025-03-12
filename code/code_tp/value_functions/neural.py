@@ -44,16 +44,17 @@ class ConvolutionalQFunction(DiscreteQFunction):
 
         super().__init__(env, *args, **kwargs)
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        self.img_shape = env.observation_space.shape
         self.nn = nn_class(
-            img_shape=env.observation_space.shape,
+            img_shape=self.img_shape,
             n_actions=env.action_space.n,
             **nn_args,
         ).to(self.device)
         self.nn.share_memory()
         print(self.nn)
-        self.optim = torch.optim.RAdam(
+        self.optim = torch.optim.Adam(
             self.nn.parameters(),
-            lr=self.lr,
+            lr=torch.tensor(self.lr),
             eps=1.5e-4,
         )
         self.loss_fn = loss_fn
@@ -64,6 +65,15 @@ class ConvolutionalQFunction(DiscreteQFunction):
         if gradient_clipping is not None:
             nn.utils.clip_grad_norm_(self.nn.parameters(), gradient_clipping)
 
+        self.backward_warmup()
+        for param_name, param in self.nn.named_parameters():
+            if param.grad is not None:
+                torch._dynamo.decorators.mark_static_address(param.grad)
+            else:
+                print(
+                    f'Skipped `mark_static_address` for param "{param_name}" because grad is None'
+                )
+
         self._test_noise = test_noise
 
         self.stats.update({"nn_loss": {"x_label": "step", "data": []}})
@@ -72,6 +82,16 @@ class ConvolutionalQFunction(DiscreteQFunction):
         self.last_tensorboard_log = 0
         self.training_steps = 0
         self.hist_log_interval = hist_log_interval
+
+    def backward_warmup(self):
+        dummy_input = torch.randn((1, *self.img_shape))
+        if self.use_prev_action:
+            dummy_action = torch.tensor([0])
+        else:
+            dummy_action = None
+        output = self.nn(dummy_input, dummy_action).mean()
+        output.backward()
+        self.optim.zero_grad(set_to_none=False)
 
     def add_batch_dim(self, tensor):
         if not self.has_time_dim:
@@ -161,7 +181,7 @@ class ConvolutionalQFunction(DiscreteQFunction):
             is_weights = self.to_tensor(is_weights)
         target_values = self.to_tensor(target_values).detach()
 
-        self.optim.zero_grad(set_to_none=True)
+        self.optim.zero_grad(set_to_none=False)
 
         pred_values = self.call_batch(states, actions, prev_actions)
         pred_error_indiv = torch.abs(pred_values[:, 0] - target_values)
