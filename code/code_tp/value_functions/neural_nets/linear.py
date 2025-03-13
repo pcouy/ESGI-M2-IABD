@@ -60,6 +60,10 @@ class LinearNeuralStack(nn.Module):
                     )
 
     def _init_weights(self, module):
+        module.weight.data.uniform(3e-3, 3e-3)
+        module.bias.data.uniform(3e-3, 3e-3)
+        print("Linear init")
+        return
         if isinstance(module, nn.Linear):
             if module == self.layers[-1]:  # Output layer
                 # Smaller initialization for better initial estimates

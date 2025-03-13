@@ -35,7 +35,7 @@ class NoisyLinear(nn.Module):
         self.bias_sigma = nn.Parameter(torch.Tensor(out_features))
         self.register_buffer("bias_epsilon", torch.Tensor(out_features))
 
-        self.reset_parameters()
+        self.reset_parameters(3e-3)
         self.reset_noise()
 
     def reset_parameters(self, mu_range=None):
