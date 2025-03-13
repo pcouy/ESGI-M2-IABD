@@ -104,6 +104,7 @@ class ConvolutionalQFunction(DiscreteQFunction):
             self.add_batch_dim(state), None if prev_action is None else [prev_action]
         )[0]
 
+    @torch.compile
     def from_state_batch(self, states, prev_actions=None):
         states = self.to_tensor(states)
 
