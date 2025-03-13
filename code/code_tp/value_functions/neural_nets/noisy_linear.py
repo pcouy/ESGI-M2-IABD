@@ -82,17 +82,23 @@ class NoisyLinearNeuralStack(nn.Module):
     """
 
     def __init__(
-        self, layers, in_dim, n_actions, activation=nn.ReLU, initial_biases=None
+        self,
+        layers,
+        in_dim,
+        n_actions,
+        activation=nn.ReLU,
+        initial_biases=None,
+        std_init=0.5,
     ):
         super().__init__()
         linear_layers = []
         self.n_actions = n_actions
         for n in layers:
-            linear_layers.append(NoisyLinear(in_dim, n))
+            linear_layers.append(NoisyLinear(in_dim, n, std_init=std_init))
             linear_layers.append(activation())
             in_dim = n
 
-        last_layer = NoisyLinear(in_dim, n_actions)
+        last_layer = NoisyLinear(in_dim, n_actions, std_init=std_init)
         last_layer.reset_parameters(mu_range=1e-3)
         self.layers = nn.Sequential(*linear_layers, last_layer)
 
