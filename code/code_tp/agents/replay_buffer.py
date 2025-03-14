@@ -211,7 +211,7 @@ class ReplayBufferAgent(QLearningAgent):
                     self.train_one_batch()
                 self.last_update = self.training_steps
             self.policy.update()
-            self.policy.value_unscaler = self.replay_buffer.unscale_reward
+            self.policy.value_unscaler = self.unscale_target
 
     def select_action(self, state, prev_action=None, **kwargs):
         if not self.replay_buffer.ready():

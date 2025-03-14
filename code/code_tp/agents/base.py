@@ -456,6 +456,12 @@ class Agent:
         for proc in procs:
             proc.join()
 
+    def scale_target(self, target):
+        return target
+
+    def unscale_target(self, target):
+        return target
+
 
 class RandomAgent(Agent):
     """
@@ -540,6 +546,7 @@ class QLearningAgent(Agent):
             next_state, reward, done, action
         )  # Pass current action as next prev_action
         self.value_function.update(state, action, target_value, prev_action)
+        self.policy.value_unscaler = self.unscale_target
         if not self.test:
             self.policy.update()
 
@@ -559,7 +566,7 @@ class QLearningAgent(Agent):
             if type(next_value) is torch.Tensor:
                 next_value = next_value.detach().cpu().numpy()
             target = reward + self.gamma**n_step * next_value * (1 - done)
-        return target
+        return self.scale_target(target)
 
     def target_value_from_state_batch(
         self, next_states, rewards, dones, actions, n_step=1
@@ -579,7 +586,7 @@ class QLearningAgent(Agent):
                 else torch.tensor(dones, dtype=torch.float32)
             )
             targets = rewards + self.gamma**n_step * next_values * (1 - dones)
-        return targets
+        return self.scale_target(targets)
 
     def select_action(self, state, prev_action=None, **kwargs):
         if not self.test:
