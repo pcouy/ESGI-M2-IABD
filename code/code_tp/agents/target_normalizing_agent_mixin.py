@@ -67,7 +67,11 @@ class TargetNormalizingAgentMixin:
         return targets
     
     def scale_target(self, target):
+        if isinstance(target, np.ndarray):
+            target = torch.from_numpy(target)
         return (target - self.running_target_value.mean) / (torch.sqrt(self.running_target_value.var) + 1e-4)
     
     def unscale_target(self, target):
+        if isinstance(target, np.ndarray):
+            target = torch.from_numpy(target)
         return target * torch.sqrt(self.running_target_value.var) + self.running_target_value.mean
