@@ -505,7 +505,7 @@ class QLearningAgent(Agent):
         if len(action_values.shape) == 2:
             action_values = action_values[-1]
         value_scaling = getattr(self.policy, "value_scaling", 1)
-        self.predicted_value_history.append(action_values.max() * value_scaling)
+        self.predicted_value_history.append(self.policy.value_unscaler(action_values.max()))
         action_mean = action_values.mean(dim=0)
         action_advantages = action_values - action_mean
         self.episode_logger.add_scalars(

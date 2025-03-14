@@ -136,6 +136,12 @@ class ReplayBuffer:
     def reward_scaling_factor(self):
         return 1
 
+    def scale_reward(self, reward):
+        return reward
+
+    def unscale_reward(self, reward):
+        return reward
+
 
 class ReplayBufferAgent(QLearningAgent):
     """
@@ -205,7 +211,7 @@ class ReplayBufferAgent(QLearningAgent):
                     self.train_one_batch()
                 self.last_update = self.training_steps
             self.policy.update()
-            self.policy.value_scaling = self.replay_buffer.reward_scaling_factor
+            self.policy.value_unscaler = self.replay_buffer.unscale_reward
 
     def select_action(self, state, prev_action=None, **kwargs):
         if not self.replay_buffer.ready():

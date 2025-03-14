@@ -49,6 +49,13 @@ class RewardScalingBufferMixin:
         else:
             return self.fixed_scaling_factor
 
+    def scale_reward(self, reward):
+        return reward / self.reward_scaling_factor
+
+    def unscale_reward(self, scaled_reward):
+        return scaled_reward * self.reward_scaling_factor
+
+
     def sample(self, *args, **kwargs):
         samples = super().sample(*args, **kwargs)
         # Convert samples to list if it's a tuple
@@ -56,16 +63,19 @@ class RewardScalingBufferMixin:
             samples = list(samples)
 
         if len(samples) > 3:
-            samples[3] = samples[3] / self.reward_scaling_factor
+            samples[3] = self.scale_reward(samples[3])
         else:
             # Convert inner tuple to list if needed
             if isinstance(samples[0], tuple):
                 samples[0] = list(samples[0])
-            samples[0][3] = samples[0][3] / self.reward_scaling_factor
+            samples[0][3] = self.scale_reward(samples[0][3])
         return samples
 
     def log_tensorboard(self, tensorboard, step):
         if not self.fixed_scaling:
             tensorboard.add_scalar(
-                "reward_scaling_factor", self.reward_scaling_factor, step
+                "reward_scaling/factor", self.reward_scaling_factor, step
+            )
+            tensorboard.add_scalar(
+                "reward_scaling/gamma", self.gamma, step
             )

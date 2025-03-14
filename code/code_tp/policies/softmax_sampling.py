@@ -22,7 +22,6 @@ class SoftmaxSamplingPolicy(EGreedyPolicy):
         min_epsilon=0.0015,
         target_entropy_decay=0.9999,
         final_target_entropy=2 / 3,
-        value_scaling=1,
         running_action_probas_lr=1,
         **kwargs,
     ):
@@ -33,7 +32,6 @@ class SoftmaxSamplingPolicy(EGreedyPolicy):
         self.entropy_lr = entropy_lr
         self.epsilon_lr = epsilon_lr
         self.min_epsilon = min_epsilon
-        self.value_scaling = value_scaling
         self.running_action_probas_lr = running_action_probas_lr
         # Override parent's epsilon parameters to prevent automatic decay
         kwargs["epsilon_decay"] = 0
@@ -104,9 +102,9 @@ class SoftmaxSamplingPolicy(EGreedyPolicy):
         if epsilon > 0:
             try:
                 # Add numerical stability by scaling values
-                scaled_values = (
+                scaled_values = self.value_unscaler(
                     values + self.biases - np.max(values + self.biases)
-                ) * self.value_scaling
+                )
                 aux = np.exp((1 / epsilon - 1) * scaled_values)
                 self.biases = self.biases * self.biases_decay
 
@@ -195,7 +193,7 @@ class SoftmaxSamplingPolicy(EGreedyPolicy):
             self.agent.log_data("running_entropy", self.running_entropy)
 
         self.agent.log_data(
-            f"predicted_value{tag_suffix}", values[action], accumulate=accumulate
+            f"predicted_value{tag_suffix}", self.value_unscaler(values[action]), accumulate=accumulate
         )
         self.agent.log_data(
             f"picked_proba{tag_suffix}", probas[action], accumulate=accumulate
