@@ -105,6 +105,8 @@ class SoftmaxSamplingPolicy(EGreedyPolicy):
                 scaled_values = self.value_unscaler(
                     values + self.biases - np.max(values + self.biases)
                 )
+                if isinstance(scaled_values, torch.Tensor):
+                    scaled_values = scaled_values.cpu().numpy()
                 aux = np.exp((1 / epsilon - 1) * scaled_values)
                 self.biases = self.biases * self.biases_decay
 
