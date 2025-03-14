@@ -35,13 +35,15 @@ class NoisyLinear(nn.Module):
         self.bias_sigma = nn.Parameter(torch.Tensor(out_features))
         self.register_buffer("bias_epsilon", torch.Tensor(out_features))
 
-        self.reset_parameters(3e-3)
+        self.reset_parameters()
         self.reset_noise()
 
     def reset_parameters(self, mu_range=None):
         """Reset trainable network parameters (factorized gaussian noise)."""
         if mu_range is None:
             mu_range = 1 / math.sqrt(self.in_features)
+        else:
+            mu_range = mu_range / math.sqrt(self.in_features)
         self.weight_mu.data.uniform_(-mu_range, mu_range)
         self.weight_sigma.data.fill_(self.std_init / math.sqrt(self.in_features))
         self.bias_mu.data.uniform_(-mu_range, mu_range)
