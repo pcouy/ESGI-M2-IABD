@@ -129,6 +129,9 @@ class Agent:
         if key not in self.stats:
             self.stats[key] = {"data": []}
 
+        if isinstance(value, torch.Tensor):
+            value = value.cpu()
+
         if not accumulate:
             self.stats[key]["data"].append(value)
             self.tensorboard.add_scalar(key, value, step)

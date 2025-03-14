@@ -53,8 +53,8 @@ class TargetNormalizingAgentMixin:
         else:
             _value = value
         self.running_target_value.update(_value)
-        self.log_data("running_target_value/mean", self.running_target_value.mean, test=False)
-        self.log_data("running_target_value/var", self.running_target_value.var, test=False)
+        self.log_data("running_target_value/mean", self.running_target_value.mean.cpu().item(), test=False)
+        self.log_data("running_target_value/var", self.running_target_value.var.cpu().item(), test=False)
 
     def target_value_from_state(self, *args, **kwargs):
         target = super().target_value_from_state(*args, **kwargs)
