@@ -1,6 +1,7 @@
 import numpy as np
 from .greedy import EGreedyPolicy
 import torch
+import traceback
 
 
 class SoftmaxSamplingPolicy(EGreedyPolicy):
@@ -128,8 +129,8 @@ class SoftmaxSamplingPolicy(EGreedyPolicy):
 
                 greedy_probas = np.zeros_like(probas)
                 greedy_probas[probas.argmax()] = 1
-            except Exception as e:
-                print(f"Error in softmax sampling: {e}")
+            except Exception:
+                print(traceback.format_exc())
                 print(f"epsilon: {epsilon}, values: {values}")
                 self.greedy_policy.agent = self.agent
                 action = self.greedy_policy(state, prev_action)
