@@ -58,6 +58,7 @@ class ConvolutionalQFunction(DiscreteQFunction):
             eps=1.5e-4,
         )
         self.loss_fn = loss_fn
+        self.scaler = torch.amp.GradScaler()
 
         self.has_time_dim = len(env.observation_space.shape) == 4
         self.use_prev_action = use_prev_action
@@ -195,8 +196,9 @@ class ConvolutionalQFunction(DiscreteQFunction):
             * self.loss_fn(pred_values[:, 0], target_values, reduction="none")
         ).mean()
 
-        pred_error.backward()
-        self.optim.step()
+        self.scaler.scale(pred_error).backward()
+        self.scaler.step(self.optim)
+        self.scaler.update()
         self.reset_noise()
 
         self.log_update_step(pred_error)
