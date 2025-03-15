@@ -97,17 +97,14 @@ class SoftmaxSamplingPolicy(EGreedyPolicy):
 
         with torch.no_grad():
             values = self.value_function.from_state(state, prev_action)
-            if type(values) is torch.Tensor:
-                values = values.clone().detach().cpu().numpy()
 
         if epsilon > 0:
             try:
                 # Add numerical stability by scaling values
-                scaled_values = self.value_unscaler(
-                    values + self.biases - np.max(values + self.biases)
-                )
+                scaled_values = self.value_unscaler(values)
                 if isinstance(scaled_values, torch.Tensor):
                     scaled_values = scaled_values.cpu().numpy()
+                scaled_values += self.biases - np.max(scaled_values + self.biases)
                 aux = np.exp((1 / epsilon - 1) * scaled_values)
                 self.biases = self.biases * self.biases_decay
 
