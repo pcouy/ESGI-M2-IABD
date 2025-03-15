@@ -196,7 +196,9 @@ class SoftmaxSamplingPolicy(EGreedyPolicy):
             self.agent.log_data("running_entropy", self.running_entropy)
 
         self.agent.log_data(
-            f"predicted_value{tag_suffix}", self.value_unscaler(values[action]), accumulate=accumulate
+            f"predicted_value{tag_suffix}",
+            self.value_unscaler(values[action]),
+            accumulate=accumulate,
         )
         self.agent.log_data(
             f"picked_proba{tag_suffix}", probas[action], accumulate=accumulate

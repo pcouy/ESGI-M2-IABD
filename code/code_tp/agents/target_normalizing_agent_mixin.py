@@ -2,6 +2,7 @@ from gymnasium.wrappers.utils import RunningMeanStd
 import torch
 import numpy as np
 
+
 class TorchRunningMeanStd:
     """Tracks the mean, variance and count of values."""
 
@@ -19,7 +20,6 @@ class TorchRunningMeanStd:
         batch_count = x.shape[0]
         self.update_from_moments(batch_mean, batch_var, batch_count)
 
-
     def update_from_moments(self, batch_mean, batch_var, batch_count):
         """Updates from batch mean, variance and count moments."""
         delta = batch_mean - self.mean
@@ -36,12 +36,20 @@ class TorchRunningMeanStd:
         self.var = new_var
         self.count = new_count
 
+
 class TargetNormalizingAgentMixin:
-    def __init__(self, *args, initial_returns_mean=0.0, initial_returns_var=1.0, initial_returns_count=0, **kwargs):
+    def __init__(
+        self,
+        *args,
+        initial_returns_mean=0.0,
+        initial_returns_var=1.0,
+        initial_returns_count=0,
+        **kwargs
+    ):
         super().__init__(*args, **kwargs)
         self.running_target_value = TorchRunningMeanStd(epsilon=initial_returns_count)
-        self.running_target_value.mean+= initial_returns_mean
-        self.running_target_value.var*= initial_returns_var
+        self.running_target_value.mean += initial_returns_mean
+        self.running_target_value.var *= initial_returns_var
 
     def update_running_target_value(self, value):
         if isinstance(value, np.ndarray):
@@ -53,25 +61,38 @@ class TargetNormalizingAgentMixin:
         else:
             _value = value
         self.running_target_value.update(_value)
-        self.log_data("running_target_value/mean", self.running_target_value.mean.cpu().item(), test=False)
-        self.log_data("running_target_value/var", self.running_target_value.var.cpu().item(), test=False)
+        self.log_data(
+            "running_target_value/mean",
+            self.running_target_value.mean.cpu().item(),
+            test=False,
+        )
+        self.log_data(
+            "running_target_value/var",
+            self.running_target_value.var.cpu().item(),
+            test=False,
+        )
 
     def target_value_from_state(self, *args, **kwargs):
         target = super().target_value_from_state(*args, **kwargs)
         self.update_running_target_value(target)
         return target
-    
+
     def target_value_from_state_batch(self, *args, **kwargs):
         targets = super().target_value_from_state_batch(*args, **kwargs)
         self.update_running_target_value(targets)
         return targets
-    
+
     def scale_target(self, target):
         if isinstance(target, np.ndarray):
             target = torch.from_numpy(target)
-        return (target - self.running_target_value.mean) / (torch.sqrt(self.running_target_value.var) + 1e-4)
-    
+        return (target - self.running_target_value.mean) / (
+            torch.sqrt(self.running_target_value.var) + 1e-4
+        )
+
     def unscale_target(self, target):
         if isinstance(target, np.ndarray):
             target = torch.from_numpy(target)
-        return target * torch.sqrt(self.running_target_value.var) + self.running_target_value.mean
+        return (
+            target * torch.sqrt(self.running_target_value.var)
+            + self.running_target_value.mean
+        )

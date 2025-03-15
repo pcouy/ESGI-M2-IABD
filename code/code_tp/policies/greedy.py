@@ -86,7 +86,11 @@ class GreedyQPolicy(RandomPolicy):
         actions = [k for k, v in enumerate(values) if v == value]
 
         if self.in_test or self.agent.test:
-            self.agent.log_data("greedy_predicted_value_test", self.value_unscaler(value), accumulate=False)
+            self.agent.log_data(
+                "greedy_predicted_value_test",
+                self.value_unscaler(value),
+                accumulate=False,
+            )
         else:
             self.agent.log_data("greedy_predicted_value", self.value_unscaler(value))
         return np.random.choice(actions)
@@ -106,10 +110,14 @@ class GreedyQPolicy(RandomPolicy):
 
         if self.in_test or self.agent.test:
             self.agent.log_data(
-                "greedy_predicted_value_test", self.value_unscaler(value_batch.mean()), accumulate=False
+                "greedy_predicted_value_test",
+                self.value_unscaler(value_batch.mean()),
+                accumulate=False,
             )
         else:
-            self.agent.log_data("greedy_predicted_value", self.value_unscaler(value_batch.mean()))
+            self.agent.log_data(
+                "greedy_predicted_value", self.value_unscaler(value_batch.mean())
+            )
         return action_batch
 
 

@@ -76,6 +76,4 @@ class RewardScalingBufferMixin:
             tensorboard.add_scalar(
                 "reward_scaling/factor", self.reward_scaling_factor, step
             )
-            tensorboard.add_scalar(
-                "reward_scaling/gamma", self.gamma, step
-            )
+            tensorboard.add_scalar("reward_scaling/gamma", self.gamma, step)
