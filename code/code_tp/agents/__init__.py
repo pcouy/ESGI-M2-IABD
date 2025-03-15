@@ -12,4 +12,5 @@ from . import (
     annealed_discount_mixin,
     decision_rate_mixin,
     target_normalizing_agent_mixin,
+    return_normalizing_buffer_mixin,
 )

@@ -11,6 +11,7 @@ class ReplayBuffer:
     Implémentation d'une mémoire des expériences passées, telle que décrit dans
     [l'article sur le DQN](http://arxiv.org/abs/1312.5602)
     """
+    OVERRIDE_VALUE_SCALING = False
 
     def __init__(
         self, obs_shape, max_size=100000, batch_size=32, warmup_size=None, **kwargs
@@ -142,6 +143,9 @@ class ReplayBuffer:
     def unscale_reward(self, reward):
         return reward
 
+    def unscale_value(self, value):
+        return value
+
 
 class ReplayBufferAgent(QLearningAgent):
     """
@@ -211,7 +215,10 @@ class ReplayBufferAgent(QLearningAgent):
                     self.train_one_batch()
                 self.last_update = self.training_steps
             self.policy.update()
-            self.policy.value_unscaler = self.unscale_target
+            if not self.replay_buffer.OVERRIDE_VALUE_SCALING:
+                self.policy.value_unscaler = self.unscale_target
+            else:
+                self.policy.value_unscaler = self.replay_buffer.unscale_value
 
     def select_action(self, state, prev_action=None, **kwargs):
         if not self.replay_buffer.ready():

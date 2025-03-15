@@ -55,6 +55,8 @@ class RewardScalingBufferMixin:
     def unscale_reward(self, scaled_reward):
         return scaled_reward * self.reward_scaling_factor
 
+    def unscale_value(self, value):
+        return value * self.reward_scaling_factor
 
     def sample(self, *args, **kwargs):
         samples = super().sample(*args, **kwargs)
