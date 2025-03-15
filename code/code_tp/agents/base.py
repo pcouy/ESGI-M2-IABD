@@ -130,7 +130,7 @@ class Agent:
             self.stats[key] = {"data": []}
 
         if isinstance(value, torch.Tensor):
-            value = value.cpu()
+            value = value.clone().cpu().item()
 
         if not accumulate:
             self.stats[key]["data"].append(value)

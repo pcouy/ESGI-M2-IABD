@@ -136,6 +136,11 @@ class ConvolutionalQFunction(DiscreteQFunction):
 
         values = self.nn(states, prev_actions)
 
+        self.log_call_batch(values)
+        return values.gather(-1, actions.reshape((len(actions), 1)))
+
+    @torch.compiler.disable(recursive=True)
+    def log_call_batch(self, values):
         if (
             self.agent is not None
             and self.agent.training_steps - self.last_tensorboard_log
@@ -159,7 +164,6 @@ class ConvolutionalQFunction(DiscreteQFunction):
                 entropies,  # We're reusing the dictionary but storing std dev values
                 self.agent.training_steps,
             )
-        return values.gather(-1, actions.reshape((len(actions), 1)))
 
     def update(self, state, action, target_value, prev_action=None, is_weight=None):
         return self.update_batch(
@@ -195,8 +199,13 @@ class ConvolutionalQFunction(DiscreteQFunction):
         self.optim.step()
         self.reset_noise()
 
+        self.log_update_step(pred_error)
+        return pred_error_indiv.detach().cpu().numpy()
+
+    @torch.compiler.disable(recursive=True)
+    def log_update_step(self, pred_error):
         if self.training_steps > 1000:
-            self.agent.log_data("nn_loss", pred_error.clone().cpu().item(), test=False)
+            self.agent.log_data("nn_loss", pred_error, test=False)
         if (
             self.agent.training_steps - self.last_tensorboard_log
             >= self.hist_log_interval
@@ -207,7 +216,6 @@ class ConvolutionalQFunction(DiscreteQFunction):
                 action_mapper=self.agent.action_label_mapper,
             )
             self.last_tensorboard_log = self.agent.training_steps
-        return pred_error_indiv.detach().cpu().numpy()
 
     @property
     def _default_noise_strength(self):
