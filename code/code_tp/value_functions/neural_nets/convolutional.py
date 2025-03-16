@@ -140,23 +140,30 @@ class ConvolutionalNN(nn.Module):
 
         in_size = y.shape[-1]
 
+        self.conv_stack = conv_stack
+
         # Add embedding layer if specified
         self.embedding = None
         if embedding_dim is not None and embedding_size is not None:
             self.embedding = nn.Embedding(embedding_size, embedding_dim)
             in_size += embedding_dim  # Increase input size for the linear stack
 
+        self.last_layers = self._init_output_stack(
+            output_stack_class, in_size, n_actions, activation, output_stack_args
+        )
+
+        self.apply(self._init_weights)
+
+    def _init_output_stack(
+        self, output_stack_class, in_size, n_actions, activation, output_stack_args
+    ):
         last_layers = output_stack_class(
             in_dim=in_size,
             n_actions=n_actions,
             activation=activation,
             **output_stack_args,
         )
-
-        self.conv_stack = conv_stack
-        self.last_layers = last_layers
-
-        self.apply(self._init_weights)
+        return last_layers
 
     def _init_weights(self, module):
         if isinstance(module, nn.Conv2d):
