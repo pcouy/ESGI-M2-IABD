@@ -68,6 +68,23 @@ class SoftmaxSamplingPolicy(EGreedyPolicy):
                 "target_entropy": {"x_label": "step", "data": []},
             }
         )
+        self.accumulated_action_probas = {}
+
+    def log_action_probas(self, key, values, step):
+        if key not in self.accumulated_action_probas:
+            self.accumulated_action_probas[key] = {}
+        for label, value in values.items():
+            if label not in self.accumulated_action_probas[key]:
+                self.accumulated_action_probas[key][label] = []
+            self.accumulated_action_probas[key][label].append(value)
+
+        if len(self.accumulated_action_probas[key][next(iter(values))]) > 1000:
+            self.agent.tensorboard.add_scalars(
+                key,
+                {k: np.mean(v) for k, v in self.accumulated_action_probas[key].items()},
+                step,
+            )
+            self.accumulated_action_probas[key] = {}
 
     def update_epsilon(self):
         """Override parent's epsilon update to prevent automatic decay"""
@@ -154,7 +171,7 @@ class SoftmaxSamplingPolicy(EGreedyPolicy):
             1 - self.running_action_probas_lr
         ) * self.running_action_probas + self.running_action_probas_lr * probas
 
-        self.agent.tensorboard.add_scalars(
+        self.log_action_probas(
             f"running_action_probas{tag_suffix}",
             {
                 self.agent.action_label_mapper(i): self.running_action_probas[i]
@@ -205,7 +222,7 @@ class SoftmaxSamplingPolicy(EGreedyPolicy):
             -np.log(probas[action]) / np.log(self.n_actions),
             accumulate=accumulate,
         )
-        self.agent.tensorboard.add_scalars(
+        self.log_action_probas(
             f"action_probas{tag_suffix}",
             {self.agent.action_label_mapper(i): probas[i] for i in range(len(probas))},
             step,
