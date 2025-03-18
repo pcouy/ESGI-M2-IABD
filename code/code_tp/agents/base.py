@@ -570,7 +570,9 @@ class QLearningAgent(Agent):
             _, next_value = self.eval_state(next_state, prev_action)
             if type(next_value) is torch.Tensor:
                 next_value = next_value.detach().cpu().numpy()
-            target = reward + self.gamma**n_step * next_value * (1 - done)
+            target = reward + self.gamma**n_step * self.unscale_target(next_value) * (
+                1 - done
+            )
         return self.scale_target(target)
 
     def target_value_from_state_batch(
@@ -590,7 +592,9 @@ class QLearningAgent(Agent):
                 if isinstance(dones, torch.Tensor)
                 else torch.tensor(dones, dtype=torch.float32)
             )
-            targets = rewards + self.gamma**n_step * next_values * (1 - dones)
+            targets = rewards + self.gamma**n_step * self.unscale_target(
+                next_values
+            ) * (1 - dones)
         return self.scale_target(targets)
 
     def select_action(self, state, prev_action=None, **kwargs):
