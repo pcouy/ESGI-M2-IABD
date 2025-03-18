@@ -5,15 +5,10 @@ from .linear import LinearNeuralStack
 from .conv_with_time import SpacioTemporalConv
 
 
-class ConvolutionalNN(nn.Module):
-    """
-    Implémente un réseau de neurones convolutionnel en PyTorch.
-    """
-
+class ConvolutionalTorso(nn.Module):
     def __init__(
         self,
         img_shape,
-        n_actions,
         n_filters=None,
         kernel_size=4,
         stride=2,
@@ -21,43 +16,10 @@ class ConvolutionalNN(nn.Module):
         dilation=1,
         activation=nn.Tanh,
         pooling=None,
-        output_stack_class=LinearNeuralStack,
-        output_stack_args={"layers": [256]},
-        embedding_dim=None,
-        embedding_size=None,
     ):
-        """
-        * `img_shape` est un tuple représentant la forme d'une image passée en entrée du réseau
-        de neurones (telle que donnée par np_arrah.shape)
-        * `n_actions` est le nombre d'actions à évaluer, càd le nombre de sorties du réseau de
-        neurones
-        * L'argument `n_filters` doit être une liste contenant un élément par couche
-        convolutionnelle.
-        * Les arguments ` kernel_size`, ` stride`, `padding` et `pooling` peuvent être des entiers
-        ou des listes. S'il s'agit d'un entier, la valeur de cet entier sera utilisée
-        pour toutes les couches convolutionnelles. Si la valeur est une liste, la liste doit
-        contenir le même nombre d'éléments que `n_filters`
-        * `dilation` est un entier
-        * `activation` est la fonction d'activation utilisée entre chaque couche convolutionnelle.
-        Il doit s'agir d'une fonction d'activation PyTorch
-        * `pooling` permet de remplacer le *stride* des convolutions par une couche de
-        pooling en sortie si sa valeur est différente de `None`. Les valeurs possibles sont :
-        `None`, `"max"` et `"avg"`
-        * `output_stack_class` et `output_stack_args` sont utilisés pour instancier le module Torch
-        qui fera le lien entre la sortie des couches convolutionnelles et la sortie à `n_actions`
-        éléments du DQN
-        * `embedding_dim` est la dimension du vecteur d'embedding pour l'entrée secondaire. Si None,
-        aucun embedding n'est utilisé
-        * `embedding_size` est la taille du vocabulaire pour l'embedding (nombre de valeurs discrètes
-        possibles). Doit être spécifié si embedding_dim est utilisé
-
-        Si vous ne comprenez pas la signification d'un argument, la documentation de PyTorch
-        et/ou un tutoriel sur les réseaux de neurones convolutionnels devrait éclaircir le
-        rôle de chacun de ces paramètres
-        """
         super().__init__()
         self.img_shape = img_shape
-        self.n_actions = n_actions
+
         layers = []
         if n_filters is None:
             n_filters = [16, 16]
@@ -130,17 +92,150 @@ class ConvolutionalNN(nn.Module):
             layers.append(activation())
 
         layers.append(nn.Flatten())
-        conv_stack = nn.Sequential(*layers)
+        self.conv_stack = nn.Sequential(*layers)
+        self.apply(self._init_weights)
 
-        x = torch.rand(img_shape)
-        if len(img_shape) == 3:
-            y = conv_stack(rearrange([x], "b w h c -> b c w h"))
-        else:
-            y = conv_stack(rearrange([x], "b w h t c -> b c w h t"))
+    def forward(self, x):
+        if len(x.shape) == 4:
+            return self.conv_stack(rearrange(x, "b w h c -> b c w h"))
+        if len(x.shape) == 5:
+            return self.conv_stack(rearrange(x, "b w h t c -> b c w h t"))
+        if len(x.shape) == 3:
+            return self.conv_stack(rearrange([x], "b w h c -> b c w h"))[0]
+        raise ValueError(f"Input shape {x.shape} not supported")
 
+    def _init_weights(self, module):
+        if isinstance(module, nn.Conv2d):
+            # Kaiming initialization for conv layers
+            nn.init.kaiming_normal_(module.weight, mode="fan_out", nonlinearity="relu")
+            if module.bias is not None:
+                # Initialize bias to small positive values to prevent dead ReLUs
+                nn.init.constant_(module.bias, 0.1)
+        if isinstance(module, SpacioTemporalConv):
+            nn.init.kaiming_normal_(
+                module.layers[0].weight, mode="fan_out", nonlinearity="relu"
+            )
+            nn.init.kaiming_normal_(
+                module.layers[1].weight, mode="fan_out", nonlinearity="relu"
+            )
+            if module.layers[0].bias is not None:
+                nn.init.constant_(module.layers[0].bias, 0.1)
+            if module.layers[1].bias is not None:
+                nn.init.constant_(module.layers[1].bias, 0.1)
+
+    def log_tensorboard(self, tensorboard, step):
+        for i, layer in enumerate(self.conv_stack):
+            if isinstance(layer, nn.Conv2d):
+                # Log weights and biases
+                tensorboard.add_histogram(
+                    f"nn_params/conv_stack_{i}_weights", layer.weight, step
+                )
+                tensorboard.add_histogram(
+                    f"nn_params/conv_stack_{i}_biases", layer.bias, step
+                )
+                # Log gradients if they exist
+                if layer.weight.grad is not None:
+                    tensorboard.add_histogram(
+                        f"nn_grads/conv_stack_{i}_weight_grads", layer.weight.grad, step
+                    )
+                if layer.bias.grad is not None:
+                    tensorboard.add_histogram(
+                        f"nn_grads/conv_stack_{i}_bias_grads", layer.bias.grad, step
+                    )
+            elif isinstance(layer, SpacioTemporalConv):
+                tensorboard.add_histogram(
+                    f"nn_params/conv_stack_{i}-0_weights", layer.layers[0].weight, step
+                )
+                tensorboard.add_histogram(
+                    f"nn_params/conv_stack_{i}-0_biases", layer.layers[0].bias, step
+                )
+                tensorboard.add_histogram(
+                    f"nn_params/conv_stack_{i}-1_weights", layer.layers[1].weight, step
+                )
+                tensorboard.add_histogram(
+                    f"nn_params/conv_stack_{i}-1_biases", layer.layers[1].bias, step
+                )
+                if layer.layers[0].weight.grad is not None:
+                    tensorboard.add_histogram(
+                        f"nn_grads/conv_stack_{i}-0_weight_grads",
+                        layer.layers[0].weight.grad,
+                        step,
+                    )
+                if layer.layers[0].bias.grad is not None:
+                    tensorboard.add_histogram(
+                        f"nn_grads/conv_stack_{i}-0_bias_grads",
+                        layer.layers[0].bias.grad,
+                        step,
+                    )
+                if layer.layers[1].weight.grad is not None:
+                    tensorboard.add_histogram(
+                        f"nn_grads/conv_stack_{i}-1_weight_grads",
+                        layer.layers[1].weight.grad,
+                        step,
+                    )
+                if layer.layers[1].bias.grad is not None:
+                    tensorboard.add_histogram(
+                        f"nn_grads/conv_stack_{i}-1_bias_grads",
+                        layer.layers[1].bias.grad,
+                        step,
+                    )
+
+
+class ConvolutionalNN(nn.Module):
+    """
+    Implémente un réseau de neurones convolutionnel en PyTorch.
+    """
+
+    def __init__(
+        self,
+        img_shape,
+        n_actions,
+        torso_class=ConvolutionalTorso,
+        torso_args={},
+        activation=nn.Tanh,
+        output_stack_class=LinearNeuralStack,
+        output_stack_args={"layers": [256]},
+        embedding_dim=None,
+        embedding_size=None,
+    ):
+        """
+        * `img_shape` est un tuple représentant la forme d'une image passée en entrée du réseau
+        de neurones (telle que donnée par np_arrah.shape)
+        * `n_actions` est le nombre d'actions à évaluer, càd le nombre de sorties du réseau de
+        neurones
+        * L'argument `n_filters` doit être une liste contenant un élément par couche
+        convolutionnelle.
+        * Les arguments ` kernel_size`, ` stride`, `padding` et `pooling` peuvent être des entiers
+        ou des listes. S'il s'agit d'un entier, la valeur de cet entier sera utilisée
+        pour toutes les couches convolutionnelles. Si la valeur est une liste, la liste doit
+        contenir le même nombre d'éléments que `n_filters`
+        * `dilation` est un entier
+        * `activation` est la fonction d'activation utilisée entre chaque couche convolutionnelle.
+        Il doit s'agir d'une fonction d'activation PyTorch
+        * `pooling` permet de remplacer le *stride* des convolutions par une couche de
+        pooling en sortie si sa valeur est différente de `None`. Les valeurs possibles sont :
+        `None`, `"max"` et `"avg"`
+        * `output_stack_class` et `output_stack_args` sont utilisés pour instancier le module Torch
+        qui fera le lien entre la sortie des couches convolutionnelles et la sortie à `n_actions`
+        éléments du DQN
+        * `embedding_dim` est la dimension du vecteur d'embedding pour l'entrée secondaire. Si None,
+        aucun embedding n'est utilisé
+        * `embedding_size` est la taille du vocabulaire pour l'embedding (nombre de valeurs discrètes
+        possibles). Doit être spécifié si embedding_dim est utilisé
+
+        Si vous ne comprenez pas la signification d'un argument, la documentation de PyTorch
+        et/ou un tutoriel sur les réseaux de neurones convolutionnels devrait éclaircir le
+        rôle de chacun de ces paramètres
+        """
+        super().__init__()
+        self.img_shape = img_shape
+        self.n_actions = n_actions
+        self.conv_stack = torso_class(img_shape, activation=activation, **torso_args)
+
+        # Get the output size of the torso
+        x = torch.rand((1, *img_shape))
+        y = self.conv_stack(x)
         in_size = y.shape[-1]
-
-        self.conv_stack = conv_stack
 
         # Add embedding layer if specified
         self.embedding = None
@@ -151,8 +246,6 @@ class ConvolutionalNN(nn.Module):
         self.last_layers = self._init_output_stack(
             output_stack_class, in_size, n_actions, activation, output_stack_args
         )
-
-        self.apply(self._init_weights)
 
     def _init_output_stack(
         self, output_stack_class, in_size, n_actions, activation, output_stack_args
@@ -165,21 +258,8 @@ class ConvolutionalNN(nn.Module):
         )
         return last_layers
 
-    def _init_weights(self, module):
-        if isinstance(module, nn.Conv2d):
-            # Kaiming initialization for conv layers
-            nn.init.kaiming_normal_(module.weight, mode="fan_out", nonlinearity="relu")
-            if module.bias is not None:
-                # Initialize bias to small positive values to prevent dead ReLUs
-                nn.init.constant_(module.bias, 0.1)
-
     def forward(self, x, secondary_input=None):
-        if len(x.shape) == 4:
-            conv_out = self.conv_stack(rearrange(x, "b w h c -> b c w h"))
-        elif len(x.shape) == 5:
-            conv_out = self.conv_stack(rearrange(x, "b w h t c -> b c w h t"))
-        elif len(x.shape) == 3:
-            conv_out = self.conv_stack(rearrange([x], "b w h c -> b c w h"))[0]
+        conv_out = self.conv_stack(x)
 
         # Handle secondary input if provided
         if secondary_input is not None and self.embedding is not None:
@@ -209,21 +289,5 @@ class ConvolutionalNN(nn.Module):
             self.last_layers.log_tensorboard(
                 tensorboard, step, action_mapper=action_mapper
             )
-        for i, layer in enumerate(self.conv_stack):
-            if isinstance(layer, nn.Conv2d):
-                # Log weights and biases
-                tensorboard.add_histogram(
-                    f"nn_params/conv_stack_{i}_weights", layer.weight, step
-                )
-                tensorboard.add_histogram(
-                    f"nn_params/conv_stack_{i}_biases", layer.bias, step
-                )
-                # Log gradients if they exist
-                if layer.weight.grad is not None:
-                    tensorboard.add_histogram(
-                        f"nn_grads/conv_stack_{i}_weight_grads", layer.weight.grad, step
-                    )
-                if layer.bias.grad is not None:
-                    tensorboard.add_histogram(
-                        f"nn_grads/conv_stack_{i}_bias_grads", layer.bias.grad, step
-                    )
+        if callable(getattr(self.conv_stack, "log_tensorboard", None)):
+            self.conv_stack.log_tensorboard(tensorboard, step)
