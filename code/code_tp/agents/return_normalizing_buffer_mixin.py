@@ -19,6 +19,8 @@ class TorchRunningMeanStd:
             _x = torch.from_numpy(x)
         elif isinstance(x, float):
             _x = torch.tensor([x])
+        elif isinstance(x, list):
+            _x = torch.tensor(x)
         else:
             _x = x
 
@@ -52,73 +54,38 @@ class ReturnNormalizingBufferMixin:
 
     def __init__(self, *args, **kwargs):
         self.gamma = kwargs.get("gamma", 0.99)  # discount factor
-        self.avg_episode_length = kwargs.pop("init_avg_episode_length", 1000)
         super().__init__(*args, **kwargs)
-        self._n_dones = 1
-        self.reward_rms = TorchRunningMeanStd(epsilon=self.avg_episode_length)
+        self.returns_rms = TorchRunningMeanStd(epsilon=self.warmup_size / 2)
         self.last_tensorboard_step = 0
-
-    @property
-    def mean_reward(self):
-        return self.reward_rms.mean
-
-    @property
-    def var_reward(self):
-        return self.reward_rms.var
-
-    @property
-    def std_reward(self):
-        return torch.sqrt(self.var_reward)
-
-    @property
-    def reward_to_value_factor(self):
-        return (
-            1
-            - (self.gamma * (1 - self.gamma**self.avg_episode_length))
-            / (self.avg_episode_length * (1 - self.gamma))
-        ) / (1 - self.gamma)
+        self.current_episode_rewards = []
 
     @property
     def lambda_reward(self):
-        return (
-            self.std_reward
-            * math.sqrt(
-                1 / (1 - self.gamma**2)
-                - self.gamma**2
-                / self.avg_episode_length
-                * (1 - self.gamma ** (2 * self.avg_episode_length))
-                / ((1 - self.gamma**2) ** 2)
-            )
-            + 1e-8
-        )
-
-    @property
-    def n_dones(self):
-        return self._n_dones
-
-    @n_dones.setter
-    def n_dones(self, value):
-        self._n_dones = value
-        self.avg_episode_length = self.n_inserted / self.n_dones
+        return math.sqrt(self.returns_rms.var)
 
     def scale_reward(self, reward):
-        return (reward - self.mean_reward) / self.lambda_reward
+        return reward / self.lambda_reward
 
     def unscale_reward(self, scaled_reward):
-        return scaled_reward * self.lambda_reward + self.mean_reward
+        return scaled_reward * self.lambda_reward
 
     def unscale_value(self, value):
-        return (
-            value * self.lambda_reward + self.mean_reward * self.reward_to_value_factor
-        )
+        return value * self.lambda_reward
 
     def store(self, *transition):
         result = super().store(*transition)
         done = transition[4] if len(transition) > 4 else False
         reward = transition[3]
+        self.current_episode_rewards.append(reward)
         if done:
-            self.n_dones += 1
-        self.reward_rms.update(reward)
+            current_episode_returns = [0]
+            for r in self.current_episode_rewards[::-1]:
+                current_episode_returns.append(
+                    r + self.gamma * current_episode_returns[-1]
+                )
+            np_squared_returns = np.array(current_episode_returns[1:]) ** 2
+            self.returns_rms.update(current_episode_returns[1:])
+            self.current_episode_rewards = []
         return result
 
     def sample(self, *args, **kwargs):
@@ -139,23 +106,13 @@ class ReturnNormalizingBufferMixin:
     def log_tensorboard(self, tensorboard, step):
         if step - self.last_tensorboard_step > 1000:
             self.last_tensorboard_step = step
-            tensorboard.add_scalar("reward_scaling/reward_mean", self.mean_reward, step)
-            tensorboard.add_scalar("reward_scaling/reward_std", self.std_reward, step)
+            tensorboard.add_scalar(
+                "reward_scaling/returns_mean", self.returns_rms.mean, step
+            )
+            tensorboard.add_scalar(
+                "reward_scaling/returns_var", self.returns_rms.var, step
+            )
             tensorboard.add_scalar(
                 "reward_scaling/reward_lambda", self.lambda_reward, step
             )
-            tensorboard.add_scalar(
-                "reward_scaling/reward_to_value_factor",
-                self.reward_to_value_factor,
-                step,
-            )
-            tensorboard.add_scalar(
-                "reward_scaling/episode_length_avg", self.avg_episode_length, step
-            )
-            tensorboard.add_scalar("reward_scaling/episode_n_dones", self.n_dones, step)
             tensorboard.add_scalar("reward_scaling/discount_rate", self.gamma, step)
-            tensorboard.add_scalar(
-                "reward_scaling/discount_rate_avg",
-                self.reward_to_value_factor / self.avg_episode_length,
-                step,
-            )

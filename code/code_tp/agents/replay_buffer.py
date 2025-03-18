@@ -11,6 +11,7 @@ class ReplayBuffer:
     Implémentation d'une mémoire des expériences passées, telle que décrit dans
     [l'article sur le DQN](http://arxiv.org/abs/1312.5602)
     """
+
     OVERRIDE_VALUE_SCALING = False
 
     def __init__(
