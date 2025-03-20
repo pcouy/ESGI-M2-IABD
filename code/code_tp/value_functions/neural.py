@@ -251,16 +251,10 @@ class ConvolutionalQFunction(DiscreteQFunction):
         return m.indices, m.values
 
     def export_f(self):
-        if not self.compile_nn:
-            return self.nn.state_dict()
-        else:
-            return self.nn._orig_mod.state_dict()
+        return self.nn.state_dict()
 
     def import_f(self, d):
-        if not self.compile_nn:
-            self.nn.load_state_dict(d)
-        else:
-            self.nn._orig_mod.load_state_dict(d)
+        self.nn.load_state_dict(d)
 
     def mix_with(self, other, tau=0.001):
         for self_param, other_param in zip(self.nn.parameters(), other.nn.parameters()):
