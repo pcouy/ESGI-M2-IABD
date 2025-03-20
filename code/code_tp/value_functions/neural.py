@@ -163,7 +163,7 @@ class ConvolutionalQFunction(DiscreteQFunction):
 
             if (
                 self.agent.training_steps - self.last_tensorboard_log
-                > self.hist_log_interval
+                >= self.hist_log_interval
             ):
                 # Rename the metric name to reflect std dev instead of entropy
                 self.agent.tensorboard.add_scalars(
@@ -171,7 +171,6 @@ class ConvolutionalQFunction(DiscreteQFunction):
                     entropies,  # We're reusing the dictionary but storing std dev values
                     self.agent.training_steps,
                 )
-                self.last_tensorboard_log = self.agent.training_steps
 
     def update(self, state, action, target_value, prev_action=None, is_weight=None):
         return self.update_batch(
