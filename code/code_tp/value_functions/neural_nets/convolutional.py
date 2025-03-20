@@ -240,7 +240,7 @@ class ConvolutionalNN(nn.Module):
         # Add embedding layer if specified
         self.embedding = None
         if embedding_dim is not None and embedding_size is not None:
-            self.embedding = nn.Embedding(embedding_size, embedding_dim)
+            self.embedding = nn.Embedding(embedding_size, embedding_dim, device=self.device)
             in_size += embedding_dim  # Increase input size for the linear stack
 
         self.last_layers = self._init_output_stack(
