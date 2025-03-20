@@ -529,8 +529,8 @@ class QLearningAgent(Agent):
     def run_episode(self, test=False):
         if self.policy_on_cpu:
             self.cpu_value_function.import_f(self.value_function.export_f())
-            if callable(getattr(self.policy.value_function, "reset_noise", None)):
-                self.policy.value_function.reset_noise()
+        if callable(getattr(self.policy.value_function, "reset_noise", None)):
+            self.policy.value_function.reset_noise()
         return super().run_episode(test)
 
     @property
