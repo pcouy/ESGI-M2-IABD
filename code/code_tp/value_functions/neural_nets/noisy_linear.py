@@ -19,21 +19,35 @@ class NoisyLinear(nn.Module):
 
     """
 
-    def __init__(self, in_features: int, out_features: int, std_init: float = 0.5):
+    def __init__(
+        self, in_features: int, out_features: int, std_init: float = 0.5, device=None
+    ):
         """Initialization."""
         super(NoisyLinear, self).__init__()
+        self.device = device
+        if self.device is None:
+            self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
         self.in_features = in_features
         self.out_features = out_features
         self.std_init = std_init
 
-        self.weight_mu = nn.Parameter(torch.Tensor(out_features, in_features))
-        self.weight_sigma = nn.Parameter(torch.Tensor(out_features, in_features))
-        self.register_buffer("weight_epsilon", torch.Tensor(out_features, in_features))
+        self.weight_mu = nn.Parameter(
+            torch.Tensor(out_features, in_features, device=self.device)
+        )
+        self.weight_sigma = nn.Parameter(
+            torch.Tensor(out_features, in_features, device=self.device)
+        )
+        self.register_buffer(
+            "weight_epsilon",
+            torch.Tensor(out_features, in_features, device=self.device),
+        )
 
-        self.bias_mu = nn.Parameter(torch.Tensor(out_features))
-        self.bias_sigma = nn.Parameter(torch.Tensor(out_features))
-        self.register_buffer("bias_epsilon", torch.Tensor(out_features))
+        self.bias_mu = nn.Parameter(torch.Tensor(out_features, device=self.device))
+        self.bias_sigma = nn.Parameter(torch.Tensor(out_features, device=self.device))
+        self.register_buffer(
+            "bias_epsilon", torch.Tensor(out_features, device=self.device)
+        )
 
         self.reset_parameters()
         self.reset_noise()
@@ -51,8 +65,8 @@ class NoisyLinear(nn.Module):
 
     def reset_noise(self, strength=1):
         """Make new noise."""
-        epsilon_in = self.scale_noise(self.in_features)
-        epsilon_out = self.scale_noise(self.out_features)
+        epsilon_in = self.scale_noise(self.in_features, self.device)
+        epsilon_out = self.scale_noise(self.out_features, self.device)
 
         # outer product
         self.weight_epsilon.copy_(strength * epsilon_out.ger(epsilon_in))
@@ -71,9 +85,9 @@ class NoisyLinear(nn.Module):
         )
 
     @staticmethod
-    def scale_noise(size: int) -> torch.Tensor:
+    def scale_noise(size: int, device: torch.device) -> torch.Tensor:
         """Set scale to make noise (factorized gaussian noise)."""
-        x = torch.randn(size)
+        x = torch.randn(size, device=device)
 
         return x.sign().mul(x.abs().sqrt())
 
@@ -91,16 +105,24 @@ class NoisyLinearNeuralStack(nn.Module):
         activation=nn.ReLU,
         initial_biases=None,
         std_init=0.5,
+        device=None,
     ):
         super().__init__()
+        self.device = device
+        if self.device is None:
+            self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         linear_layers = []
         self.n_actions = n_actions
         for n in layers:
-            linear_layers.append(NoisyLinear(in_dim, n, std_init=std_init))
+            linear_layers.append(
+                NoisyLinear(in_dim, n, std_init=std_init, device=self.device)
+            )
             linear_layers.append(activation())
             in_dim = n
 
-        last_layer = NoisyLinear(in_dim, n_actions, std_init=std_init)
+        last_layer = NoisyLinear(
+            in_dim, n_actions, std_init=std_init, device=self.device
+        )
         last_layer.reset_parameters(mu_range=1e-3)
         self.layers = nn.Sequential(*linear_layers, last_layer)
 

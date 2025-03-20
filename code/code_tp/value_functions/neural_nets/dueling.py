@@ -22,8 +22,12 @@ class DuelingOutputStack(nn.Module):
         identify_mean=True,
         streams_class=LinearNeuralStack,
         streams_kwargs={},
+        device=None,
     ):
         super().__init__()
+        self.device = device
+        if self.device is None:
+            self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.identify_mean = identify_mean
         # set advantage layer
         self.advantage_layer = streams_class(
@@ -32,12 +36,19 @@ class DuelingOutputStack(nn.Module):
             n_actions,
             activation,
             initial_biases,
+            device=self.device,
             **streams_kwargs,
         )
 
         # set value layer
         self.value_layer = streams_class(
-            layers, in_dim, 1, activation, initial_biases, **streams_kwargs
+            layers,
+            in_dim,
+            1,
+            activation,
+            initial_biases,
+            device=self.device,
+            **streams_kwargs,
         )
 
     def forward(self, x):

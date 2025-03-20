@@ -9,17 +9,26 @@ class LinearNeuralStack(nn.Module):
     """
 
     def __init__(
-        self, layers, in_dim, n_actions, activation=nn.ReLU, initial_biases=None
+        self,
+        layers,
+        in_dim,
+        n_actions,
+        activation=nn.ReLU,
+        initial_biases=None,
+        device=None,
     ):
         super().__init__()
+        self.device = device
+        if self.device is None:
+            self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         linear_layers = []
         for n in layers:
-            linear_layers.append(nn.Linear(in_dim, n))
+            linear_layers.append(nn.Linear(in_dim, n, device=self.device))
             linear_layers.append(activation())
             in_dim = n
 
         self.n_actions = n_actions
-        last_layer = nn.Linear(in_dim, n_actions)
+        last_layer = nn.Linear(in_dim, n_actions, device=self.device)
 
         self.layers = nn.Sequential(*linear_layers, last_layer)
 

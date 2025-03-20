@@ -19,6 +19,9 @@ class SpacioTemporalConv(nn.Module):
         time_size=2,
     ):
         super().__init__()
+        self.device = device
+        if self.device is None:
+            self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         if type(kernel_size) is int:
             kernel_size = (kernel_size, kernel_size)
         if type(padding) is int:
@@ -38,7 +41,7 @@ class SpacioTemporalConv(nn.Module):
             groups=groups,
             bias=bias,
             padding_mode=padding_mode,
-            device=device,
+            device=self.device,
             dtype=dtype,
         )
         conv2 = nn.Conv3d(
@@ -51,7 +54,7 @@ class SpacioTemporalConv(nn.Module):
             groups=groups,
             bias=bias,
             padding_mode=padding_mode,
-            device=device,
+            device=self.device,
             dtype=dtype,
         )
 

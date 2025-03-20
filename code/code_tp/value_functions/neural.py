@@ -35,6 +35,7 @@ class ConvolutionalQFunction(DiscreteQFunction):
         loss_fn=nn.functional.mse_loss,
         hist_log_interval=5000,
         test_noise=0,
+        device=None,
         **kwargs,
     ):
         if use_prev_action:
@@ -43,13 +44,16 @@ class ConvolutionalQFunction(DiscreteQFunction):
             nn_args["embedding_size"] = env.action_space.n
 
         super().__init__(env, *args, **kwargs)
-        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        self.device = device
+        if self.device is None:
+            self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.img_shape = env.observation_space.shape
         self.nn = nn_class(
             img_shape=self.img_shape,
             n_actions=env.action_space.n,
+            device=self.device,
             **nn_args,
-        ).to(self.device)
+        )
         self.nn.share_memory()
         print(self.nn)
         self.optim = torch.optim.Adam(

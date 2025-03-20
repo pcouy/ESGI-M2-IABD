@@ -16,8 +16,12 @@ class ConvolutionalTorso(nn.Module):
         dilation=1,
         activation=nn.Tanh,
         pooling=None,
+        device=None,
     ):
         super().__init__()
+        self.device = device
+        if self.device is None:
+            self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.img_shape = img_shape
 
         layers = []
@@ -67,6 +71,7 @@ class ConvolutionalTorso(nn.Module):
                         padding,
                         dilation,
                         **additional_args,
+                        device=self.device,
                     )
                 )
 
@@ -86,6 +91,7 @@ class ConvolutionalTorso(nn.Module):
                         padding,
                         dilation,
                         **additional_args,
+                        device=self.device,
                     )
                 )
 
@@ -197,6 +203,7 @@ class ConvolutionalNN(nn.Module):
         output_stack_args={"layers": [256]},
         embedding_dim=None,
         embedding_size=None,
+        device=None,
     ):
         """
         * `img_shape` est un tuple représentant la forme d'une image passée en entrée du réseau
@@ -228,12 +235,15 @@ class ConvolutionalNN(nn.Module):
         rôle de chacun de ces paramètres
         """
         super().__init__()
+        self.device = device
+        if self.device is None:
+            self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.img_shape = img_shape
         self.n_actions = n_actions
         self.conv_stack = torso_class(img_shape, activation=activation, **torso_args)
 
         # Get the output size of the torso
-        x = torch.rand((1, *img_shape))
+        x = torch.rand((1, *img_shape), device=self.device)
         y = self.conv_stack(x)
         in_size = y.shape[-1]
 
@@ -255,6 +265,7 @@ class ConvolutionalNN(nn.Module):
             n_actions=n_actions,
             activation=activation,
             **output_stack_args,
+            device=self.device,
         )
         return last_layers
 

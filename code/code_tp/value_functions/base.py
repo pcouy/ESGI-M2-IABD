@@ -100,14 +100,15 @@ class ValueFunction:
         pass
 
     def clone(self):
-        del self.init_args["self"]
-        del self.init_args["__class__"]
-        args = self.init_args["args"]
-        del self.init_args["args"]
-        kwargs = self.init_args["kwargs"]
-        del self.init_args["kwargs"]
-        print(self.init_args)
-        return type(self)(*args, **kwargs, **self.init_args)
+        init_args = self.init_args.copy()
+        del init_args["self"]
+        del init_args["__class__"]
+        args = init_args["args"]
+        del init_args["args"]
+        kwargs = init_args["kwargs"]
+        del init_args["kwargs"]
+        print(init_args)
+        return type(self)(*args, **kwargs, **init_args)
 
 
 class DiscreteQFunction(ValueFunction):
