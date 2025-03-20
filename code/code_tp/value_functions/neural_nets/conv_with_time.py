@@ -17,6 +17,7 @@ class SpacioTemporalConv(nn.Module):
         device=None,
         dtype=None,
         time_size=2,
+        activation=None,
     ):
         super().__init__()
         self.device = device
@@ -58,10 +59,11 @@ class SpacioTemporalConv(nn.Module):
             dtype=dtype,
         )
 
-        self.layers = nn.Sequential(
-            conv1,
-            conv2,
-        )
+        self.layers = nn.Sequential()
+        self.layers.append(conv1)
+        if activation is not None:
+            self.layers.append(activation())
+        self.layers.append(conv2)
 
     def forward(self, x):
         y = self.layers(x)

@@ -56,7 +56,7 @@ class ConvolutionalTorso(nn.Module):
             i_layer = 0
             if len(layers) == 0 and len(img_shape) == 4:
                 conv_class = SpacioTemporalConv
-                additional_args = {"time_size": img_shape[-2]}
+                additional_args = {"time_size": img_shape[-2], "activation": activation}
             else:
                 conv_class = nn.Conv2d
                 additional_args = {}
@@ -118,16 +118,13 @@ class ConvolutionalTorso(nn.Module):
                 # Initialize bias to small positive values to prevent dead ReLUs
                 nn.init.constant_(module.bias, 0.1)
         if isinstance(module, SpacioTemporalConv):
-            nn.init.kaiming_normal_(
-                module.layers[0].weight, mode="fan_out", nonlinearity="relu"
-            )
-            nn.init.kaiming_normal_(
-                module.layers[1].weight, mode="fan_out", nonlinearity="relu"
-            )
-            if module.layers[0].bias is not None:
-                nn.init.constant_(module.layers[0].bias, 0.1)
-            if module.layers[1].bias is not None:
-                nn.init.constant_(module.layers[1].bias, 0.1)
+            for layer in module.layers:
+                if getattr(layer, "weight", None) is not None:
+                    nn.init.kaiming_normal_(
+                        layer.weight, mode="fan_out", nonlinearity="relu"
+                    )
+                if getattr(layer, "bias", None) is not None:
+                    nn.init.constant_(layer.bias, 0.1)
 
     def log_tensorboard(self, tensorboard, step):
         for i, layer in enumerate(self.conv_stack):
@@ -149,42 +146,35 @@ class ConvolutionalTorso(nn.Module):
                         f"nn_grads/conv_stack_{i}_bias_grads", layer.bias.grad, step
                     )
             elif isinstance(layer, SpacioTemporalConv):
-                tensorboard.add_histogram(
-                    f"nn_params/conv_stack_{i}-0_weights", layer.layers[0].weight, step
-                )
-                tensorboard.add_histogram(
-                    f"nn_params/conv_stack_{i}-0_biases", layer.layers[0].bias, step
-                )
-                tensorboard.add_histogram(
-                    f"nn_params/conv_stack_{i}-1_weights", layer.layers[1].weight, step
-                )
-                tensorboard.add_histogram(
-                    f"nn_params/conv_stack_{i}-1_biases", layer.layers[1].bias, step
-                )
-                if layer.layers[0].weight.grad is not None:
-                    tensorboard.add_histogram(
-                        f"nn_grads/conv_stack_{i}-0_weight_grads",
-                        layer.layers[0].weight.grad,
-                        step,
-                    )
-                if layer.layers[0].bias.grad is not None:
-                    tensorboard.add_histogram(
-                        f"nn_grads/conv_stack_{i}-0_bias_grads",
-                        layer.layers[0].bias.grad,
-                        step,
-                    )
-                if layer.layers[1].weight.grad is not None:
-                    tensorboard.add_histogram(
-                        f"nn_grads/conv_stack_{i}-1_weight_grads",
-                        layer.layers[1].weight.grad,
-                        step,
-                    )
-                if layer.layers[1].bias.grad is not None:
-                    tensorboard.add_histogram(
-                        f"nn_grads/conv_stack_{i}-1_bias_grads",
-                        layer.layers[1].bias.grad,
-                        step,
-                    )
+                for j, inner_layer in enumerate(layer.layers):
+                    if getattr(inner_layer, "weight", None) is not None:
+                        tensorboard.add_histogram(
+                            f"nn_params/conv_stack_{i}-{j}_weights",
+                            inner_layer.weight,
+                            step,
+                        )
+                    else:
+                        continue
+                    if getattr(inner_layer, "bias", None) is not None:
+                        tensorboard.add_histogram(
+                            f"nn_params/conv_stack_{i}-{j}_biases",
+                            inner_layer.bias,
+                            step,
+                        )
+                    else:
+                        continue
+                    if inner_layer.weight.grad is not None:
+                        tensorboard.add_histogram(
+                            f"nn_grads/conv_stack_{i}-{j}_weight_grads",
+                            inner_layer.weight.grad,
+                            step,
+                        )
+                    if inner_layer.bias.grad is not None:
+                        tensorboard.add_histogram(
+                            f"nn_grads/conv_stack_{i}-{j}_bias_grads",
+                            inner_layer.bias.grad,
+                            step,
+                        )
 
 
 class ConvolutionalNN(nn.Module):
