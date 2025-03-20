@@ -516,9 +516,7 @@ class QLearningAgent(Agent):
         self.value_function = value_function
         self.cpu_value_function = self.value_function.clone()
         if hasattr(self.value_function, "nn"):
-            self.cpu_value_function.nn.to("cpu")
             self.cpu_value_function.nn.eval()
-            self.cpu_value_function.device = "cpu"
         self.policy = policy
         self.policy_on_cpu = policy_on_cpu
         if self.policy_on_cpu:
