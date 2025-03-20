@@ -119,7 +119,7 @@ class Agent:
         self.episode_logger_range_start = 0
 
     @torch.compiler.disable(recursive=True)
-    def log_data(self, key, value, accumulate=True, test=None):
+    def log_data(self, key, value, accumulate=True, test=None, log_type="scalar"):
         if test is None:
             test = self.test
         if test:
@@ -130,11 +130,17 @@ class Agent:
             self.stats[key] = {"data": []}
 
         if isinstance(value, torch.Tensor):
-            value = value.clone().cpu().item()
-
+            value = value.clone().detach().cpu()
+            if log_type == "scalar":
+                value = value.item()
         if not accumulate:
-            self.stats[key]["data"].append(value)
-            self.tensorboard.add_scalar(key, value, step)
+            if log_type == "scalar":
+                self.stats[key]["data"].append(value)
+                self.tensorboard.add_scalar(key, value, step)
+            elif log_type == "histogram":
+                self.tensorboard.add_histogram(key, value, step)
+            else:
+                raise ValueError(f"Unknown log type '{log_type}'")
             return
 
         if key not in self.last_stats_update:
@@ -145,12 +151,26 @@ class Agent:
             self.cumulative_stats[key]["data"], value
         )
 
-        if self.training_steps - self.last_stats_update[key] > self.accumulate_stats:
+        if isinstance(accumulate, bool):
+            accumulate_stats_every = self.accumulate_stats
+        else:
+            accumulate_stats_every = accumulate
+
+        if self.training_steps - self.last_stats_update[key] > accumulate_stats_every:
             self.last_stats_update[key] = self.training_steps
-            self.stats[key]["data"].append(self.cumulative_stats[key]["data"].mean())
-            self.tensorboard.add_scalar(
-                key, self.cumulative_stats[key]["data"].mean(), step
-            )
+            if log_type == "scalar":
+                self.stats[key]["data"].append(
+                    self.cumulative_stats[key]["data"].mean()
+                )
+                self.tensorboard.add_scalar(
+                    key, self.cumulative_stats[key]["data"].mean(), step
+                )
+            elif log_type == "histogram":
+                self.tensorboard.add_histogram(
+                    key, self.cumulative_stats[key]["data"], step
+                )
+            else:
+                raise ValueError(f"Unknown log type '{log_type}'")
             self.cumulative_stats[key]["data"] = np.array([])
 
     def select_action(

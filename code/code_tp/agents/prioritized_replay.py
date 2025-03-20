@@ -245,3 +245,10 @@ class PrioritizedReplayBufferAgent(ReplayBufferAgent):
             self.log_data(
                 "priority/default_error", self.replay_buffer.default_error, test=False
             )
+            self.log_data(
+                "priority/is_weights",
+                is_weights,
+                test=False,
+                log_type="histogram",
+                accumulate=1000,
+            )

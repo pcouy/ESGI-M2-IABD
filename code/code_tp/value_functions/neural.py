@@ -142,29 +142,32 @@ class ConvolutionalQFunction(DiscreteQFunction):
 
     @torch.compiler.disable(recursive=True)
     def log_call_batch(self, values):
-        if (
-            self.agent is not None
-            and self.agent.training_steps - self.last_tensorboard_log
-            >= self.hist_log_interval
-        ):
+        if self.agent is not None:
             entropies = {}
             for i in range(values.shape[1]):
-                self.agent.tensorboard.add_histogram(
+                self.agent.log_data(
                     f"action/{self.agent.action_label_mapper(i)}",
                     values[:, i],
-                    self.agent.training_steps,
+                    test=False,
+                    log_type="histogram",
+                    accumulate=self.hist_log_interval,
                 )
 
                 # Compute standard deviation for each action across the batch
                 std_dev = torch.std(values[:, i] - values.mean(dim=-1)).item()
                 entropies[self.agent.action_label_mapper(i)] = std_dev
 
-            # Rename the metric name to reflect std dev instead of entropy
-            self.agent.tensorboard.add_scalars(
-                "action_std_dev",
-                entropies,  # We're reusing the dictionary but storing std dev values
-                self.agent.training_steps,
-            )
+            if (
+                self.agent.training_steps - self.last_tensorboard_log
+                > self.hist_log_interval
+            ):
+                # Rename the metric name to reflect std dev instead of entropy
+                self.agent.tensorboard.add_scalars(
+                    "action_std_dev",
+                    entropies,  # We're reusing the dictionary but storing std dev values
+                    self.agent.training_steps,
+                )
+                self.last_tensorboard_log = self.agent.training_steps
 
     def update(self, state, action, target_value, prev_action=None, is_weight=None):
         return self.update_batch(
