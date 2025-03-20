@@ -514,7 +514,7 @@ class QLearningAgent(Agent):
         """
         super().__init__(env, **kwargs)
         self.value_function = value_function
-        self.cpu_value_function = self.value_function.clone()
+        self.cpu_value_function = self.value_function.clone(compile_nn=False)
         if hasattr(self.value_function, "nn"):
             self.cpu_value_function.nn.to("cpu")
         self.policy = policy

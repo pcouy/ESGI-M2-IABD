@@ -99,7 +99,7 @@ class ValueFunction:
     def mix_with(self, other, tau=1):
         pass
 
-    def clone(self):
+    def clone(self, **clone_kwargs):
         init_args = self.init_args.copy()
         del init_args["self"]
         del init_args["__class__"]
@@ -107,8 +107,12 @@ class ValueFunction:
         del init_args["args"]
         kwargs = init_args["kwargs"]
         del init_args["kwargs"]
-        print(init_args)
-        return type(self)(*args, **kwargs, **init_args)
+        for key in clone_kwargs:
+            if key in init_args:
+                del init_args[key]
+            if key in kwargs:
+                del kwargs[key]
+        return type(self)(*args, **kwargs, **clone_kwargs, **init_args)
 
 
 class DiscreteQFunction(ValueFunction):

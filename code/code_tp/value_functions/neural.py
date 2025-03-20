@@ -36,6 +36,7 @@ class ConvolutionalQFunction(DiscreteQFunction):
         hist_log_interval=5000,
         test_noise=0,
         device=None,
+        compile_nn=True,
         **kwargs,
     ):
         if use_prev_action:
@@ -48,12 +49,15 @@ class ConvolutionalQFunction(DiscreteQFunction):
         if self.device is None:
             self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.img_shape = env.observation_space.shape
+        self.compile_nn = compile_nn
         self.nn = nn_class(
             img_shape=self.img_shape,
             n_actions=env.action_space.n,
             device=self.device,
             **nn_args,
         )
+        if self.compile_nn:
+            self.nn = torch.compile(self.nn)
         self.nn.share_memory()
         print(self.nn)
         self.optim = torch.optim.Adam(
@@ -109,7 +113,6 @@ class ConvolutionalQFunction(DiscreteQFunction):
             self.add_batch_dim(state), None if prev_action is None else [prev_action]
         )[0]
 
-    @torch.compile
     def from_state_batch(self, states, prev_actions=None):
         states = self.to_tensor(states)
 
@@ -127,7 +130,6 @@ class ConvolutionalQFunction(DiscreteQFunction):
             [state], [action], None if prev_action is None else [prev_action]
         )[0]
 
-    @torch.compile
     def call_batch(self, states, actions, prev_actions=None):
         states = self.to_tensor(states)
         # Use long for action indices
@@ -250,10 +252,16 @@ class ConvolutionalQFunction(DiscreteQFunction):
         return m.indices, m.values
 
     def export_f(self):
-        return self.nn.state_dict()
+        if not self.compile_nn:
+            return self.nn.state_dict()
+        else:
+            return self.nn._orig_mod.state_dict()
 
     def import_f(self, d):
-        self.nn.load_state_dict(d)
+        if not self.compile_nn:
+            self.nn.load_state_dict(d)
+        else:
+            self.nn._orig_mod.load_state_dict(d)
 
     def mix_with(self, other, tau=0.001):
         for self_param, other_param in zip(self.nn.parameters(), other.nn.parameters()):
