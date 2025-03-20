@@ -260,6 +260,10 @@ class ConvolutionalNN(nn.Module):
         return last_layers
 
     def forward(self, x, secondary_input=None):
+        if x.device != self.device:
+            x.to(self.device)
+        if secondary_input is not None and secondary_input.device != self.device:
+            secondary_input.to(self.device)
         conv_out = self.conv_stack(x)
 
         # Handle secondary input if provided
