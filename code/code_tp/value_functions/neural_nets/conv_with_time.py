@@ -50,7 +50,7 @@ class SpacioTemporalConv(nn.Module):
             out_channels,
             kernel_size=(1, 1, time_size),
             stride=(*stride, 1),
-            padding=(*padding, 0),
+            padding=(0, 0, 0),
             dilation=(*dilation, 1),
             groups=groups,
             bias=bias,
