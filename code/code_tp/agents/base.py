@@ -503,7 +503,9 @@ class QLearningAgent(Agent):
     Implémente l'algorithme du *Q-Learning*
     """
 
-    def __init__(self, env, value_function, policy, gamma=0.99, **kwargs):
+    def __init__(
+        self, env, value_function, policy, gamma=0.99, policy_on_cpu=False, **kwargs
+    ):
         """
         * `env`: Environnement gym dans lequel l'agent évolue
         * `value_function`: Instance d'une fonction de valeur (voir `code_tp/value_functions`)
@@ -512,11 +514,24 @@ class QLearningAgent(Agent):
         """
         super().__init__(env, **kwargs)
         self.value_function = value_function
+        self.cpu_value_function = self.value_function.clone()
+        if hasattr(self.value_function, "nn"):
+            self.cpu_value_function.nn.to("cpu")
         self.policy = policy
+        self.policy_on_cpu = policy_on_cpu
+        if self.policy_on_cpu:
+            self.policy.value_function = self.cpu_value_function
         self.gamma = gamma
         self.value_function.agent = self
         self.policy.agent = self
         self.predicted_value_history = []
+
+    def run_episode(self, test=False):
+        if self.policy_on_cpu:
+            self.cpu_value_function.import_f(self.value_function.export_f())
+            if callable(getattr(self.policy.value_function, "reset_noise", None)):
+                self.policy.value_function.reset_noise()
+        return super().run_episode(test)
 
     @property
     def gamma(self):
