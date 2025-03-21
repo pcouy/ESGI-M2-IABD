@@ -54,10 +54,12 @@ class ReturnNormalizingBufferMixin:
 
     def __init__(self, *args, **kwargs):
         self.gamma = kwargs.get("gamma", 0.99)  # discount factor
+        self.stop_scaling_after = kwargs.pop("stop_scaling_after", None)
         super().__init__(*args, **kwargs)
         self.returns_rms = TorchRunningMeanStd(epsilon=self.warmup_size / 2)
         self.last_tensorboard_step = 0
         self.current_episode_rewards = []
+        self.update_scaling = True
 
     @property
     def lambda_reward(self):
@@ -74,18 +76,24 @@ class ReturnNormalizingBufferMixin:
 
     def store(self, *transition):
         result = super().store(*transition)
-        done = transition[4] if len(transition) > 4 else False
-        reward = transition[3]
-        self.current_episode_rewards.append(reward)
-        if done:
-            current_episode_returns = [0]
-            for r in self.current_episode_rewards[::-1]:
-                current_episode_returns.append(
-                    r + self.gamma * current_episode_returns[-1]
-                )
-            np_squared_returns = np.array(current_episode_returns[1:]) ** 2
-            self.returns_rms.update(current_episode_returns[1:])
-            self.current_episode_rewards = []
+        if self.update_scaling:
+            done = transition[4] if len(transition) > 4 else False
+            reward = transition[3]
+            self.current_episode_rewards.append(reward)
+            if done:
+                current_episode_returns = [0]
+                for r in self.current_episode_rewards[::-1]:
+                    current_episode_returns.append(
+                        r + self.gamma * current_episode_returns[-1]
+                    )
+                np_squared_returns = np.array(current_episode_returns[1:]) ** 2
+                self.returns_rms.update(current_episode_returns[1:])
+                self.current_episode_rewards = []
+                if (
+                    self.stop_scaling_after is not None
+                    and self.n_inserted > self.stop_scaling_after
+                ):
+                    self.update_scaling = False
         return result
 
     def sample(self, *args, **kwargs):
@@ -104,7 +112,10 @@ class ReturnNormalizingBufferMixin:
         return samples
 
     def log_tensorboard(self, tensorboard, step):
-        if step - self.last_tensorboard_step > 1000:
+        if step - self.last_tensorboard_step > 1000 and (
+            self.stop_scaling_after is None
+            or self.n_inserted <= self.stop_scaling_after
+        ):
             self.last_tensorboard_step = step
             tensorboard.add_scalar(
                 "reward_scaling/returns_mean", self.returns_rms.mean, step
