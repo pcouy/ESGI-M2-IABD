@@ -4,9 +4,9 @@ from subprocess import Popen, PIPE
 import time
 
 
-def frame_generator(frames_buffer, fps=30):
+def frame_generator(frames_buffer, infos_buffer, fps=30):
     while True:
-        yield frames_buffer.get()
+        yield frames_buffer.get(), infos_buffer.get()
 
 
 def stream_frames(
@@ -60,7 +60,7 @@ def stream_frames(
         ],
         stdin=PIPE,
     )
-    for frame in frame_generator(frames_buffer, fps):
+    for frame, infos in frame_generator(frames_buffer, infos_buffer, fps):
         p.stdin.write(frame.tobytes())
         p.stdin.flush()
         time.sleep(0.9 / fps)
