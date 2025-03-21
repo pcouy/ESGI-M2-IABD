@@ -13,4 +13,5 @@ from . import (
     decision_rate_mixin,
     target_normalizing_agent_mixin,
     return_normalizing_buffer_mixin,
+    livestreaming_agent_mixin,
 )
