@@ -21,8 +21,7 @@ def stream_frames(
             "ffmpeg",
             "-f",
             "rawvideo",
-            "-framerate",
-            f"{fps}/1",
+            "-framerate", f"{fps}/1",
             "-vcodec",
             "rawvideo",
             "-pix_fmt",
@@ -38,8 +37,7 @@ def stream_frames(
             "0",
             "-g",
             "30",
-            "-r",
-            str(fps),
+            "-r", str(fps),
             "-pix_fmt",
             "yuv420p",
             "-f",
@@ -63,7 +61,7 @@ def stream_frames(
     for frame, infos in frame_generator(frames_buffer, infos_buffer, fps):
         p.stdin.write(frame.tobytes())
         p.stdin.flush()
-        time.sleep(0.9 / fps)
+        time.sleep(1 / fps)
 
 
 class LivestreamingAgentMixin:
