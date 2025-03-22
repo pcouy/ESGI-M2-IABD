@@ -324,21 +324,6 @@ class Agent:
                 self.log_step(
                     f"test_episodes_{self.training_episodes}", step_num, transition
                 )
-                if (
-                    not train_test_transitions
-                    and self.test_patience > 0
-                    and step_num - last_reward_step > self.test_patience
-                ):
-                    print("Agent stuck in test, learning from test transitions")
-                    train_test_transitions = True
-                if train_test_transitions:
-                    try:
-                        self.train_with_transition(*transition)
-                        self.training_steps += 1
-                    except Exception as e:
-                        print("Error training on test transition")
-                        print(f"{e}")
-                        print(f"{transition}")
             step_num += 1
             score += reward
             if reward > 0:
