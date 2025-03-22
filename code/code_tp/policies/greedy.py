@@ -76,6 +76,8 @@ class GreedyQPolicy(RandomPolicy):
 
     def __call__(self, state, prev_action=None, **kwargs):
         with torch.no_grad():
+            if callable(getattr(self.value_function, "reset_noise", None)):
+                self.value_function.reset_noise()
             values = self.value_function.from_state(state, prev_action)
             action, value = self.best_action_value_from_values(values)
             if type(value) is torch.Tensor:
@@ -97,6 +99,8 @@ class GreedyQPolicy(RandomPolicy):
 
     def batch_call(self, state_batch, prev_actions=None):
         with torch.no_grad():
+            if callable(getattr(self.value_function, "reset_noise", None)):
+                self.value_function.reset_noise()
             values_batch = self.value_function.from_state_batch(
                 state_batch, prev_actions
             )

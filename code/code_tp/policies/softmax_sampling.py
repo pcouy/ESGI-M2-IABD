@@ -113,6 +113,8 @@ class SoftmaxSamplingPolicy(EGreedyPolicy):
         step = self.agent.testing_steps if self.in_test else self.agent.training_steps
 
         with torch.no_grad():
+            if callable(getattr(self.value_function, "reset_noise", None)):
+                self.value_function.reset_noise()
             values = self.value_function.from_state(state, prev_action)
 
         if epsilon > 0:

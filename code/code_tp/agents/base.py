@@ -567,6 +567,8 @@ class QLearningAgent(Agent):
     def train_with_transition(
         self, state, action, next_state, reward, done, infos, prev_action=None
     ):
+        if callable(getattr(self.value_function, "reset_noise", None)):
+            self.value_function.reset_noise()
         target_value = self.target_value_from_state(
             next_state, reward, done, action
         )  # Pass current action as next prev_action

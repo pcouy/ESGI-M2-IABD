@@ -227,6 +227,9 @@ class PrioritizedReplayBufferAgent(ReplayBufferAgent):
             is_weights,
         ) = self.replay_buffer.sample()
 
+        if callable(getattr(self.value_function, "reset_noise", None)):
+
+            self.value_function.reset_noise()
         target_values = self.target_value_from_state_batch(
             next_states,
             rewards,

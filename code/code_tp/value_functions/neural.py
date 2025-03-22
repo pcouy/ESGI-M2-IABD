@@ -205,7 +205,6 @@ class ConvolutionalQFunction(DiscreteQFunction):
         self.scaler.scale(pred_error).backward()
         self.scaler.step(self.optim)
         self.scaler.update()
-        self.reset_noise()
 
         self.log_update_step(pred_error)
         return pred_error_indiv.detach().cpu().numpy()
@@ -234,6 +233,8 @@ class ConvolutionalQFunction(DiscreteQFunction):
     @torch.compiler.disable(recursive=True)
     def reset_noise(self, strength=None):
         strength = self._default_noise_strength if strength is None else strength
+        if self.agent is not None:
+            self.agent.log_data("noise_strength", strength, test=False)
         if callable(getattr(self.nn, "reset_noise", None)):
             self.nn.reset_noise(strength)
             if isinstance(self.agent, TargetValueAgent):

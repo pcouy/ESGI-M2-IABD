@@ -233,6 +233,8 @@ class ReplayBufferAgent(QLearningAgent):
         )
 
     def train_one_batch(self):
+        if callable(getattr(self.value_function, "reset_noise", None)):
+            self.value_function.reset_noise()
         states, actions, next_states, rewards, dones, prev_actions = (
             self.replay_buffer.sample()
         )
