@@ -30,6 +30,8 @@ def stream_frames(
             "x".join(map(str, img_size)),
             "-i",
             "pipe:",
+            "-vf",
+            "scale=-2:480",
             "-an",
             "-c:v",
             "libx264",
