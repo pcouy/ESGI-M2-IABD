@@ -48,10 +48,12 @@ class SoftmaxSamplingPolicy(EGreedyPolicy):
         self.running_action_probas = np.ones((self.n_actions,)) / self.n_actions
         self.running_greedy_action_probas = np.ones((self.n_actions,)) / self.n_actions
         self.sampling_count = 0
+        self.noisynet_strength = 1
         self._save_attr("final_target_entropy")
         self._save_attr("running_action_probas_lr")
         self._save_attr("entropy_lr")
         self._save_attr("epsilon_lr")
+        self._save_attr("noisynet_strength")
 
         if biases is None:
             self.biases = np.array(
@@ -114,7 +116,11 @@ class SoftmaxSamplingPolicy(EGreedyPolicy):
 
         with torch.no_grad():
             if callable(getattr(self.value_function, "reset_noise", None)):
-                self.value_function.reset_noise()
+                if self.agent is not None and self.agent.test:
+                    strength = None
+                else:
+                    strength = self.noisynet_strength
+                self.value_function.reset_noise(strength)
             values = self.value_function.from_state(state, prev_action)
 
         if epsilon > 0:
@@ -236,6 +242,7 @@ class SoftmaxSamplingPolicy(EGreedyPolicy):
             self._load_attr("running_action_probas_lr")
             self._load_attr("entropy_lr")
             self._load_attr("epsilon_lr")
+            self._load_attr("noisynet_strength")
         return action
 
     def _save_attr(self, attr_name):
