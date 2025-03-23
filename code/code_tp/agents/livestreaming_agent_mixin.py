@@ -98,14 +98,19 @@ class LivestreamingAgentMixin:
             self.infos_buffer.put(
                 {
                     "action": action,
-                    "reward": res[2],
-                    "done": res[3],
+                    "reward": res[1],
+                    "done": res[2] or res[3],
                     "training_steps": self.training_steps,
                     "testing": self.test,
+                    "infos": res[-1],
                 }
             )
+        self._accumulated_reward+= res[1]
+        if (res[2] or res[3]) and not self.test:
+            self.tensorboard.add_scalars("score_per_level", {str(res[-1]["stage"]): self._accumulated_reward}, self.training_steps)
         return res
 
     def run_episode(self, test, *args, **kwargs):
         self.capturing = self.frames_buffer.qsize() < self.throttle_queue or test
+        self._accumulated_reward = 0
         return super().run_episode(test, *args, **kwargs)
