@@ -89,7 +89,11 @@ class LivestreamingAgentMixin:
                 "img_size": self.env.render().shape[:2][::-1],
             },
         )
+
+    def train(self, *args, **kwargs):
         self.stream_process.start()
+        super().train(*args, **kwargs)
+        self.stream_process.terminate()
 
     def step(self, action, env=None):
         res = super().step(action, env)
