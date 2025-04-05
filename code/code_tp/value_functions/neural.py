@@ -50,7 +50,8 @@ class ConvolutionalQFunction(DiscreteQFunction):
             self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.img_shape = env.observation_space.shape
         self.compile_nn = compile_nn
-        self.nn = nn_class(
+        self.nn = self.make_nn(
+            nn_class,
             img_shape=self.img_shape,
             n_actions=env.action_space.n,
             device=self.device,
@@ -91,6 +92,21 @@ class ConvolutionalQFunction(DiscreteQFunction):
         self.last_tensorboard_log = 0
         self.training_steps = 0
         self.hist_log_interval = hist_log_interval
+
+    def make_nn(
+        self,
+        nn_class,
+        img_shape=self.img_shape,
+        n_actions=env.action_space.n,
+        device=self.device,
+        **nn_args,
+    ):
+        return nn_class(
+            img_shape=self.img_shape,
+            n_actions=env.action_space.n,
+            device=self.device,
+            **nn_args,
+        )
 
     def backward_warmup(self):
         dummy_input = torch.randn((1, *self.img_shape))
