@@ -102,6 +102,7 @@ class NoisyLinearNeuralStack(nn.Module):
         layers,
         in_dim,
         n_actions,
+        n_atoms,
         activation=nn.ReLU,
         initial_biases=None,
         std_init=0.5,
@@ -113,6 +114,7 @@ class NoisyLinearNeuralStack(nn.Module):
             self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         linear_layers = []
         self.n_actions = n_actions
+        self.n_atoms = n_atoms
         for n in layers:
             linear_layers.append(
                 NoisyLinear(in_dim, n, std_init=std_init, device=self.device)
@@ -121,7 +123,7 @@ class NoisyLinearNeuralStack(nn.Module):
             in_dim = n
 
         last_layer = NoisyLinear(
-            in_dim, n_actions, std_init=std_init, device=self.device
+            in_dim, n_actions * n_atoms, std_init=std_init, device=self.device
         )
         last_layer.reset_parameters(mu_range=1e-3)
         self.layers = nn.Sequential(*linear_layers, last_layer)
@@ -193,8 +195,11 @@ class NoisyLinearNeuralStack(nn.Module):
             tensorboard.add_histogram(f"{name}_activation", self.last_activation, step)
             if self.n_actions > 1:
                 for i in range(self.n_actions):
-                    tensorboard.add_histogram(
-                        f"{name}_activation/{action_mapper(i)}",
-                        self.last_activation[:, i],
-                        step,
-                    )
+                    try:
+                        tensorboard.add_histogram(
+                            f"{name}_activation/{action_mapper(i)}",
+                            self.last_activation[:, i],
+                            step,
+                        )
+                    except IndexError:
+                        pass

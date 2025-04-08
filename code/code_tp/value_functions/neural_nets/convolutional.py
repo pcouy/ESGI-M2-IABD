@@ -17,6 +17,7 @@ class ConvolutionalTorso(nn.Module):
         activation=nn.Tanh,
         pooling=None,
         device=None,
+        **kwargs,
     ):
         super().__init__()
         self.device = device
@@ -186,6 +187,7 @@ class ConvolutionalNN(nn.Module):
         self,
         img_shape,
         n_actions,
+        n_atoms=1,
         torso_class=ConvolutionalTorso,
         torso_args={},
         activation=nn.Tanh,
@@ -230,6 +232,7 @@ class ConvolutionalNN(nn.Module):
             self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.img_shape = img_shape
         self.n_actions = n_actions
+        self.n_atoms = n_atoms
         self.conv_stack = torso_class(img_shape, activation=activation, **torso_args)
 
         # Get the output size of the torso
@@ -253,6 +256,7 @@ class ConvolutionalNN(nn.Module):
         last_layers = output_stack_class(
             in_dim=in_size,
             n_actions=n_actions,
+            n_atoms=self.n_atoms,
             activation=activation,
             **output_stack_args,
             device=self.device,
@@ -283,12 +287,14 @@ class ConvolutionalNN(nn.Module):
         if callable(getattr(self.last_layers, "reset_noise", None)):
             self.last_layers.reset_noise(strength)
 
-    def log_tensorboard(self, tensorboard, step, action_mapper=str):
+    def log_tensorboard(self, tensorboard, step, action_mapper=str, n_actions=None):
+        if n_actions is None:
+            n_actions = self.n_actions
         if self.embedding is not None:
             tensorboard.add_embedding(
                 self.embedding.weight,
                 global_step=step,
-                metadata=[action_mapper(i) for i in range(self.n_actions)],
+                metadata=[action_mapper(i) for i in range(n_actions)],
             )
         if callable(getattr(self.last_layers, "log_tensorboard", None)):
             self.last_layers.log_tensorboard(

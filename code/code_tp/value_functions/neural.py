@@ -50,10 +50,11 @@ class ConvolutionalQFunction(DiscreteQFunction):
             self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.img_shape = env.observation_space.shape
         self.compile_nn = compile_nn
+        self.n_actions = env.action_space.n
         self.nn = self.make_nn(
             nn_class,
             img_shape=self.img_shape,
-            n_actions=env.action_space.n,
+            n_actions=self.n_actions,
             device=self.device,
             **nn_args,
         )
@@ -96,15 +97,15 @@ class ConvolutionalQFunction(DiscreteQFunction):
     def make_nn(
         self,
         nn_class,
-        img_shape=self.img_shape,
-        n_actions=env.action_space.n,
-        device=self.device,
+        img_shape,
+        n_actions,
+        device,
         **nn_args,
     ):
         return nn_class(
-            img_shape=self.img_shape,
-            n_actions=env.action_space.n,
-            device=self.device,
+            img_shape=img_shape,
+            n_actions=n_actions,
+            device=device,
             **nn_args,
         )
 
@@ -129,7 +130,7 @@ class ConvolutionalQFunction(DiscreteQFunction):
             self.add_batch_dim(state), None if prev_action is None else [prev_action]
         )[0]
 
-    def from_state_batch(self, states, prev_actions=None):
+    def from_state_batch(self, states, prev_actions=None, log=False):
         states = self.to_tensor(states)
 
         if self.use_prev_action and prev_actions is not None:
@@ -139,6 +140,8 @@ class ConvolutionalQFunction(DiscreteQFunction):
             prev_actions = None
 
         self.last_result = self.nn(states, prev_actions)
+        if log:
+            self.log_call_batch(self.last_result)
         return self.last_result
 
     def __call__(self, state, action, prev_action=None):
@@ -147,17 +150,7 @@ class ConvolutionalQFunction(DiscreteQFunction):
         )[0]
 
     def call_batch(self, states, actions, prev_actions=None):
-        states = self.to_tensor(states)
-        # Use long for action indices
-        actions = self.to_tensor(actions, dtype=torch.long)
-
-        if prev_actions is not None:
-            # Ensure prev_actions are long for embedding layer
-            prev_actions = self.to_tensor(prev_actions, dtype=torch.long)
-
-        values = self.nn(states, prev_actions)
-
-        self.log_call_batch(values)
+        values = self.from_state_batch(states, prev_actions, log=True)
         return values.gather(-1, actions.reshape((len(actions), 1)))
 
     @torch.compiler.disable(recursive=True)
@@ -196,11 +189,9 @@ class ConvolutionalQFunction(DiscreteQFunction):
             None if prev_action is None else [prev_action],
         )[0]
 
-    @torch.compile
-    def update_batch(
+    def get_pred_error(
         self, states, actions, target_values, prev_actions=None, is_weights=None
     ):
-        self.training_steps += 1
         if is_weights is None:
             is_weights = torch.ones(
                 (states.shape[0],), dtype=torch.float32, device=self.device
@@ -209,15 +200,23 @@ class ConvolutionalQFunction(DiscreteQFunction):
             is_weights = self.to_tensor(is_weights)
         target_values = self.to_tensor(target_values).detach()
 
-        self.optim.zero_grad(set_to_none=False)
-
         pred_values = self.call_batch(states, actions, prev_actions)
         pred_error_indiv = torch.abs(pred_values[:, 0] - target_values)
         pred_error = (
             is_weights
             * self.loss_fn(pred_values[:, 0], target_values, reduction="none")
         ).mean()
+        return pred_error, pred_error_indiv
 
+    @torch.compile
+    def update_batch(
+        self, states, actions, target_values, prev_actions=None, is_weights=None
+    ):
+        self.training_steps += 1
+        pred_error, pred_error_indiv = self.get_pred_error(
+            states, actions, target_values, prev_actions, is_weights
+        )
+        self.optim.zero_grad(set_to_none=False)
         self.scaler.scale(pred_error).backward()
         self.scaler.step(self.optim)
         self.scaler.update()
@@ -237,6 +236,7 @@ class ConvolutionalQFunction(DiscreteQFunction):
                 self.agent.tensorboard,
                 self.agent.training_steps,
                 action_mapper=self.agent.action_label_mapper,
+                n_actions=self.n_actions,
             )
             self.last_tensorboard_log = self.agent.training_steps
 

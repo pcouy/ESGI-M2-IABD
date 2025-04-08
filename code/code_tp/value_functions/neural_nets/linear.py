@@ -13,6 +13,7 @@ class LinearNeuralStack(nn.Module):
         layers,
         in_dim,
         n_actions,
+        n_atoms=1,
         activation=nn.ReLU,
         initial_biases=None,
         device=None,
@@ -28,7 +29,8 @@ class LinearNeuralStack(nn.Module):
             in_dim = n
 
         self.n_actions = n_actions
-        last_layer = nn.Linear(in_dim, n_actions, device=self.device)
+        self.n_atoms = n_atoms
+        last_layer = nn.Linear(in_dim, n_actions*n_atoms, device=self.device)
 
         self.layers = nn.Sequential(*linear_layers, last_layer)
 
