@@ -36,12 +36,20 @@ class TargetValueAgent(QLearningAgent):
 
     @torch.no_grad()
     def eval_state(self, state, prev_action=None):
+        if self.distributional:
+            return self.target_value_function.best_action_dist_from_state(
+                state, prev_action
+            )
         return self.target_value_function.best_action_value_from_state(
             state, prev_action
         )
 
     @torch.no_grad()
     def eval_state_batch(self, states, prev_actions=None):
+        if self.distributional:
+            return self.target_value_function.best_action_dist_from_state_batch(
+                states, prev_actions
+            )
         return self.target_value_function.best_action_value_from_state_batch(
             states, prev_actions
         )
@@ -55,6 +63,16 @@ class DoubleQLearning(TargetValueAgent):
 
     @torch.no_grad()
     def eval_state_batch(self, states, prev_actions=None):
+        if self.distributional:
+            selected_actions, _ = self.value_function.best_action_dist_from_state_batch(
+                states, prev_actions
+            )
+            dists = self.target_value_function.dist(
+                states, prev_actions
+            )
+            dists = dists[range(selected_actions.shape[0]), selected_actions]
+            return selected_actions, dists
+
         selected_actions, _ = self.value_function.best_action_value_from_state_batch(
             states, prev_actions
         )
@@ -66,6 +84,13 @@ class DoubleQLearning(TargetValueAgent):
 
     @torch.no_grad()
     def eval_state(self, state, prev_action=None):
+        if self.distributional:
+            selected_action, _ = self.value_function.best_action_dist_from_state(
+                state, prev_action
+            )
+            dist = self.target_value_function(state, selected_action, prev_action)
+            return selected_action, dist
+
         selected_action, _ = self.value_function.best_action_value_from_state(
             state, prev_action
         )

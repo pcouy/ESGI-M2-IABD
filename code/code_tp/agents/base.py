@@ -502,6 +502,7 @@ class QLearningAgent(Agent):
         self.cpu_value_function = self.value_function.clone()
         if hasattr(self.value_function, "nn"):
             self.cpu_value_function.nn.eval()
+        self.distributional = callable(getattr(self.value_function, "dist", None))
         self.policy = policy
         self.policy_on_cpu = policy_on_cpu
         if self.policy_on_cpu:
@@ -528,9 +529,17 @@ class QLearningAgent(Agent):
 
     def log_step(self, episode_name, step_num, transition):
         super().log_step(episode_name, step_num, transition)
-        if self.value_function.last_result is None:
-            return
-        action_values = self.value_function.last_result
+        if self.distributional:
+            if self.value_function.last_dist is None:
+                return
+            dists = self.value_function.last_dist
+            action_values = self.value_function.dist_to_value(dists)
+            if len(dists.shape) == 3:
+                dists = dists[-1]
+        else:
+            if self.value_function.last_result is None:
+                return
+            action_values = self.value_function.last_result
         if len(action_values.shape) == 2:
             action_values = action_values[-1]
         value_scaling = getattr(self.policy, "value_scaling", 1)
@@ -578,9 +587,15 @@ class QLearningAgent(Agent):
             self.policy.update()
 
     def eval_state(self, state, prev_action=None):
+        if self.distributional:
+            return self.value_function.best_action_dist_from_state(state, prev_action)
         return self.value_function.best_action_value_from_state(state, prev_action)
 
     def eval_state_batch(self, states, prev_actions=None):
+        if self.distributional:
+            return self.value_function.best_action_dist_from_state_batch(
+                states, prev_actions
+            )
         return self.value_function.best_action_value_from_state_batch(
             states, prev_actions
         )
@@ -604,6 +619,10 @@ class QLearningAgent(Agent):
         Calcule la valeur cible pour une batch de transitions
         """
         # Pass actions as prev_actions for next state evaluation
+        if self.distributional:
+            return self.target_dist_from_state_batch(
+                next_states, rewards, dones, actions, n_step
+            )
         with torch.no_grad():
             next_actions, next_values = self.eval_state_batch(
                 next_states, actions if self.use_prev_action else None
@@ -618,6 +637,60 @@ class QLearningAgent(Agent):
                 next_values
             ) * (1 - dones)
         return self.scale_target(targets)
+
+    def target_dist_from_state_batch(
+        self, next_states, rewards, dones, actions, n_step=1
+    ):
+        """
+        Calcule la valeur cible pour une batch de transitions
+        """
+        # Pass actions as prev_actions for next state evaluation
+        with torch.no_grad():
+            batch_size = dones.shape[0]
+            next_actions, next_dists = self.eval_state_batch(
+                next_states, actions if self.use_prev_action else None
+            )
+            # Convert boolean dones tensor to float for arithmetic operations
+            dones = (
+                dones.float()
+                if isinstance(dones, torch.Tensor)
+                else torch.tensor(dones, dtype=torch.float32)
+            )
+
+            t_z = rewards.view(-1, 1) + (
+                1 - dones.view(-1, 1)
+            ) * self.gamma**n_step * self.value_function.support.expand(
+                batch_size, self.value_function.atom_size
+            )
+            t_z = t_z.clamp(
+                min=self.value_function.v_min, max=self.value_function.v_max
+            )
+            b = (t_z - self.value_function.v_min) / self.value_function.delta_z
+            
+            l = b.floor().long() # -1e-6 to avoid issues with integer values
+            u = l + 1
+            
+            offset = (
+                torch.linspace(
+                    0, (batch_size - 1) * self.value_function.atom_size, batch_size
+                )
+                .long()
+                .unsqueeze(1)
+                .expand(batch_size, self.value_function.atom_size)
+                .to(self.value_function.device)
+            )
+
+            proj_dist = torch.zeros(next_dists.size(), device=self.value_function.device)
+            
+            # Use the original b (without epsilon) for probability calculation
+            proj_dist.view(-1).index_add_(
+                0, (l + offset).view(-1), (next_dists * (u.float() - b)).view(-1)
+            )
+            proj_dist.view(-1).index_add_(
+                0, (u.clamp(max=self.value_function.atom_size - 1) + offset).view(-1), (next_dists * (b - l.float())).view(-1)
+            )
+
+            return proj_dist
 
     def select_action(self, state, prev_action=None, **kwargs):
         if not self.test:
